@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetRescue — Intelligent Network Resilience & Disaster Recovery Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-card: rgba(16, 23, 38, 0.85);
+      --bg-card-hover: rgba(24, 34, 56, 0.95);
+      --border-color: rgba(56, 89, 138, 0.25);
+      --border-accent: rgba(0, 240, 255, 0.4);
+      --text-main: #f0f6fc;
+      --text-muted: #8b9bb4;
+      --cyan: #00f0ff;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --emergency: #ff0055;
+      --shadow-glow: 0 0 20px rgba(0, 240, 255, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 50% 0%, #111a2e 0%, #07090e 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: rgba(10, 13, 20, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #00f0ff, #3b82f6);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: #050811;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand span {
+      font-size: 0.75rem;
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    select, button, input {
+      font-family: inherit;
+    }
+    .styled-select {
+      background: rgba(19, 29, 49, 0.8);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .styled-select:focus, .styled-select:hover {
+      border-color: var(--cyan);
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00f0ff, #0284c7);
+      color: #04101d;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-emergency {
+      background: linear-gradient(135deg, #ff0055, #dc2626);
+      color: white;
+      box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);
+      animation: pulse-red 2s infinite;
+    }
+    .btn-emergency:hover {
+      box-shadow: 0 0 22px rgba(255, 0, 85, 0.8);
+      transform: translateY(-1px);
+    }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 12px rgba(255, 0, 85, 0.4); }
+      50% { box-shadow: 0 0 22px rgba(255, 0, 85, 0.8); }
+    }
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: rgba(45, 62, 88, 0.9);
+      border-color: var(--cyan);
+    }
+
+    /* MAIN CONTAINER */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      flex: 1;
+      height: calc(100vh - 72px);
+    }
+
+    /* LEFT PANE: VISUALIZER */
+    .visualizer-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
+    }
+    .stat-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .stat-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .canvas-container {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-toolbar {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+    .canvas-legend {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      background: rgba(10, 15, 26, 0.85);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.72rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      z-index: 10;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    svg#network-svg {
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    /* RIGHT PANE: CONTROL TABS */
+    .control-pane {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tabs-header {
+      display: flex;
+      background: rgba(12, 17, 29, 0.9);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem 0.5rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.05);
+    }
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: none;
+    }
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* TABLES & CARDS */
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 0.5rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+    .data-table td {
+      padding: 0.55rem 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .pill {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+    }
+    .pill-emergency { background: rgba(255, 0, 85, 0.2); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
+    .pill-essential { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .pill-academic { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+    .pill-general { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+    .pill-background { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .compare-card {
+      background: rgba(10, 15, 26, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.85rem;
+    }
+    .compare-card.winner {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+    }
+    .compare-card h4 {
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+      color: var(--cyan);
+    }
+    .compare-metric {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .event-log {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .event-item {
+      background: rgba(12, 17, 29, 0.6);
+      border-left: 3px solid var(--cyan);
+      padding: 0.45rem 0.65rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.75rem;
+    }
+    .event-item.failure { border-left-color: var(--red); }
+    .event-item.emergency { border-left-color: var(--emergency); }
+    .event-item.restore { border-left-color: var(--green); }
+    .event-step {
+      font-family: 'Fira Code', monospace;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal-card {
+      background: #0f1626;
+      border: 1px solid var(--border-accent);
+      border-radius: 12px;
+      width: 440px;
+      padding: 1.5rem;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+    }
+    .modal-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(22, 32, 54, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: white;
+      font-size: 0.85rem;
+    }
+    .form-input:focus {
+      border-color: var(--cyan);
+      outline: none;
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #152238;
+      border: 1px solid var(--cyan);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+      font-size: 0.85rem;
+      z-index: 2000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">NR</div>
+      <div>
+        <h1>NetRescue Platform</h1>
+      </div>
+      <span>PACAR v1.0 • Disaster Engine</span>
+    </div>
+
+    <div class="header-actions">
+      <select id="scenario-select" class="styled-select" onchange="loadScenarioPreset(this.value)">
+        <option value="" disabled selected>⚡ Load Scenario Preset...</option>
+        <option value="campus_disaster">Campus Disaster Recovery (Multi-Link Cut)</option>
+        <option value="backbone_crisis">National Backbone Crisis (Bottleneck Partition)</option>
+        <option value="ring_network">Survivable Ring (Self-Healing)</option>
+        <option value="diamond">Diamond Alternate Route</option>
+        <option value="simple">Simple Triangle Flow</option>
+      </select>
+
+      <button class="btn btn-emergency" onclick="openEmergencyModal()">
+        🚨 Inject Emergency
+      </button>
+
+      <button class="btn btn-primary" onclick="triggerSimulation()">
+        ▶ Run PACAR Reroute
+      </button>
+
+      <button class="btn btn-secondary" onclick="runComparison()">
+        ⚖ Compare vs Baseline
+      </button>
+
+      <button class="btn btn-secondary" onclick="exportDataReport()">
+        💾 Export
+      </button>
+    </div>
+  </header>
+
+  <!-- APP LAYOUT -->
+  <div class="app-layout">
+    
+    <!-- LEFT: VISUALIZER -->
+    <div class="visualizer-pane">
+      
+      <!-- METRIC CARDS -->
+      <div class="stats-bar">
+        <div class="stat-card" style="--accent: var(--cyan);">
+          <div class="stat-title">Delivery Rate</div>
+          <div class="stat-value" id="metric-delivery">100%</div>
+          <div class="stat-sub" id="metric-delivered-bw">0 / 0 Mbps</div>
+        </div>
+        <div class="stat-card" style="--accent: var(--amber);">
+          <div class="stat-title">Congested Links</div>
+          <div class="stat-value" id="metric-congested">0</div>
+          <div class="stat-sub">Load &gt; 80% Capacity</div>
+        </div>
+        <div class="stat-card" style="--accent: var(--red);">
+          <div class="stat-title">Failed Links</div>
+          <div class="stat-value" id="metric-failed-links">0</div>
+          <div class="stat-sub">Active Outages</div>
+        </div>
+        <div class="stat-card" style="--accent: var(--green);">
+          <div class="stat-title">Resilience Score</div>
+          <div class="stat-value" id="metric-health">98.5</div>
+          <div class="stat-sub">Adaptive Stability</div>
+        </div>
+      </div>
+
+      <!-- CANVAS -->
+      <div class="canvas-container">
+        <div class="canvas-toolbar">
+          <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;" onclick="restoreAllLinks()">
+            🔄 Restore All Links
+          </button>
+          <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;" onclick="failRandomLink()">
+            💥 Trigger Random Failure
+          </button>
+        </div>
+
+        <svg id="network-svg">
+          <defs>
+            <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <g id="links-group"></g>
+          <g id="nodes-group"></g>
+        </svg>
+
+        <div class="canvas-legend">
+          <span style="color:var(--text-muted); font-weight:600;">LINK STATUS:</span>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Normal (&lt;50%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Moderate (50-80%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Congested (&gt;80%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ff0055; box-shadow:0 0 6px #ff0055;"></div> Failed (Click to Toggle)</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: CONTROLS & LOGS -->
+    <div class="control-pane">
+      <div class="tabs-header">
+        <button class="tab-btn active" onclick="switchTab('tab-demands')">Demands (QoS)</button>
+        <button class="tab-btn" onclick="switchTab('tab-compare')">Algorithm Comparison</button>
+        <button class="tab-btn" onclick="switchTab('tab-vulnerability')">Vulnerabilities</button>
+        <button class="tab-btn" onclick="switchTab('tab-events')">Event Timeline</button>
+      </div>
+
+      <!-- TAB 1: DEMANDS -->
+      <div id="tab-demands" class="tab-content active">
+        <div class="section-title">
+          <span>Active Traffic Demands</span>
+          <span id="demands-count" style="font-size:0.75rem; color:var(--cyan);">0 Demands</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Path</th>
+              <th>Category</th>
+              <th>Allocated</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="demands-table-body">
+            <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No demands loaded</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAB 2: ALGORITHM COMPARISON -->
+      <div id="tab-compare" class="tab-content">
+        <div class="section-title">PACAR vs Baseline Dijkstra</div>
+        <div id="compare-container">
+          <p style="font-size:0.8rem; color:var(--text-muted);">
+            Click <strong>"Compare vs Baseline"</strong> to evaluate PACAR's multi-path congestion-adaptive routing against standard shortest-path Dijkstra under identical disaster conditions.
+          </p>
+        </div>
+      </div>
+
+      <!-- TAB 3: VULNERABILITY -->
+      <div id="tab-vulnerability" class="tab-content">
+        <div class="section-title">
+          <span>Link Vulnerability & Criticality</span>
+          <button class="btn btn-secondary" style="font-size:0.7rem; padding:0.25rem 0.5rem;" onclick="loadVulnerabilities()">Refresh</button>
+        </div>
+        <div id="vulnerability-list">
+          <p style="font-size:0.8rem; color:var(--text-muted);">Loading vulnerability metrics...</p>
+        </div>
+      </div>
+
+      <!-- TAB 4: EVENTS -->
+      <div id="tab-events" class="tab-content">
+        <div class="section-title">
+          <span>Real-time Event Timeline</span>
+          <button class="btn btn-secondary" style="font-size:0.7rem; padding:0.25rem 0.5rem;" onclick="refreshEvents()">Refresh</button>
+        </div>
+        <div class="event-log" id="events-log-container">
+          <div class="event-item">Simulator initialized.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- EMERGENCY INJECTION MODAL -->
+  <div class="modal-backdrop" id="emergency-modal">
+    <div class="modal-card">
+      <h3>🚨 Inject Emergency Demand</h3>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
+        Inject high-priority P1 Emergency traffic. NetRescue will immediately pre-empt lower-priority traffic (Background/General) to guarantee zero-loss emergency communication.
+      </p>
+      <div class="form-group">
+        <label>Demand ID</label>
+        <input type="text" id="emg-id" class="form-input" value="EMG_911">
+      </div>
+      <div class="form-group">
+        <label>Source Node</label>
+        <select id="emg-source" class="form-input"></select>
+      </div>
+      <div class="form-group">
+        <label>Destination Node</label>
+        <select id="emg-dest" class="form-input"></select>
+      </div>
+      <div class="form-group">
+        <label>Required Bandwidth (Mbps)</label>
+        <input type="number" id="emg-bw" class="form-input" value="80" min="1" max="1000">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeEmergencyModal()">Cancel</button>
+        <button class="btn btn-emergency" onclick="submitEmergency()">Inject &amp; Preempt</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">Notification message</div>
+
+  <script>
+    const API_BASE = (window.location.port === "8000" || window.location.port === "") ? "" : "http://localhost:8000";
+    let currentTopology = { nodes: [], links: [] };
+    let currentDemands = [];
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+      if (tabId === 'tab-vulnerability') loadVulnerabilities();
+      if (tabId === 'tab-events') refreshEvents();
+    }
+
+    async function fetchTopology() {
+      try {
+        const res = await fetch(`${API_BASE}/topology`);
+        const data = await res.json();
+        currentTopology = data;
+        renderNetwork(data);
+        populateNodeSelectors(data.nodes);
+      } catch (err) {
+        console.error("Failed to load topology", err);
+      }
+    }
+
+    async function fetchDemands() {
+      try {
+        const res = await fetch(`${API_BASE}/demands`);
+        const data = await res.json();
+        currentDemands = data.demands || [];
+        renderDemandsTable(currentDemands);
+      } catch (err) {
+        console.error("Failed to load demands", err);
+      }
+    }
+
+    async function fetchMetrics() {
+      try {
+        const res = await fetch(`${API_BASE}/metrics`);
+        const data = await res.json();
+        const req = data.total_requested || 0;
+        const del = data.total_delivered || 0;
+        const pct = req > 0 ? ((del / req) * 100) : 100;
+        const congested = (data.link_utilizations || []).filter(l => (l.utilization || 0) >= 80).length;
+        const failed = data.failed_links || 0;
+
+        document.getElementById('metric-delivery').textContent = `${pct.toFixed(1)}%`;
+        document.getElementById('metric-delivered-bw').textContent = `${del.toFixed(0)} / ${req.toFixed(0)} Mbps`;
+        document.getElementById('metric-congested').textContent = congested;
+        document.getElementById('metric-failed-links').textContent = failed;
+        const health = Math.max(0, 100 - (failed * 20) - ((100 - pct) * 0.8));
+        document.getElementById('metric-health').textContent = health.toFixed(1);
+      } catch (err) {
+        console.error("Failed to load metrics", err);
+      }
+    }
+
+    function populateNodeSelectors(nodes) {
+      const s = document.getElementById('emg-source');
+      const d = document.getElementById('emg-dest');
+      if (!s || !d) return;
+      s.innerHTML = ""; d.innerHTML = "";
+      nodes.forEach((n, idx) => {
+        const opt1 = new Option(`${n.id} (${n.label || n.node_type})`, n.id);
+        const opt2 = new Option(`${n.id} (${n.label || n.node_type})`, n.id);
+        s.add(opt1);
+        d.add(opt2);
+      });
+      if (nodes.length > 1) d.selectedIndex = nodes.length - 1;
+    }
+
+    function renderDemandsTable(demands) {
+      const tbody = document.getElementById('demands-table-body');
+      document.getElementById('demands-count').textContent = `${demands.length} Demands`;
+      if (!demands.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No demands active</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = demands.map(d => {
+        const catClass = `pill-${d.category || 'general'}`;
+        const pct = d.bandwidth > 0 ? ((d.allocated_bandwidth / d.bandwidth) * 100).toFixed(0) : 0;
+        let statusColor = "#10b981";
+        if (d.status === "partially_served") statusColor = "#f59e0b";
+        if (d.status === "unserved_congestion" || d.status === "unreachable") statusColor = "#ef4444";
+
+        return `
+          <tr>
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${d.id}</td>
+            <td style="font-size:0.75rem;">${d.source} → ${d.destination}</td>
+            <td><span class="pill ${catClass}">${d.category || 'P3'}</span></td>
+            <td>
+              <div style="font-size:0.75rem;">${d.allocated_bandwidth.toFixed(1)} / ${d.bandwidth} Mbps</div>
+              <div style="height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin-top:2px;">
+                <div style="width:${pct}%; height:100%; background:${statusColor};"></div>
+              </div>
+            </td>
+            <td style="color:${statusColor}; font-weight:600; font-size:0.72rem; text-transform:uppercase;">
+              ${d.status.replace('_', ' ')}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* RENDER SVG TOPOLOGY */
+    function renderNetwork(topology) {
+      const svg = document.getElementById('network-svg');
+      const linksG = document.getElementById('links-group');
+      const nodesG = document.getElementById('nodes-group');
+      linksG.innerHTML = "";
+      nodesG.innerHTML = "";
+
+      const rect = svg.getBoundingClientRect();
+      const W = rect.width || 800;
+      const H = rect.height || 600;
+
+      const nodeMap = {};
+      const N = topology.nodes.length;
+
+      // Layout nodes in circular / grid geometry if no coordinates
+      topology.nodes.forEach((node, i) => {
+        let x = node.x;
+        let y = node.y;
+        if (x === undefined || y === undefined || (x === 0 && y === 0)) {
+          const angle = (2 * Math.PI * i) / N;
+          x = (W / 2) + Math.cos(angle) * (Math.min(W, H) * 0.38);
+          y = (H / 2) + Math.sin(angle) * (Math.min(W, H) * 0.38);
+        } else {
+          // Normalize coordinates if in 0-100 or 0-1000 range
+          if (x <= 100 && y <= 100) {
+            x = (x / 100) * (W - 120) + 60;
+            y = (y / 100) * (H - 120) + 60;
+          }
+        }
+        nodeMap[node.id] = { ...node, x, y };
+      });
+
+      // Draw links
+      topology.links.forEach(link => {
+        const src = nodeMap[link.source];
+        const dst = nodeMap[link.target];
+        if (!src || !dst) return;
+
+        const isFailed = link.status === "failed";
+        const util = link.utilization || 0;
+        let strokeColor = "#10b981";
+        if (util >= 80) strokeColor = "#ef4444";
+        else if (util >= 50) strokeColor = "#f59e0b";
+        if (isFailed) strokeColor = "#ff0055";
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", src.x);
+        line.setAttribute("y1", src.y);
+        line.setAttribute("x2", dst.x);
+        line.setAttribute("y2", dst.y);
+        line.setAttribute("stroke", strokeColor);
+        line.setAttribute("stroke-width", isFailed ? "3" : (Math.max(2, Math.min(util / 15, 6))));
+        if (isFailed) {
+          line.setAttribute("stroke-dasharray", "6,4");
+          line.setAttribute("filter", "url(#glow-red)");
+        }
+        line.style.cursor = "pointer";
+        line.onclick = () => toggleLink(link.id, link.status);
+
+        // Tooltip title
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `Link ${link.id} (${link.source} ↔ ${link.target})\nStatus: ${link.status}\nLoad: ${link.allocated_load?.toFixed(1) || 0} / ${link.capacity} Mbps (${util.toFixed(1)}%)\nClick to ${isFailed ? 'Restore' : 'Fail'}`;
+        line.appendChild(title);
+
+        linksG.appendChild(line);
+
+        // Midpoint badge
+        const mx = (src.x + dst.x) / 2;
+        const my = (src.y + dst.y) / 2;
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", mx);
+        text.setAttribute("y", my - 4);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", isFailed ? "#ff0055" : "rgba(255,255,255,0.7)");
+        text.setAttribute("font-size", "10px");
+        text.setAttribute("font-family", "Fira Code, monospace");
+        text.textContent = isFailed ? "❌ FAILED" : `${util.toFixed(0)}%`;
+        linksG.appendChild(text);
+      });
+
+      // Draw nodes
+      topology.nodes.forEach(node => {
+        const n = nodeMap[node.id];
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.style.cursor = "pointer";
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", n.x);
+        circle.setAttribute("cy", n.y);
+        circle.setAttribute("r", "16");
+        circle.setAttribute("fill", "#0f172a");
+        circle.setAttribute("stroke", "var(--cyan)");
+        circle.setAttribute("stroke-width", "2.5");
+        circle.setAttribute("filter", "url(#glow-cyan)");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", n.x);
+        text.setAttribute("y", n.y + 4);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#ffffff");
+        text.setAttribute("font-size", "10px");
+        text.setAttribute("font-weight", "700");
+        text.setAttribute("font-family", "Inter, sans-serif");
+        text.textContent = n.id;
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", n.x);
+        label.setAttribute("y", n.y + 26);
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("fill", "var(--text-muted)");
+        label.setAttribute("font-size", "9px");
+        label.setAttribute("font-family", "Inter, sans-serif");
+        label.textContent = n.label || n.node_type || "";
+
+        g.appendChild(circle);
+        g.appendChild(text);
+        g.appendChild(label);
+        nodesG.appendChild(g);
+      });
+    }
+
+    async function toggleLink(linkId, currentStatus) {
+      const action = currentStatus === "failed" ? "restore" : "fail";
+      try {
+        const res = await fetch(`${API_BASE}/links/${linkId}/${action}`, { method: 'POST' });
+        if (res.ok) {
+          showToast(`Link ${linkId} ${action === 'fail' ? 'FAILED ⚠️' : 'RESTORED ✅'}`);
+          await refreshAll();
+        }
+      } catch (err) {
+        showToast(`Failed to update link ${linkId}`);
+      }
+    }
+
+    async function restoreAllLinks() {
+      if (!currentTopology.links) return;
+      for (const l of currentTopology.links) {
+        if (l.status === "failed") {
+          await fetch(`${API_BASE}/links/${l.id}/restore`, { method: 'POST' });
+        }
+      }
+      showToast("All links restored to active status");
+      await refreshAll();
+    }
+
+    async function failRandomLink() {
+      const activeLinks = currentTopology.links.filter(l => l.status !== "failed");
+      if (!activeLinks.length) {
+        showToast("No active links remaining to fail");
+        return;
+      }
+      const target = activeLinks[Math.floor(Math.random() * activeLinks.length)];
+      await toggleLink(target.id, "active");
+    }
+
+    async function loadScenarioPreset(presetName) {
+      if (!presetName) return;
+      try {
+        const res = await fetch(`${API_BASE}/topology/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preset: presetName })
+        });
+        const data = await res.json();
+        showToast(`Scenario Loaded: ${data.scenario}`);
+        await refreshAll();
+      } catch (err) {
+        showToast(`Failed to load scenario: ${err.message}`);
+      }
+    }
+
+    async function triggerSimulation() {
+      try {
+        const res = await fetch(`${API_BASE}/simulate?algorithm=pacar`, { method: 'POST' });
+        const data = await res.json();
+        showToast(`PACAR Rerouting Complete: ${data.metrics?.delivery_rate_percent.toFixed(1)}% Delivered`);
+        await refreshAll();
+      } catch (err) {
+        showToast(`Simulation failed: ${err.message}`);
+      }
+    }
+
+    async function runComparison() {
+      switchTab('tab-compare');
+      const container = document.getElementById('compare-container');
+      container.innerHTML = `<p style="color:var(--text-muted);">Running dual algorithm simulation...</p>`;
+      try {
+        const res = await fetch(`${API_BASE}/compare`, { method: 'POST' });
+        const data = await res.json();
+        const pacar = data.pacar || {};
+        const base = data.baseline || {};
+        const pDeliv = pacar.total_requested > 0 ? ((pacar.total_delivered / pacar.total_requested) * 100) : 100;
+        const bDeliv = base.total_requested > 0 ? ((base.total_delivered / base.total_requested) * 100) : 100;
+        const diffDelivery = (pDeliv - bDeliv).toFixed(1);
+
+        container.innerHTML = `
+          <div class="comparison-grid">
+            <div class="compare-card winner">
+              <h4>🚀 PACAR (Resilience Engine)</h4>
+              <div class="compare-metric"><span>Delivery Rate:</span> <strong>${pDeliv.toFixed(1)}%</strong></div>
+              <div class="compare-metric"><span>Delivered BW:</span> <strong>${(pacar.total_delivered || 0).toFixed(0)} Mbps</strong></div>
+              <div class="compare-metric"><span>Critical Delivered:</span> <strong>${(pacar.critical_delivery_pct || 100).toFixed(1)}%</strong></div>
+              <div class="compare-metric"><span>Avg Latency:</span> <strong>${(pacar.avg_latency || 0).toFixed(1)} ms</strong></div>
+              <div class="compare-metric"><span>Max Link Util:</span> <strong>${(pacar.max_link_utilization || 0).toFixed(1)}%</strong></div>
+            </div>
+            <div class="compare-card">
+              <h4>Standard Dijkstra Baseline</h4>
+              <div class="compare-metric"><span>Delivery Rate:</span> <strong>${bDeliv.toFixed(1)}%</strong></div>
+              <div class="compare-metric"><span>Delivered BW:</span> <strong>${(base.total_delivered || 0).toFixed(0)} Mbps</strong></div>
+              <div class="compare-metric"><span>Critical Delivered:</span> <strong>${(base.critical_delivery_pct || 100).toFixed(1)}%</strong></div>
+              <div class="compare-metric"><span>Avg Latency:</span> <strong>${(base.avg_latency || 0).toFixed(1)} ms</strong></div>
+              <div class="compare-metric"><span>Max Link Util:</span> <strong>${(base.max_link_utilization || 0).toFixed(1)}%</strong></div>
+            </div>
+          </div>
+          <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,240,255,0.05); border:1px solid var(--border-accent); border-radius:8px; font-size:0.8rem;">
+            <strong>PACAR Advantage:</strong> ${diffDelivery >= 0 ? '+' : ''}${diffDelivery}% delivery resilience. PACAR uses multi-path capacity-adaptive scoring and progressive filling to prevent bottleneck over-saturation.
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<p style="color:var(--red);">Comparison failed: ${err.message}</p>`;
+      }
+    }
+
+    async function loadVulnerabilities() {
+      const container = document.getElementById('vulnerability-list');
+      container.innerHTML = `<p style="color:var(--text-muted);">Analyzing single-point-of-failure vulnerabilities...</p>`;
+      try {
+        const res = await fetch(`${API_BASE}/analyze/vulnerabilities`);
+        const data = await res.json();
+        const rankings = Array.isArray(data) ? data : (data.rankings || []);
+        if (!rankings.length) {
+          container.innerHTML = `<p style="color:var(--text-muted);">No vulnerabilities detected</p>`;
+          return;
+        }
+        container.innerHTML = rankings.slice(0, 10).map((item, idx) => `
+          <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:0.65rem; margin-bottom:0.5rem; font-size:0.78rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+              <span style="font-family:'Fira Code'; font-weight:700; color:var(--cyan);">${item.link_id} (${item.source} ↔ ${item.target})</span>
+              <span style="color:${item.is_bridge ? 'var(--red)' : 'var(--amber)'}; font-weight:600;">
+                ${item.is_bridge ? '🚨 CRITICAL BRIDGE' : `Risk: ${(item.criticality_score || item.vulnerability_score || 0).toFixed(2)}`}
+              </span>
+            </div>
+            <div style="color:var(--text-muted); font-size:0.72rem;">
+              Impact: ${(item.critical_traffic_lost || item.lost_bandwidth || 0).toFixed(0)} Mbps lost (${item.disrupted_demands_count || item.demands_affected || 0} flows impacted)
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<p style="color:var(--red);">Failed to rank vulnerabilities</p>`;
+      }
+    }
+
+    async function refreshEvents() {
+      const log = document.getElementById('events-log-container');
+      try {
+        const res = await fetch(`${API_BASE}/events?limit=25`);
+        const data = await res.json();
+        const events = Array.isArray(data) ? data : (data.events || []);
+        if (!events.length) {
+          log.innerHTML = `<div class="event-item">No events recorded.</div>`;
+          return;
+        }
+        log.innerHTML = events.slice().reverse().map(e => {
+          let typeClass = "";
+          const evtType = e.event_type || "";
+          if (evtType.includes("failure")) typeClass = "failure";
+          if (evtType.includes("emergency") || evtType.includes("preempt")) typeClass = "emergency";
+          if (evtType.includes("restore")) typeClass = "restore";
+          return `
+            <div class="event-item ${typeClass}">
+              <span class="event-step">[STEP ${e.step}]</span>
+              <strong>${evtType}:</strong> ${e.description}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Failed to load events", err);
+      }
+    }
+
+    function openEmergencyModal() {
+      document.getElementById('emergency-modal').classList.add('active');
+    }
+    function closeEmergencyModal() {
+      document.getElementById('emergency-modal').classList.remove('active');
+    }
+
+    async function submitEmergency() {
+      const id = document.getElementById('emg-id').value;
+      const source = document.getElementById('emg-source').value;
+      const destination = document.getElementById('emg-dest').value;
+      const bandwidth = parseFloat(document.getElementById('emg-bw').value);
+
+      try {
+        const res = await fetch(`${API_BASE}/demands/emergency`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, source, destination, bandwidth, category: "emergency" })
+        });
+        if (res.ok) {
+          closeEmergencyModal();
+          showToast(`🚨 P1 Emergency Injected! PACAR triggered preemption.`);
+          await refreshAll();
+        } else {
+          const err = await res.json();
+          showToast(`Failed: ${err.detail}`);
+        }
+      } catch (e) {
+        showToast(`Failed to inject: ${e.message}`);
+      }
+    }
+
+    async function exportDataReport() {
+      window.open(`${API_BASE}/export`, '_blank');
+    }
+
+    async function refreshAll() {
+      await fetchTopology();
+      await fetchDemands();
+      await fetchMetrics();
+      await refreshEvents();
+    }
+
+    async function populateScenarios() {
+      try {
+        const res = await fetch(`${API_BASE}/scenarios`);
+        const list = await res.json();
+        const select = document.getElementById('scenario-select');
+        if (!select || !Array.isArray(list)) return;
+        select.innerHTML = '<option value="" disabled selected>⚡ Load Scenario Preset...</option>';
+        list.forEach(s => {
+          const opt = new Option(`${s.name}`, s.id);
+          select.add(opt);
+        });
+      } catch (e) {
+        console.error('Failed to populate scenarios', e);
+      }
+    }
+
+    // Initialize
+    window.addEventListener('load', async () => {
+      await populateScenarios();
+      await loadScenarioPreset('normal_campus');
+      window.addEventListener('resize', () => renderNetwork(currentTopology));
+    });
+  </script>
+</body>
+</html>
