@@ -3,315 +3,461 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NetRescue — Intelligent Network Resilience & Disaster Recovery Platform</title>
+  <title>NetRescue — Interactive Network Resilience & Disaster Recovery Playground</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0a0d14;
-      --bg-card: rgba(16, 23, 38, 0.85);
-      --bg-card-hover: rgba(24, 34, 56, 0.95);
-      --border-color: rgba(56, 89, 138, 0.25);
-      --border-accent: rgba(0, 240, 255, 0.4);
-      --text-main: #f0f6fc;
+      --bg-dark: #080b12;
+      --bg-panel: rgba(14, 20, 34, 0.92);
+      --bg-card: rgba(20, 29, 48, 0.7);
+      --bg-card-hover: rgba(28, 41, 68, 0.9);
+      --border: rgba(45, 68, 105, 0.35);
+      --border-focus: rgba(0, 240, 255, 0.6);
+      --text: #f0f6fc;
       --text-muted: #8b9bb4;
+      --text-dim: #5c6d85;
       --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
       --blue: #3b82f6;
-      --purple: #a855f7;
       --green: #10b981;
       --amber: #f59e0b;
       --red: #ef4444;
       --emergency: #ff0055;
-      --shadow-glow: 0 0 20px rgba(0, 240, 255, 0.15);
+      --purple: #a855f7;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at 50% 0%, #111a2e 0%, #07090e 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #0d1527 0%, #06080e 100%);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
+      user-select: none;
     }
 
     /* HEADER */
     header {
-      background: rgba(10, 13, 20, 0.9);
+      height: 56px;
+      background: rgba(10, 14, 24, 0.96);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      padding: 0 1.25rem;
+      z-index: 50;
+      flex-shrink: 0;
     }
-    .brand {
+    .brand-wrap {
       display: flex;
       align-items: center;
       gap: 0.85rem;
     }
     .logo-badge {
-      background: linear-gradient(135deg, #00f0ff, #3b82f6);
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      background: linear-gradient(135deg, #00f0ff, #2563eb);
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 1.2rem;
-      color: #050811;
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      font-size: 1.1rem;
+      color: #030712;
+      box-shadow: 0 0 15px var(--cyan-glow);
     }
-    .brand h1 {
-      font-size: 1.25rem;
+    .brand-title {
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #fff, #93c5fd);
+      background: linear-gradient(90deg, #ffffff, #93c5fd);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .brand span {
-      font-size: 0.75rem;
-      background: rgba(0, 240, 255, 0.1);
-      color: var(--cyan);
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
+    .sim-status-pill {
+      font-size: 0.72rem;
       font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    .sim-status-pill.draft {
+      background: rgba(139, 155, 180, 0.1);
+      color: var(--text-muted);
+      border: 1px solid rgba(139, 155, 180, 0.25);
+    }
+    .sim-status-pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .sim-status-pill.active .pulse-dot {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    .workflow-guide {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .wf-step {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .wf-step.active {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+    .wf-step-num {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+    }
+    .wf-step.active .wf-step-num {
+      background: var(--cyan);
+      color: #050b14;
+      font-weight: 700;
+    }
+    .wf-arrow { color: var(--text-dim); font-size: 0.7rem; }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-    }
-    select, button, input {
-      font-family: inherit;
-    }
-    .styled-select {
-      background: rgba(19, 29, 49, 0.8);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .styled-select:focus, .styled-select:hover {
-      border-color: var(--cyan);
+      gap: 0.6rem;
     }
     .btn {
-      padding: 0.5rem 1rem;
+      font-family: inherit;
+      padding: 0.45rem 0.85rem;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      gap: 0.4rem;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .btn-primary {
       background: linear-gradient(135deg, #00f0ff, #0284c7);
-      color: #04101d;
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+      color: #030b15;
+      box-shadow: 0 0 12px var(--cyan-glow);
     }
     .btn-primary:hover {
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.6);
       transform: translateY(-1px);
     }
-    .btn-emergency {
-      background: linear-gradient(135deg, #ff0055, #dc2626);
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
       color: white;
-      box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);
-      animation: pulse-red 2s infinite;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
     }
-    .btn-emergency:hover {
-      box-shadow: 0 0 22px rgba(255, 0, 85, 0.8);
+    .btn-success:hover {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.6);
       transform: translateY(-1px);
     }
-    @keyframes pulse-red {
-      0%, 100% { box-shadow: 0 0 12px rgba(255, 0, 85, 0.4); }
-      50% { box-shadow: 0 0 22px rgba(255, 0, 85, 0.8); }
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+    }
+    .btn-danger:hover {
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.6);
+      transform: translateY(-1px);
     }
     .btn-secondary {
-      background: rgba(30, 41, 59, 0.8);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
+      background: rgba(22, 33, 54, 0.8);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
     .btn-secondary:hover {
-      background: rgba(45, 62, 88, 0.9);
-      border-color: var(--cyan);
+      background: rgba(33, 49, 78, 0.95);
+      border-color: var(--border-focus);
     }
 
-    /* MAIN CONTAINER */
-    .app-layout {
+    /* MAIN APP WORKSPACE */
+    .app-workspace {
       display: grid;
-      grid-template-columns: 1fr 480px;
-      gap: 1.25rem;
-      padding: 1.25rem;
-      flex: 1;
-      height: calc(100vh - 72px);
+      grid-template-columns: 210px 1fr 320px;
+      height: calc(100vh - 56px - 260px);
+      transition: height 0.25s ease;
+      position: relative;
+    }
+    .app-workspace.tray-collapsed {
+      height: calc(100vh - 56px - 36px);
     }
 
-    /* LEFT PANE: VISUALIZER */
-    .visualizer-pane {
+    /* LEFT TOOLBAR */
+    .left-toolbar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 1rem 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.65rem;
+      z-index: 20;
     }
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.75rem;
-    }
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
-    }
-    .stat-title {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 0.25rem;
-    }
-    .stat-value {
-      font-size: 1.4rem;
+    .tool-group-label {
+      font-size: 0.68rem;
       font-weight: 700;
-      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-top: 0.3rem;
+      margin-bottom: 0.15rem;
+      padding-left: 0.25rem;
     }
-    .stat-sub {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 0.15rem;
+    .tool-btn {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(18, 26, 43, 0.75);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tool-btn:hover {
+      background: rgba(28, 41, 68, 0.95);
+      border-color: var(--cyan);
+      transform: translateX(2px);
+    }
+    .tool-btn.primary-action {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(59, 130, 246, 0.12));
+      border-color: rgba(0, 240, 255, 0.4);
+      color: var(--cyan);
+    }
+    .tool-btn.primary-action:hover {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(59, 130, 246, 0.25));
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    .sim-toggle-btn {
+      margin-top: auto;
+      padding: 0.75rem 0.85rem;
+      font-size: 0.88rem;
     }
 
-    .canvas-container {
-      flex: 1;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
+    /* CENTER CANVAS */
+    .canvas-viewport {
       position: relative;
+      background: radial-gradient(circle at 50% 50%, #0d1526 0%, #060911 100%);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      cursor: grab;
     }
-    .canvas-toolbar {
+    .canvas-viewport:active {
+      cursor: grabbing;
+    }
+    svg#network-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* CANVAS FLOATING CONTROLS */
+    .canvas-controls-overlay {
       position: absolute;
       top: 1rem;
       left: 1rem;
       display: flex;
-      gap: 0.5rem;
-      z-index: 10;
-    }
-    .canvas-legend {
-      position: absolute;
-      bottom: 1rem;
-      left: 1rem;
-      background: rgba(10, 15, 26, 0.85);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 0.5rem 0.85rem;
-      font-size: 0.72rem;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      z-index: 10;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
       gap: 0.4rem;
+      z-index: 10;
+      background: rgba(10, 15, 26, 0.85);
+      padding: 0.3rem 0.4rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-    svg#network-svg {
-      width: 100%;
-      height: 100%;
-      cursor: crosshair;
-    }
-
-    /* RIGHT PANE: CONTROL TABS */
-    .control-pane {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .tabs-header {
-      display: flex;
-      background: rgba(12, 17, 29, 0.9);
-      border-bottom: 1px solid var(--border-color);
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 0.75rem 0.5rem;
+    .canvas-ctrl-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-      border-bottom: 2px solid transparent;
-    }
-    .tab-btn.active {
-      color: var(--cyan);
-      border-bottom-color: var(--cyan);
-      background: rgba(0, 240, 255, 0.05);
-    }
-    .tab-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.25rem;
-      display: none;
-    }
-    .tab-content.active {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .canvas-ctrl-btn:hover {
+      color: var(--cyan);
+      background: rgba(255, 255, 255, 0.08);
     }
 
-    /* TABLES & CARDS */
-    .section-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    /* EMPTY STATE GUIDE */
+    .empty-state-guide {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(14, 21, 37, 0.95);
+      border: 1px solid var(--border-focus);
+      border-radius: 16px;
+      padding: 2.25rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+      z-index: 15;
+      max-width: 480px;
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    .empty-state-icon {
+      font-size: 2.75rem;
+      margin-bottom: 0.85rem;
+      display: inline-block;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .empty-state-guide h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .empty-state-guide p {
+      font-size: 0.85rem;
       color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* RIGHT INSPECTOR */
+    .right-inspector {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+    .inspector-header {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .inspector-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex: 1;
+    }
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+    }
+    .info-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
+      font-size: 0.78rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); }
+    .info-val { font-weight: 600; font-family: 'Fira Code', monospace; }
+
+    /* BOTTOM TRAY */
+    .bottom-tray {
+      height: 260px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      transition: height 0.25s ease;
+    }
+    .tray-header {
+      height: 38px;
+      background: rgba(10, 15, 26, 0.98);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+    }
+    .tray-tabs {
+      display: flex;
+      height: 100%;
+    }
+    .tray-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    .tray-tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.04);
+    }
+    .tray-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.85rem 1rem;
+      display: none;
+    }
+    .tray-content.active {
+      display: block;
+    }
+
+    /* DATA TABLE */
     .data-table {
       width: 100%;
       border-collapse: collapse;
@@ -319,150 +465,133 @@
     }
     .data-table th {
       text-align: left;
-      padding: 0.5rem;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border-color);
+      padding: 0.45rem 0.6rem;
+      color: var(--text-dim);
       font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
     }
     .data-table td {
-      padding: 0.55rem 0.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
     .data-table tr:hover td {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.02);
     }
+
     .pill {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
       padding: 0.15rem 0.45rem;
       border-radius: 4px;
       font-size: 0.68rem;
       font-weight: 600;
       font-family: 'Fira Code', monospace;
     }
-    .pill-emergency { background: rgba(255, 0, 85, 0.2); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
-    .pill-essential { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
-    .pill-academic { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
-    .pill-general { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
-    .pill-background { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
+    .pill-emergency { background: rgba(255, 0, 85, 0.15); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
+    .pill-essential { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .pill-academic { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+    .pill-general { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+    .pill-background { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
 
-    .comparison-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-    .compare-card {
-      background: rgba(10, 15, 26, 0.6);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 0.85rem;
-    }
-    .compare-card.winner {
-      border-color: var(--cyan);
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
-    }
-    .compare-card h4 {
-      font-size: 0.85rem;
-      margin-bottom: 0.5rem;
-      color: var(--cyan);
-    }
-    .compare-metric {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .event-log {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-    .event-item {
-      background: rgba(12, 17, 29, 0.6);
-      border-left: 3px solid var(--cyan);
-      padding: 0.45rem 0.65rem;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.75rem;
-    }
-    .event-item.failure { border-left-color: var(--red); }
-    .event-item.emergency { border-left-color: var(--emergency); }
-    .event-item.restore { border-left-color: var(--green); }
-    .event-step {
-      font-family: 'Fira Code', monospace;
-      color: var(--text-muted);
-      font-size: 0.68rem;
-    }
+    .status-served { color: #10b981; font-weight: 600; }
+    .status-partial { color: #f59e0b; font-weight: 600; }
+    .status-unserved { color: #ef4444; font-weight: 600; }
+    .status-ready { color: var(--text-muted); }
 
     /* MODAL */
     .modal-backdrop {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 100;
     }
     .modal-backdrop.active { display: flex; }
     .modal-card {
-      background: #0f1626;
-      border: 1px solid var(--border-accent);
-      border-radius: 12px;
+      background: #0f1629;
+      border: 1px solid var(--border-focus);
+      border-radius: 14px;
       width: 440px;
       padding: 1.5rem;
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.2);
     }
     .modal-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      color: var(--text-main);
+      font-size: 1.15rem;
+      margin-bottom: 0.4rem;
+    }
+    .modal-card p.subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
     }
     .form-group {
       margin-bottom: 1rem;
     }
     .form-group label {
       display: block;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
+      font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 0.35rem;
     }
-    .form-input {
+    .form-input, .form-select {
       width: 100%;
-      background: rgba(22, 32, 54, 0.8);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 0.5rem 0.75rem;
+      background: rgba(19, 28, 48, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
       color: white;
       font-size: 0.85rem;
-    }
-    .form-input:focus {
-      border-color: var(--cyan);
+      font-family: inherit;
       outline: none;
+      transition: all 0.15s;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
     }
 
     /* TOAST */
-    #toast {
+    #toast-msg {
       position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: #152238;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid var(--cyan);
       color: white;
       padding: 0.75rem 1.25rem;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
       font-size: 0.85rem;
-      z-index: 2000;
-      transform: translateY(100px);
+      z-index: 200;
+      transform: translateY(120px);
       opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      backdrop-filter: blur(8px);
+      max-width: 440px;
     }
-    #toast.show {
+    #toast-msg.show {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    /* FLOW PARTICLES IN SVG */
+    @keyframes dash {
+      to { stroke-dashoffset: -40; }
+    }
+    .flow-active {
+      animation: dash 1.2s linear infinite;
     }
   </style>
 </head>
@@ -470,367 +599,922 @@
 
   <!-- HEADER -->
   <header>
-    <div class="brand">
+    <div class="brand-wrap">
       <div class="logo-badge">NR</div>
-      <div>
-        <h1>NetRescue Platform</h1>
+      <div class="brand-title">NetRescue</div>
+      <div id="sim-status" class="sim-status-pill draft">
+        <span class="pulse-dot"></span>
+        <span id="sim-status-text">Draft Network</span>
       </div>
-      <span>PACAR v1.0 • Disaster Engine</span>
+    </div>
+
+    <!-- WORKFLOW STAGE INDICATOR -->
+    <div class="workflow-guide">
+      <div class="wf-step active" id="wf-step-1">
+        <span class="wf-step-num">1</span> Build Topology
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-2">
+        <span class="wf-step-num">2</span> Add Traffic
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-3">
+        <span class="wf-step-num">3</span> Simulate Flow
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-4">
+        <span class="wf-step-num">4</span> Test Failures
+      </div>
     </div>
 
     <div class="header-actions">
-      <select id="scenario-select" class="styled-select" onchange="loadScenarioPreset(this.value)">
-        <option value="" disabled selected>⚡ Load Scenario Preset...</option>
-        <option value="campus_disaster">Campus Disaster Recovery (Multi-Link Cut)</option>
-        <option value="backbone_crisis">National Backbone Crisis (Bottleneck Partition)</option>
-        <option value="ring_network">Survivable Ring (Self-Healing)</option>
-        <option value="diamond">Diamond Alternate Route</option>
-        <option value="simple">Simple Triangle Flow</option>
-      </select>
-
-      <button class="btn btn-emergency" onclick="openEmergencyModal()">
-        🚨 Inject Emergency
+      <button class="btn btn-secondary" onclick="loadSamplePreset()" title="Load Normal Campus Network">
+        🧪 Load Sample Network
       </button>
-
-      <button class="btn btn-primary" onclick="triggerSimulation()">
-        ▶ Run PACAR Reroute
+      <button class="btn btn-secondary" onclick="promptClearNetwork()" title="Clear all nodes and links">
+        🗑️ Clear
       </button>
-
-      <button class="btn btn-secondary" onclick="runComparison()">
-        ⚖ Compare vs Baseline
-      </button>
-
-      <button class="btn btn-secondary" onclick="exportDataReport()">
+      <button class="btn btn-secondary" onclick="exportNetworkJson()" title="Download Topology JSON">
         💾 Export
       </button>
     </div>
   </header>
 
-  <!-- APP LAYOUT -->
-  <div class="app-layout">
+  <!-- APP WORKSPACE -->
+  <div class="app-workspace" id="app-workspace">
     
-    <!-- LEFT: VISUALIZER -->
-    <div class="visualizer-pane">
+    <!-- LEFT TOOLBAR: PRIMARY ACTIONS -->
+    <div class="left-toolbar">
+      <div class="tool-group-label">Network Builder</div>
+      <button class="tool-btn primary-action" onclick="openAddNodeModal()">
+        <span>➕</span> Add Node
+      </button>
+      <button class="tool-btn primary-action" onclick="openConnectModal()">
+        <span>🔗</span> Connect Nodes
+      </button>
       
-      <!-- METRIC CARDS -->
-      <div class="stats-bar">
-        <div class="stat-card" style="--accent: var(--cyan);">
-          <div class="stat-title">Delivery Rate</div>
-          <div class="stat-value" id="metric-delivery">100%</div>
-          <div class="stat-sub" id="metric-delivered-bw">0 / 0 Mbps</div>
-        </div>
-        <div class="stat-card" style="--accent: var(--amber);">
-          <div class="stat-title">Congested Links</div>
-          <div class="stat-value" id="metric-congested">0</div>
-          <div class="stat-sub">Load &gt; 80% Capacity</div>
-        </div>
-        <div class="stat-card" style="--accent: var(--red);">
-          <div class="stat-title">Failed Links</div>
-          <div class="stat-value" id="metric-failed-links">0</div>
-          <div class="stat-sub">Active Outages</div>
-        </div>
-        <div class="stat-card" style="--accent: var(--green);">
-          <div class="stat-title">Resilience Score</div>
-          <div class="stat-value" id="metric-health">98.5</div>
-          <div class="stat-sub">Adaptive Stability</div>
-        </div>
-      </div>
+      <div class="tool-group-label" style="margin-top:0.6rem;">Traffic Demands</div>
+      <button class="tool-btn primary-action" onclick="openAddDemandModal()">
+        <span>⚡</span> Add Traffic
+      </button>
 
-      <!-- CANVAS -->
-      <div class="canvas-container">
-        <div class="canvas-toolbar">
-          <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;" onclick="restoreAllLinks()">
-            🔄 Restore All Links
-          </button>
-          <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;" onclick="failRandomLink()">
-            💥 Trigger Random Failure
-          </button>
-        </div>
+      <div class="tool-group-label" style="margin-top:0.6rem;">Disaster Controls</div>
+      <button class="tool-btn" onclick="failSelectedOrRandom()" id="fail-btn" disabled>
+        <span>💥</span> Fail Link
+      </button>
+      <button class="tool-btn" onclick="restoreAllLinks()">
+        <span>🔄</span> Restore All
+      </button>
 
-        <svg id="network-svg">
-          <defs>
-            <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <g id="links-group"></g>
-          <g id="nodes-group"></g>
-        </svg>
-
-        <div class="canvas-legend">
-          <span style="color:var(--text-muted); font-weight:600;">LINK STATUS:</span>
-          <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Normal (&lt;50%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Moderate (50-80%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Congested (&gt;80%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#ff0055; box-shadow:0 0 6px #ff0055;"></div> Failed (Click to Toggle)</div>
-        </div>
-      </div>
-
+      <!-- SIMULATION TOGGLE -->
+      <button class="btn btn-primary sim-toggle-btn" id="sim-toggle-btn" onclick="toggleSimulation()">
+        <span id="sim-btn-icon">▶</span>
+        <span id="sim-btn-text">Start Simulation</span>
+      </button>
     </div>
 
-    <!-- RIGHT: CONTROLS & LOGS -->
-    <div class="control-pane">
-      <div class="tabs-header">
-        <button class="tab-btn active" onclick="switchTab('tab-demands')">Demands (QoS)</button>
-        <button class="tab-btn" onclick="switchTab('tab-compare')">Algorithm Comparison</button>
-        <button class="tab-btn" onclick="switchTab('tab-vulnerability')">Vulnerabilities</button>
-        <button class="tab-btn" onclick="switchTab('tab-events')">Event Timeline</button>
+    <!-- CENTER HERO CANVAS -->
+    <div class="canvas-viewport" id="canvas-viewport">
+      <div class="canvas-controls-overlay">
+        <button class="canvas-ctrl-btn" onclick="zoomIn()" title="Zoom In">+</button>
+        <button class="canvas-ctrl-btn" onclick="zoomOut()" title="Zoom Out">-</button>
+        <button class="canvas-ctrl-btn" onclick="fitView()" title="Fit View">⛶</button>
+        <button class="canvas-ctrl-btn" onclick="resetView()" title="Reset View">↺</button>
       </div>
 
-      <!-- TAB 1: DEMANDS -->
-      <div id="tab-demands" class="tab-content active">
-        <div class="section-title">
-          <span>Active Traffic Demands</span>
-          <span id="demands-count" style="font-size:0.75rem; color:var(--cyan);">0 Demands</span>
+      <!-- EMPTY STATE GUIDE -->
+      <div class="empty-state-guide" id="empty-state-guide">
+        <div class="empty-state-icon">🌐</div>
+        <h2>Start by adding your first node</h2>
+        <p>Construct your custom network from scratch. Add routers, switches, and servers, then connect them with bandwidth-constrained links.</p>
+        <div style="display:flex; justify-content:center; gap:0.75rem;">
+          <button class="btn btn-primary" onclick="openAddNodeModal()">
+            ➕ Add First Node
+          </button>
+          <button class="btn btn-secondary" onclick="loadSamplePreset()">
+            Load Sample Network
+          </button>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Path</th>
-              <th>Category</th>
-              <th>Allocated</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="demands-table-body">
-            <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No demands loaded</td></tr>
-          </tbody>
-        </table>
       </div>
 
-      <!-- TAB 2: ALGORITHM COMPARISON -->
-      <div id="tab-compare" class="tab-content">
-        <div class="section-title">PACAR vs Baseline Dijkstra</div>
-        <div id="compare-container">
-          <p style="font-size:0.8rem; color:var(--text-muted);">
-            Click <strong>"Compare vs Baseline"</strong> to evaluate PACAR's multi-path congestion-adaptive routing against standard shortest-path Dijkstra under identical disaster conditions.
+      <!-- SVG GRAPH CANVAS -->
+      <svg id="network-canvas">
+        <defs>
+          <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g id="canvas-world">
+          <g id="links-layer"></g>
+          <g id="flows-layer"></g>
+          <g id="nodes-layer"></g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- RIGHT INSPECTOR -->
+    <div class="right-inspector" id="right-inspector">
+      <div class="inspector-header">
+        <span id="inspector-title">Inspector</span>
+        <button class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="clearSelection()">Deselect</button>
+      </div>
+      <div class="inspector-body" id="inspector-body">
+        <!-- Rendered dynamically based on selection -->
+        <div class="info-card">
+          <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Instructions</div>
+          <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;" id="guided-tip">
+            Click on any node or link in the network canvas to view details, edit capacity, or simulate failure.
           </p>
         </div>
-      </div>
 
-      <!-- TAB 3: VULNERABILITY -->
-      <div id="tab-vulnerability" class="tab-content">
-        <div class="section-title">
-          <span>Link Vulnerability & Criticality</span>
-          <button class="btn btn-secondary" style="font-size:0.7rem; padding:0.25rem 0.5rem;" onclick="loadVulnerabilities()">Refresh</button>
-        </div>
-        <div id="vulnerability-list">
-          <p style="font-size:0.8rem; color:var(--text-muted);">Loading vulnerability metrics...</p>
+        <div class="info-card">
+          <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
+          <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val" id="stat-nodes">0</span></div>
+          <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val" id="stat-links">0</span></div>
+          <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val" id="stat-demands">0</span></div>
+          <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">0</span></div>
         </div>
       </div>
-
-      <!-- TAB 4: EVENTS -->
-      <div id="tab-events" class="tab-content">
-        <div class="section-title">
-          <span>Real-time Event Timeline</span>
-          <button class="btn btn-secondary" style="font-size:0.7rem; padding:0.25rem 0.5rem;" onclick="refreshEvents()">Refresh</button>
-        </div>
-        <div class="event-log" id="events-log-container">
-          <div class="event-item">Simulator initialized.</div>
-        </div>
-      </div>
-
     </div>
 
   </div>
 
-  <!-- EMERGENCY INJECTION MODAL -->
-  <div class="modal-backdrop" id="emergency-modal">
+  <!-- BOTTOM TRAY -->
+  <div class="bottom-tray" id="bottom-tray">
+    <div class="tray-header">
+      <div class="tray-tabs">
+        <button class="tray-tab-btn active" onclick="switchTrayTab('tray-demands')">
+          <span>⚡ Traffic Demands</span> <span id="badge-demands-count" style="font-size:0.7rem; color:var(--cyan);">(0)</span>
+        </button>
+        <button class="tray-tab-btn" onclick="switchTrayTab('tray-metrics')">
+          <span>📊 Resilience Metrics</span>
+        </button>
+        <button class="tray-tab-btn" onclick="switchTrayTab('tray-compare')">
+          <span>⚖ Algorithm Comparison</span>
+        </button>
+        <button class="tray-tab-btn" onclick="switchTrayTab('tray-whatif')">
+          <span>🔬 What-If Analysis</span>
+        </button>
+        <button class="tray-tab-btn" onclick="switchTrayTab('tray-events')">
+          <span>📜 Event Log</span>
+        </button>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <button class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="toggleTrayCollapse()" id="tray-collapse-btn">
+          Hide Tray ▼
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: TRAFFIC DEMANDS -->
+    <div id="tray-demands" class="tray-content active">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Active multi-priority traffic demands. Add, edit, or delete demands at any time.</span>
+        <button class="btn btn-primary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="openAddDemandModal()">+ Add Demand</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Source → Destination</th>
+            <th>Category</th>
+            <th>Requested</th>
+            <th>Delivered</th>
+            <th>Unserved</th>
+            <th>Status</th>
+            <th>Active Route</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="demands-table-body">
+          <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:1rem;">No traffic demands created yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 2: METRICS -->
+    <div id="tray-metrics" class="tray-content">
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:0.75rem; margin-bottom:0.75rem;">
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Delivery Rate</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--cyan);" id="metric-deliv-rate">100%</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-deliv-bw">0 / 0 Mbps</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Critical Traffic Served</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--green);" id="metric-crit-rate">100%</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">P1-P3 Guaranteed QoS</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Congested Links</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--amber);" id="metric-congested">0</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">&gt; 80% Utilization</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Average Latency</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--text);" id="metric-latency">0 ms</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">Path Propagation</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Active Failures</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--red);" id="metric-failed-count">0</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">Physical Outages</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ALGORITHM COMPARISON -->
+    <div id="tray-compare" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Compare PACAR vs Standard Shortest-Path Dijkstra under identical disaster conditions.</span>
+        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
+      </div>
+      <div id="compare-results-box" style="font-size:0.8rem; color:var(--text-muted);">
+        Click "Run Comparison" to analyze delivery rate and congestion avoidance.
+      </div>
+    </div>
+
+    <!-- TAB 4: WHAT-IF ANALYSIS -->
+    <div id="tray-whatif" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Simulate disaster scenarios on a state snapshot without altering active traffic.</span>
+        <button class="btn btn-primary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="executeWhatIf()">🔬 Evaluate Impact</button>
+      </div>
+      <div id="whatif-link-selectors" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;"></div>
+      <div id="whatif-results-box" style="font-size:0.8rem; color:var(--text-muted);">Select links above and click "Evaluate Impact".</div>
+    </div>
+
+    <!-- TAB 5: EVENT LOG -->
+    <div id="tray-events" class="tray-content">
+      <div id="event-log-list" style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.75rem;">
+        <div style="color:var(--text-muted);">Simulator ready.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: ADD NODE -->
+  <div class="modal-backdrop" id="modal-add-node">
     <div class="modal-card">
-      <h3>🚨 Inject Emergency Demand</h3>
-      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
-        Inject high-priority P1 Emergency traffic. NetRescue will immediately pre-empt lower-priority traffic (Background/General) to guarantee zero-loss emergency communication.
-      </p>
+      <h3>➕ Add Network Node</h3>
+      <p class="subtitle">Create a new router, switch, or server in your custom topology.</p>
       <div class="form-group">
-        <label>Demand ID</label>
-        <input type="text" id="emg-id" class="form-input" value="EMG_911">
+        <label>Node ID (e.g. R1, SW1, SRV1)</label>
+        <input type="text" id="node-input-id" class="form-input" placeholder="R1">
       </div>
       <div class="form-group">
+        <label>Display Label</label>
+        <input type="text" id="node-input-name" class="form-input" placeholder="Core Router 1">
+      </div>
+      <div class="form-group">
+        <label>Node Type</label>
+        <select id="node-input-type" class="form-select">
+          <option value="router">🌐 Router (Layer 3 Routing)</option>
+          <option value="switch">🔀 Switch (Distribution Switch)</option>
+          <option value="server">🖥️ Server (Application Host)</option>
+          <option value="gateway">🚪 Gateway (Border Uplink)</option>
+          <option value="endpoint">📱 Endpoint (Client/Workstation)</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-node')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddNode()">Add Node</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONNECT NODES -->
+  <div class="modal-backdrop" id="modal-connect">
+    <div class="modal-card">
+      <h3>🔗 Connect Nodes</h3>
+      <p class="subtitle">Create a physical bidirectional link with bandwidth and latency constraints.</p>
+      <div class="form-group">
         <label>Source Node</label>
-        <select id="emg-source" class="form-input"></select>
+        <select id="link-input-src" class="form-select"></select>
       </div>
       <div class="form-group">
         <label>Destination Node</label>
-        <select id="emg-dest" class="form-input"></select>
+        <select id="link-input-dst" class="form-select"></select>
       </div>
-      <div class="form-group">
-        <label>Required Bandwidth (Mbps)</label>
-        <input type="number" id="emg-bw" class="form-input" value="80" min="1" max="1000">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label>Capacity (Mbps)</label>
+          <input type="number" id="link-input-cap" class="form-input" value="100" min="1" max="10000">
+        </div>
+        <div class="form-group">
+          <label>Latency (ms)</label>
+          <input type="number" id="link-input-lat" class="form-input" value="5" min="0" max="1000">
+        </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
-        <button class="btn btn-secondary" onclick="closeEmergencyModal()">Cancel</button>
-        <button class="btn btn-emergency" onclick="submitEmergency()">Inject &amp; Preempt</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-connect')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitConnectNodes()">Create Link</button>
       </div>
     </div>
   </div>
 
-  <div id="toast">Notification message</div>
+  <!-- MODAL: ADD / EDIT DEMAND -->
+  <div class="modal-backdrop" id="modal-demand">
+    <div class="modal-card">
+      <h3 id="modal-demand-title">⚡ Add Traffic Demand</h3>
+      <p class="subtitle">Define bandwidth requirements and QoS priority classification.</p>
+      <input type="hidden" id="demand-edit-id">
+      <div class="form-group">
+        <label>Demand ID</label>
+        <input type="text" id="demand-input-id" class="form-input" placeholder="D1">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label>Source</label>
+          <select id="demand-input-src" class="form-select"></select>
+        </div>
+        <div class="form-group">
+          <label>Destination</label>
+          <select id="demand-input-dst" class="form-select"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Traffic Category (Priority)</label>
+        <select id="demand-input-cat" class="form-select">
+          <option value="emergency">🚨 P1 — Emergency (Preempts all lower traffic)</option>
+          <option value="essential">🛡️ P2 — Essential Infrastructure</option>
+          <option value="academic">🎓 P3 — Academic / Research</option>
+          <option value="general" selected>🌐 P4 — General Traffic</option>
+          <option value="background">📦 P5 — Background (Dropped first on congestion)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Requested Bandwidth (Mbps)</label>
+        <input type="number" id="demand-input-bw" class="form-input" value="30" min="1" max="5000">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-demand')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitDemandForm()">Save Demand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-msg">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-text">Message</span>
+  </div>
 
   <script>
     const API_BASE = (window.location.port === "8000" || window.location.port === "") ? "" : "http://localhost:8000";
-    let currentTopology = { nodes: [], links: [] };
-    let currentDemands = [];
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
+    // Application state
+    let state = {
+      nodes: {},       // id -> Node
+      links: {},       // id -> Link
+      demands: {},     // id -> Demand
+      simulationActive: false,
+      selectedItem: null, // { type: 'node'|'link', id: string }
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+      isDraggingNode: null,
+      dragOffset: { x: 0, y: 0 },
+      isPanning: false,
+      panStart: { x: 0, y: 0 },
+      lastMetrics: null
+    };
+
+    // Node Type Icons
+    const ICONS = {
+      router: "🌐",
+      switch: "🔀",
+      server: "🖥️",
+      gateway: "🚪",
+      endpoint: "📱"
+    };
+
+    function showToast(text, icon = "ℹ️") {
+      const toast = document.getElementById('toast-msg');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-text').textContent = text;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3500);
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-      if (tabId === 'tab-vulnerability') loadVulnerabilities();
-      if (tabId === 'tab-events') refreshEvents();
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // API Helpers
+    async function apiGet(path) {
+      const res = await fetch(`${API_BASE}${path}`);
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      return await res.json();
+    }
+    async function apiPost(path, body = null) {
+      const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(`${API_BASE}${path}`, opts);
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      return await res.json();
+    }
+    async function apiPut(path, body) {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      return await res.json();
+    }
+    async function apiDelete(path) {
+      const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      return await res.json();
     }
 
-    async function fetchTopology() {
+    // Sync from Backend
+    async function syncState() {
       try {
-        const res = await fetch(`${API_BASE}/topology`);
-        const data = await res.json();
-        currentTopology = data;
-        renderNetwork(data);
-        populateNodeSelectors(data.nodes);
+        const topData = await apiGet('/topology');
+        const demData = await apiGet('/demands');
+        
+        state.nodes = {};
+        (topData.nodes || []).forEach(n => state.nodes[n.id] = n);
+        
+        state.links = {};
+        (topData.links || []).forEach(l => state.links[l.id] = l);
+
+        state.demands = {};
+        (demData.demands || []).forEach(d => state.demands[d.id] = d);
+
+        // Fetch metrics if available
+        try {
+          state.lastMetrics = await apiGet('/metrics');
+        } catch (e) {}
+
+        renderCanvas();
+        renderDemandsTable();
+        renderMetrics();
+        renderInspector();
+        updateWorkflowSteps();
       } catch (err) {
-        console.error("Failed to load topology", err);
+        console.error("State sync failed:", err);
       }
     }
 
-    async function fetchDemands() {
-      try {
-        const res = await fetch(`${API_BASE}/demands`);
-        const data = await res.json();
-        currentDemands = data.demands || [];
-        renderDemandsTable(currentDemands);
-      } catch (err) {
-        console.error("Failed to load demands", err);
+    // WORKFLOW STEPS UPDATE
+    function updateWorkflowSteps() {
+      const n = Object.keys(state.nodes).length;
+      const l = Object.keys(state.links).length;
+      const d = Object.keys(state.demands).length;
+
+      document.querySelectorAll('.wf-step').forEach(s => s.classList.remove('active'));
+      if (n === 0 || l === 0) {
+        document.getElementById('wf-step-1').classList.add('active');
+      } else if (d === 0 && !state.simulationActive) {
+        document.getElementById('wf-step-2').classList.add('active');
+      } else if (!state.simulationActive) {
+        document.getElementById('wf-step-3').classList.add('active');
+      } else {
+        document.getElementById('wf-step-4').classList.add('active');
+      }
+
+      // Empty state guide
+      const emptyGuide = document.getElementById('empty-state-guide');
+      if (n === 0) {
+        emptyGuide.style.display = 'block';
+      } else {
+        emptyGuide.style.display = 'none';
+      }
+
+      // Fail button enabled if simulation active
+      const failBtn = document.getElementById('fail-btn');
+      if (failBtn) failBtn.disabled = !state.simulationActive;
+    }
+
+    // SIMULATION TOGGLE
+    async function toggleSimulation() {
+      if (!state.simulationActive) {
+        // Start simulation
+        try {
+          await apiPost('/simulate?algorithm=pacar');
+          state.simulationActive = true;
+          document.getElementById('sim-status').className = 'sim-status-pill active';
+          document.getElementById('sim-status-text').textContent = 'Live Simulation Active';
+          document.getElementById('sim-btn-icon').textContent = '⏹';
+          document.getElementById('sim-btn-text').textContent = 'Stop Simulation';
+          document.getElementById('sim-toggle-btn').className = 'btn btn-danger sim-toggle-btn';
+          showToast("Simulation Active. Link failures and traffic edits will recalculate live.", "▶");
+          await syncState();
+        } catch (err) {
+          showToast(`Cannot start simulation: ${err.message}`, "⚠️");
+        }
+      } else {
+        // Stop simulation
+        state.simulationActive = false;
+        document.getElementById('sim-status').className = 'sim-status-pill draft';
+        document.getElementById('sim-status-text').textContent = 'Draft Network';
+        document.getElementById('sim-btn-icon').textContent = '▶';
+        document.getElementById('sim-btn-text').textContent = 'Start Simulation';
+        document.getElementById('sim-toggle-btn').className = 'btn btn-primary sim-toggle-btn';
+        showToast("Simulation stopped. Network returned to draft mode.", "⏹");
+        await syncState();
       }
     }
 
-    async function fetchMetrics() {
-      try {
-        const res = await fetch(`${API_BASE}/metrics`);
-        const data = await res.json();
-        const req = data.total_requested || 0;
-        const del = data.total_delivered || 0;
-        const pct = req > 0 ? ((del / req) * 100) : 100;
-        const congested = (data.link_utilizations || []).filter(l => (l.utilization || 0) >= 80).length;
-        const failed = data.failed_links || 0;
+    // AUTO RE-SIMULATE IF RUNNING
+    async function reSimulateIfActive() {
+      if (state.simulationActive) {
+        try {
+          await apiPost('/simulate?algorithm=pacar');
+        } catch (e) {
+          console.warn("Auto-resimulate failed:", e);
+        }
+      }
+      await syncState();
+    }
 
-        document.getElementById('metric-delivery').textContent = `${pct.toFixed(1)}%`;
-        document.getElementById('metric-delivered-bw').textContent = `${del.toFixed(0)} / ${req.toFixed(0)} Mbps`;
-        document.getElementById('metric-congested').textContent = congested;
-        document.getElementById('metric-failed-links').textContent = failed;
-        const health = Math.max(0, 100 - (failed * 20) - ((100 - pct) * 0.8));
-        document.getElementById('metric-health').textContent = health.toFixed(1);
+    // ADD NODE
+    function openAddNodeModal() {
+      const keys = Object.keys(state.nodes);
+      let nextNum = keys.length + 1;
+      while (state.nodes[`R${nextNum}`]) nextNum++;
+      document.getElementById('node-input-id').value = `R${nextNum}`;
+      document.getElementById('node-input-name').value = `Node ${nextNum}`;
+      document.getElementById('node-input-type').value = "router";
+      openModal('modal-add-node');
+    }
+
+    async function submitAddNode() {
+      const id = document.getElementById('node-input-id').value.trim();
+      const name = document.getElementById('node-input-name').value.trim() || id;
+      const type = document.getElementById('node-input-type').value;
+
+      if (!id) return showToast("Node ID is required", "⚠️");
+
+      // Place node near center with slight offset
+      const svg = document.getElementById('network-canvas');
+      const rect = svg.getBoundingClientRect();
+      const count = Object.keys(state.nodes).length;
+      const angle = count * 0.8;
+      const radius = 80 + count * 25;
+      const x = Math.round((rect.width / 2) + Math.cos(angle) * Math.min(radius, 250));
+      const y = Math.round((rect.height / 2) + Math.sin(angle) * Math.min(radius, 180));
+
+      try {
+        await apiPost('/nodes', { id, name, node_type: type, x, y });
+        closeModal('modal-add-node');
+        showToast(`Node ${id} created`, "✅");
+        selectItem('node', id);
+        await reSimulateIfActive();
       } catch (err) {
-        console.error("Failed to load metrics", err);
+        showToast(`Error: ${err.message}`, "❌");
       }
     }
 
-    function populateNodeSelectors(nodes) {
-      const s = document.getElementById('emg-source');
-      const d = document.getElementById('emg-dest');
-      if (!s || !d) return;
+    // CONNECT NODES
+    function openConnectModal(defaultSrc = null) {
+      const nodes = Object.values(state.nodes);
+      if (nodes.length < 2) return showToast("Create at least 2 nodes first", "⚠️");
+
+      const s = document.getElementById('link-input-src');
+      const d = document.getElementById('link-input-dst');
       s.innerHTML = ""; d.innerHTML = "";
       nodes.forEach((n, idx) => {
-        const opt1 = new Option(`${n.id} (${n.label || n.node_type})`, n.id);
-        const opt2 = new Option(`${n.id} (${n.label || n.node_type})`, n.id);
-        s.add(opt1);
-        d.add(opt2);
+        s.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+        d.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
       });
-      if (nodes.length > 1) d.selectedIndex = nodes.length - 1;
+      if (defaultSrc) s.value = defaultSrc;
+      if (s.selectedIndex === 0 && nodes.length > 1) d.selectedIndex = 1;
+      openModal('modal-connect');
     }
 
-    function renderDemandsTable(demands) {
-      const tbody = document.getElementById('demands-table-body');
-      document.getElementById('demands-count').textContent = `${demands.length} Demands`;
-      if (!demands.length) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No demands active</td></tr>`;
+    async function submitConnectNodes() {
+      const src = document.getElementById('link-input-src').value;
+      const dst = document.getElementById('link-input-dst').value;
+      const cap = parseFloat(document.getElementById('link-input-cap').value);
+      const lat = parseFloat(document.getElementById('link-input-lat').value);
+
+      if (src === dst) return showToast("Source and destination must be different", "⚠️");
+
+      // Generate Link ID
+      let lid = `L_${src}_${dst}`;
+      if (state.links[lid]) lid = `L${Object.keys(state.links).length + 1}`;
+
+      try {
+        await apiPost('/links', { id: lid, source: src, target: dst, capacity: cap, latency: lat });
+        closeModal('modal-connect');
+        showToast(`Connected ${src} ↔ ${dst} (${cap} Mbps)`, "✅");
+        selectItem('link', lid);
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // ADD / EDIT DEMAND
+    function openAddDemandModal(editDemand = null) {
+      const nodes = Object.values(state.nodes);
+      if (nodes.length < 2) return showToast("Create at least 2 nodes before adding traffic", "⚠️");
+
+      const s = document.getElementById('demand-input-src');
+      const d = document.getElementById('demand-input-dst');
+      s.innerHTML = ""; d.innerHTML = "";
+      nodes.forEach(n => {
+        s.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+        d.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+      });
+
+      if (editDemand) {
+        document.getElementById('modal-demand-title').textContent = `✏️ Edit Demand ${editDemand.id}`;
+        document.getElementById('demand-edit-id').value = editDemand.id;
+        document.getElementById('demand-input-id').value = editDemand.id;
+        document.getElementById('demand-input-id').disabled = true;
+        s.value = editDemand.source;
+        d.value = editDemand.destination;
+        document.getElementById('demand-input-cat').value = editDemand.category;
+        document.getElementById('demand-input-bw').value = editDemand.bandwidth;
+      } else {
+        document.getElementById('modal-demand-title').textContent = `⚡ Add Traffic Demand`;
+        document.getElementById('demand-edit-id').value = "";
+        let nextD = Object.keys(state.demands).length + 1;
+        while (state.demands[`D${nextD}`]) nextD++;
+        document.getElementById('demand-input-id').value = `D${nextD}`;
+        document.getElementById('demand-input-id').disabled = false;
+        if (s.selectedIndex === 0 && nodes.length > 1) d.selectedIndex = 1;
+        document.getElementById('demand-input-bw').value = 30;
+      }
+      openModal('modal-demand');
+    }
+
+    async function submitDemandForm() {
+      const editId = document.getElementById('demand-edit-id').value;
+      const id = document.getElementById('demand-input-id').value.trim();
+      const src = document.getElementById('demand-input-src').value;
+      const dst = document.getElementById('demand-input-dst').value;
+      const cat = document.getElementById('demand-input-cat').value;
+      const bw = parseFloat(document.getElementById('demand-input-bw').value);
+
+      if (src === dst) return showToast("Source and destination must be different", "⚠️");
+
+      try {
+        if (editId) {
+          await apiPut(`/demands/${editId}`, { bandwidth: bw, category: cat, source: src, destination: dst });
+          showToast(`Demand ${editId} updated`, "✅");
+        } else {
+          await apiPost('/demands', { id, source: src, destination: dst, bandwidth: bw, category: cat });
+          showToast(`Demand ${id} added`, "✅");
+        }
+        closeModal('modal-demand');
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    async function deleteDemand(id) {
+      if (!confirm(`Delete traffic demand ${id}?`)) return;
+      try {
+        await apiDelete(`/demands/${id}`);
+        showToast(`Demand ${id} removed`, "🗑️");
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // FAIL / RESTORE LINK
+    async function toggleLinkFailure(linkId) {
+      const link = state.links[linkId];
+      if (!link) return;
+      const isFailed = link.status === "failed";
+      const action = isFailed ? "restore" : "fail";
+      try {
+        const result = await apiPost(`/links/${linkId}/${action}`);
+        const changedRoutes = result.route_changes || 0;
+        if (action === "fail") {
+          showToast(`Link ${link.source}–${link.target} failed! ${changedRoutes} routes adjusted.`, "💥");
+        } else {
+          showToast(`Link ${link.source}–${link.target} restored. Routes recovered.`, "🔄");
+        }
+        await syncState();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    function failSelectedOrRandom() {
+      if (state.selectedItem && state.selectedItem.type === 'link') {
+        toggleLinkFailure(state.selectedItem.id);
+      } else {
+        const activeLinks = Object.values(state.links).filter(l => l.status !== 'failed');
+        if (!activeLinks.length) return showToast("No active links available to fail", "⚠️");
+        toggleLinkFailure(activeLinks[0].id);
+      }
+    }
+
+    async function restoreAllLinks() {
+      const failed = Object.values(state.links).filter(l => l.status === 'failed');
+      if (!failed.length) return showToast("All links are already active", "ℹ️");
+      for (const l of failed) {
+        await apiPost(`/links/${l.id}/restore`);
+      }
+      showToast("All links restored to normal", "🔄");
+      await syncState();
+    }
+
+    // PRESET & CLEAR
+    async function loadSamplePreset() {
+      try {
+        await apiPost('/topology/generate', { preset: 'normal_campus' });
+        showToast("Loaded Normal Campus Sample Network", "🧪");
+        await syncState();
+      } catch (err) {
+        showToast(`Failed to load preset: ${err.message}`, "❌");
+      }
+    }
+
+    async function promptClearNetwork() {
+      if (!confirm("Are you sure you want to clear the entire network canvas?")) return;
+      try {
+        await apiPost('/simulation/reset');
+        state.selectedItem = null;
+        showToast("Network canvas cleared", "🗑️");
+        await syncState();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    async function exportNetworkJson() {
+      window.open(`${API_BASE}/export`, '_blank');
+    }
+
+    // CANVAS SELECTION & RENDERING
+    function selectItem(type, id) {
+      state.selectedItem = { type, id };
+      renderCanvas();
+      renderInspector();
+    }
+    function clearSelection() {
+      state.selectedItem = null;
+      renderCanvas();
+      renderInspector();
+    }
+
+    // RENDER INSPECTOR
+    function renderInspector() {
+      const body = document.getElementById('inspector-body');
+      const title = document.getElementById('inspector-title');
+
+      // Update basic counters
+      document.getElementById('stat-nodes').textContent = Object.keys(state.nodes).length;
+      document.getElementById('stat-links').textContent = Object.keys(state.links).length;
+      document.getElementById('stat-demands').textContent = Object.keys(state.demands).length;
+      const failedCount = Object.values(state.links).filter(l => l.status === 'failed').length;
+      document.getElementById('stat-failed').textContent = failedCount;
+
+      if (!state.selectedItem) {
+        title.textContent = "Inspector";
+        body.innerHTML = `
+          <div class="info-card">
+            <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Tips</div>
+            <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
+              ${Object.keys(state.nodes).length === 0 ? "Start by adding network nodes using the '+ Add Node' button." :
+                Object.keys(state.links).length === 0 ? "Connect your nodes using '+ Connect Nodes' to form communication links." :
+                !state.simulationActive ? "Add traffic demands below and click 'Start Simulation' to route traffic." :
+                "Simulation active! Click any link to fail or restore it and observe dynamic rerouting."}
+            </p>
+          </div>
+          <div class="info-card">
+            <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
+            <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val">${Object.keys(state.nodes).length}</span></div>
+            <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val">${Object.keys(state.links).length}</span></div>
+            <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val">${Object.keys(state.demands).length}</span></div>
+            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" style="color:var(--red);">${failedCount}</span></div>
+          </div>
+        `;
         return;
       }
-      tbody.innerHTML = demands.map(d => {
-        const catClass = `pill-${d.category || 'general'}`;
-        const pct = d.bandwidth > 0 ? ((d.allocated_bandwidth / d.bandwidth) * 100).toFixed(0) : 0;
-        let statusColor = "#10b981";
-        if (d.status === "partially_served") statusColor = "#f59e0b";
-        if (d.status === "unserved_congestion" || d.status === "unreachable") statusColor = "#ef4444";
 
-        return `
-          <tr>
-            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${d.id}</td>
-            <td style="font-size:0.75rem;">${d.source} → ${d.destination}</td>
-            <td><span class="pill ${catClass}">${d.category || 'P3'}</span></td>
-            <td>
-              <div style="font-size:0.75rem;">${d.allocated_bandwidth.toFixed(1)} / ${d.bandwidth} Mbps</div>
-              <div style="height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin-top:2px;">
-                <div style="width:${pct}%; height:100%; background:${statusColor};"></div>
-              </div>
-            </td>
-            <td style="color:${statusColor}; font-weight:600; font-size:0.72rem; text-transform:uppercase;">
-              ${d.status.replace('_', ' ')}
-            </td>
-          </tr>
+      if (state.selectedItem.type === 'node') {
+        const node = state.nodes[state.selectedItem.id];
+        if (!node) return clearSelection();
+        title.textContent = `Node: ${node.id}`;
+        const connectedLinks = Object.values(state.links).filter(l => l.source === node.id || l.target === node.id);
+
+        body.innerHTML = `
+          <div class="info-card">
+            <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>${ICONS[node.node_type] || '🌐'}</span> ${node.id}
+            </div>
+            <div class="info-row"><span class="info-label">Name:</span><span class="info-val">${node.name || node.id}</span></div>
+            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${node.node_type.toUpperCase()}</span></div>
+            <div class="info-row"><span class="info-label">Connected Links:</span><span class="info-val">${connectedLinks.length}</span></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <button class="btn btn-secondary" onclick="openConnectModal('${node.id}')">🔗 Connect to Node...</button>
+            <button class="btn btn-danger" onclick="deleteNode('${node.id}')">🗑️ Delete Node</button>
+          </div>
         `;
-      }).join('');
+      } else if (state.selectedItem.type === 'link') {
+        const link = state.links[state.selectedItem.id];
+        if (!link) return clearSelection();
+        const isFailed = link.status === "failed";
+        title.textContent = `Link: ${link.id}`;
+
+        body.innerHTML = `
+          <div class="info-card">
+            <div style="font-size:1rem; font-weight:700; margin-bottom:0.4rem; color:var(--cyan);">
+              ${link.source} ↔ ${link.target}
+            </div>
+            <div class="info-row"><span class="info-label">Status:</span>
+              <span class="info-val" style="color:${isFailed ? 'var(--red)' : 'var(--green)'};">
+                ${isFailed ? '❌ FAILED' : 'ACTIVE'}
+              </span>
+            </div>
+            <div class="info-row"><span class="info-label">Capacity:</span><span class="info-val">${link.capacity} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Latency:</span><span class="info-val">${link.latency} ms</span></div>
+            <div class="info-row"><span class="info-label">Allocated Load:</span><span class="info-val">${(link.allocated_load || 0).toFixed(1)} Mbps (${(link.utilization || 0).toFixed(0)}%)</span></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <button class="btn ${isFailed ? 'btn-success' : 'btn-danger'}" onclick="toggleLinkFailure('${link.id}')">
+              ${isFailed ? '🔄 Restore Link' : '💥 Fail Link'}
+            </button>
+            <button class="btn btn-secondary" onclick="editLinkCapacity('${link.id}')">✏️ Edit Capacity</button>
+            <button class="btn btn-secondary" onclick="deleteLink('${link.id}')">🗑️ Delete Link</button>
+          </div>
+        `;
+      }
     }
 
-    /* RENDER SVG TOPOLOGY */
-    function renderNetwork(topology) {
-      const svg = document.getElementById('network-svg');
-      const linksG = document.getElementById('links-group');
-      const nodesG = document.getElementById('nodes-group');
-      linksG.innerHTML = "";
-      nodesG.innerHTML = "";
+    async function deleteNode(id) {
+      if (!confirm(`Delete node ${id} and all its connected links?`)) return;
+      try {
+        await apiDelete(`/nodes/${id}`);
+        showToast(`Node ${id} deleted`, "🗑️");
+        clearSelection();
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
 
-      const rect = svg.getBoundingClientRect();
-      const W = rect.width || 800;
-      const H = rect.height || 600;
+    async function deleteLink(id) {
+      if (!confirm(`Delete link ${id}?`)) return;
+      try {
+        await apiDelete(`/links/${id}`);
+        showToast(`Link ${id} deleted`, "🗑️");
+        clearSelection();
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
 
-      const nodeMap = {};
-      const N = topology.nodes.length;
+    async function editLinkCapacity(id) {
+      const link = state.links[id];
+      const newCap = prompt("Enter new capacity in Mbps:", link.capacity);
+      if (!newCap || isNaN(newCap)) return;
+      try {
+        await apiPut(`/links/${id}`, { capacity: parseFloat(newCap) });
+        showToast(`Link ${id} capacity updated to ${newCap} Mbps`, "✅");
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
 
-      // Layout nodes in circular / grid geometry if no coordinates
-      topology.nodes.forEach((node, i) => {
-        let x = node.x;
-        let y = node.y;
-        if (x === undefined || y === undefined || (x === 0 && y === 0)) {
-          const angle = (2 * Math.PI * i) / N;
-          x = (W / 2) + Math.cos(angle) * (Math.min(W, H) * 0.38);
-          y = (H / 2) + Math.sin(angle) * (Math.min(W, H) * 0.38);
-        } else {
-          // Normalize coordinates if in 0-100 or 0-1000 range
-          if (x <= 100 && y <= 100) {
-            x = (x / 100) * (W - 120) + 60;
-            y = (y / 100) * (H - 120) + 60;
-          }
-        }
-        nodeMap[node.id] = { ...node, x, y };
-      });
+    // RENDER SVG GRAPH CANVAS
+    function renderCanvas() {
+      const linksLayer = document.getElementById('links-layer');
+      const flowsLayer = document.getElementById('flows-layer');
+      const nodesLayer = document.getElementById('nodes-layer');
+      const world = document.getElementById('canvas-world');
 
-      // Draw links
-      topology.links.forEach(link => {
-        const src = nodeMap[link.source];
-        const dst = nodeMap[link.target];
+      world.setAttribute('transform', `translate(${state.pan.x}, ${state.pan.y}) scale(${state.zoom})`);
+
+      linksLayer.innerHTML = "";
+      flowsLayer.innerHTML = "";
+      nodesLayer.innerHTML = "";
+
+      // 1. Draw Links
+      Object.values(state.links).forEach(link => {
+        const src = state.nodes[link.source];
+        const dst = state.nodes[link.target];
         if (!src || !dst) return;
 
+        const isSelected = state.selectedItem && state.selectedItem.type === 'link' && state.selectedItem.id === link.id;
         const isFailed = link.status === "failed";
         const util = link.utilization || 0;
+
         let strokeColor = "#10b981";
         if (util >= 80) strokeColor = "#ef4444";
         else if (util >= 50) strokeColor = "#f59e0b";
@@ -842,299 +1526,320 @@
         line.setAttribute("x2", dst.x);
         line.setAttribute("y2", dst.y);
         line.setAttribute("stroke", strokeColor);
-        line.setAttribute("stroke-width", isFailed ? "3" : (Math.max(2, Math.min(util / 15, 6))));
+        line.setAttribute("stroke-width", isSelected ? "5" : (Math.max(3, Math.min(link.capacity / 25, 8))));
+        
         if (isFailed) {
-          line.setAttribute("stroke-dasharray", "6,4");
+          line.setAttribute("stroke-dasharray", "8,6");
           line.setAttribute("filter", "url(#glow-red)");
+        } else if (isSelected) {
+          line.setAttribute("filter", "url(#glow-cyan)");
         }
+
         line.style.cursor = "pointer";
-        line.onclick = () => toggleLink(link.id, link.status);
-
-        // Tooltip title
-        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-        title.textContent = `Link ${link.id} (${link.source} ↔ ${link.target})\nStatus: ${link.status}\nLoad: ${link.allocated_load?.toFixed(1) || 0} / ${link.capacity} Mbps (${util.toFixed(1)}%)\nClick to ${isFailed ? 'Restore' : 'Fail'}`;
-        line.appendChild(title);
-
-        linksG.appendChild(line);
+        line.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
+        linksLayer.appendChild(line);
 
         // Midpoint badge
         const mx = (src.x + dst.x) / 2;
         const my = (src.y + dst.y) / 2;
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", mx);
-        text.setAttribute("y", my - 4);
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("fill", isFailed ? "#ff0055" : "rgba(255,255,255,0.7)");
-        text.setAttribute("font-size", "10px");
-        text.setAttribute("font-family", "Fira Code, monospace");
-        text.textContent = isFailed ? "❌ FAILED" : `${util.toFixed(0)}%`;
-        linksG.appendChild(text);
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", mx);
+        txt.setAttribute("y", my - 6);
+        txt.setAttribute("text-anchor", "middle");
+        txt.setAttribute("fill", isFailed ? "#ff0055" : "rgba(255,255,255,0.75)");
+        txt.setAttribute("font-size", "11px");
+        txt.setAttribute("font-family", "Fira Code, monospace");
+        txt.setAttribute("font-weight", "600");
+        txt.textContent = isFailed ? "❌ FAILED" : `${link.capacity}M (${util.toFixed(0)}%)`;
+        linksLayer.appendChild(txt);
+
+        // Animated flow particles if active traffic
+        if (!isFailed && (link.allocated_load || 0) > 0 && state.simulationActive) {
+          const flowLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          flowLine.setAttribute("x1", src.x);
+          flowLine.setAttribute("y1", src.y);
+          flowLine.setAttribute("x2", dst.x);
+          flowLine.setAttribute("y2", dst.y);
+          flowLine.setAttribute("stroke", "#00f0ff");
+          flowLine.setAttribute("stroke-width", "3");
+          flowLine.setAttribute("stroke-dasharray", "4,12");
+          flowLine.setAttribute("class", "flow-active");
+          flowsLayer.appendChild(flowLine);
+        }
       });
 
-      // Draw nodes
-      topology.nodes.forEach(node => {
-        const n = nodeMap[node.id];
+      // 2. Draw Nodes
+      Object.values(state.nodes).forEach(node => {
+        const isSelected = state.selectedItem && state.selectedItem.type === 'node' && state.selectedItem.id === node.id;
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.style.cursor = "pointer";
+        g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+        g.style.cursor = "move";
 
+        // Outer glow circle
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", n.x);
-        circle.setAttribute("cy", n.y);
-        circle.setAttribute("r", "16");
+        circle.setAttribute("r", "20");
         circle.setAttribute("fill", "#0f172a");
-        circle.setAttribute("stroke", "var(--cyan)");
-        circle.setAttribute("stroke-width", "2.5");
-        circle.setAttribute("filter", "url(#glow-cyan)");
+        circle.setAttribute("stroke", isSelected ? "#00f0ff" : "rgba(56, 189, 248, 0.6)");
+        circle.setAttribute("stroke-width", isSelected ? "3.5" : "2");
+        if (isSelected) circle.setAttribute("filter", "url(#glow-cyan)");
 
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", n.x);
-        text.setAttribute("y", n.y + 4);
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("fill", "#ffffff");
-        text.setAttribute("font-size", "10px");
-        text.setAttribute("font-weight", "700");
-        text.setAttribute("font-family", "Inter, sans-serif");
-        text.textContent = n.id;
+        // Icon text
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        icon.setAttribute("text-anchor", "middle");
+        icon.setAttribute("y", "5");
+        icon.setAttribute("font-size", "14px");
+        icon.textContent = ICONS[node.node_type] || "🌐";
 
+        // Label underneath
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("x", n.x);
-        label.setAttribute("y", n.y + 26);
         label.setAttribute("text-anchor", "middle");
-        label.setAttribute("fill", "var(--text-muted)");
-        label.setAttribute("font-size", "9px");
+        label.setAttribute("y", "34");
+        label.setAttribute("fill", "#ffffff");
+        label.setAttribute("font-size", "11px");
+        label.setAttribute("font-weight", "700");
         label.setAttribute("font-family", "Inter, sans-serif");
-        label.textContent = n.label || n.node_type || "";
+        label.textContent = node.id;
 
         g.appendChild(circle);
-        g.appendChild(text);
+        g.appendChild(icon);
         g.appendChild(label);
-        nodesG.appendChild(g);
+
+        // Dragging & Clicking handlers
+        g.onmousedown = (e) => {
+          e.stopPropagation();
+          state.isDraggingNode = node.id;
+          state.dragOffset = { x: e.clientX - node.x, y: e.clientY - node.y };
+          selectItem('node', node.id);
+        };
+
+        nodesLayer.appendChild(g);
       });
     }
 
-    async function toggleLink(linkId, currentStatus) {
-      const action = currentStatus === "failed" ? "restore" : "fail";
-      try {
-        const res = await fetch(`${API_BASE}/links/${linkId}/${action}`, { method: 'POST' });
-        if (res.ok) {
-          showToast(`Link ${linkId} ${action === 'fail' ? 'FAILED ⚠️' : 'RESTORED ✅'}`);
-          await refreshAll();
-        }
-      } catch (err) {
-        showToast(`Failed to update link ${linkId}`);
+    // MOUSE PAN & DRAG HANDLERS
+    const canvasViewport = document.getElementById('canvas-viewport');
+    canvasViewport.onmousedown = (e) => {
+      if (e.target.id === 'network-canvas' || e.target.id === 'canvas-world') {
+        state.isPanning = true;
+        state.panStart = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
+        clearSelection();
       }
-    }
-
-    async function restoreAllLinks() {
-      if (!currentTopology.links) return;
-      for (const l of currentTopology.links) {
-        if (l.status === "failed") {
-          await fetch(`${API_BASE}/links/${l.id}/restore`, { method: 'POST' });
+    };
+    window.onmousemove = (e) => {
+      if (state.isDraggingNode) {
+        const node = state.nodes[state.isDraggingNode];
+        if (node) {
+          node.x = Math.round(e.clientX - state.dragOffset.x);
+          node.y = Math.round(e.clientY - state.dragOffset.y);
+          renderCanvas();
         }
+      } else if (state.isPanning) {
+        state.pan.x = e.clientX - state.panStart.x;
+        state.pan.y = e.clientY - state.panStart.y;
+        renderCanvas();
       }
-      showToast("All links restored to active status");
-      await refreshAll();
-    }
+    };
+    window.onmouseup = async () => {
+      if (state.isDraggingNode) {
+        const nid = state.isDraggingNode;
+        state.isDraggingNode = null;
+        // Save node position to backend
+        try {
+          const n = state.nodes[nid];
+          if (n) await apiPut(`/nodes/${nid}`, { x: n.x, y: n.y });
+        } catch (e) {}
+      }
+      state.isPanning = false;
+    };
+    canvasViewport.onwheel = (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      state.zoom = Math.max(0.3, Math.min(state.zoom * zoomFactor, 3.0));
+      renderCanvas();
+    };
 
-    async function failRandomLink() {
-      const activeLinks = currentTopology.links.filter(l => l.status !== "failed");
-      if (!activeLinks.length) {
-        showToast("No active links remaining to fail");
+    function zoomIn() { state.zoom = Math.min(state.zoom * 1.2, 3.0); renderCanvas(); }
+    function zoomOut() { state.zoom = Math.max(state.zoom / 1.2, 0.3); renderCanvas(); }
+    function resetView() { state.zoom = 1; state.pan = { x: 0, y: 0 }; renderCanvas(); }
+    function fitView() { resetView(); }
+
+    // RENDER DEMANDS TABLE
+    function renderDemandsTable() {
+      const tbody = document.getElementById('demands-table-body');
+      const demands = Object.values(state.demands);
+      document.getElementById('badge-demands-count').textContent = `(${demands.length})`;
+
+      if (!demands.length) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:1rem;">No traffic demands created yet. Click "+ Add Demand" to inject flows.</td></tr>`;
         return;
       }
-      const target = activeLinks[Math.floor(Math.random() * activeLinks.length)];
-      await toggleLink(target.id, "active");
+
+      tbody.innerHTML = demands.map(d => {
+        let statusClass = "status-ready";
+        let statusLabel = "Ready";
+        if (state.simulationActive) {
+          if (d.status === "fully_served") { statusClass = "status-served"; statusLabel = "Fully Served"; }
+          else if (d.status === "partially_served") { statusClass = "status-partial"; statusLabel = "Partially Served"; }
+          else if (d.status === "unreachable") { statusClass = "status-unserved"; statusLabel = "Unreachable"; }
+          else if (d.status === "unserved_congestion") { statusClass = "status-unserved"; statusLabel = "Congested"; }
+        }
+
+        const routeStr = (d.route && d.route.length > 1) ? d.route.join(" → ") : (d.route ? d.route[0] : "—");
+
+        return `
+          <tr>
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${d.id}</td>
+            <td style="font-weight:600;">${d.source} → ${d.destination}</td>
+            <td><span class="pill pill-${d.category}">${d.category.toUpperCase()}</span></td>
+            <td style="font-family:'Fira Code';">${d.bandwidth} Mbps</td>
+            <td style="font-family:'Fira Code'; color:var(--green);">${(d.allocated_bandwidth || 0).toFixed(1)} Mbps</td>
+            <td style="font-family:'Fira Code'; color:var(--text-muted);">${(d.unserved_bandwidth || 0).toFixed(1)} Mbps</td>
+            <td class="${statusClass}">${statusLabel}</td>
+            <td style="font-family:'Fira Code'; font-size:0.75rem; color:var(--cyan);">${routeStr}</td>
+            <td style="text-align:right;">
+              <button class="btn btn-secondary" style="padding:0.2rem 0.45rem; font-size:0.7rem;" onclick="openAddDemandModal(state.demands['${d.id}'])">✏️</button>
+              <button class="btn btn-secondary" style="padding:0.2rem 0.45rem; font-size:0.7rem; color:var(--red);" onclick="deleteDemand('${d.id}')">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    async function loadScenarioPreset(presetName) {
-      if (!presetName) return;
-      try {
-        const res = await fetch(`${API_BASE}/topology/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ preset: presetName })
-        });
-        const data = await res.json();
-        showToast(`Scenario Loaded: ${data.scenario}`);
-        await refreshAll();
-      } catch (err) {
-        showToast(`Failed to load scenario: ${err.message}`);
+    // RENDER METRICS
+    function renderMetrics() {
+      const m = state.lastMetrics;
+      if (!m) return;
+      const req = m.total_requested || 0;
+      const del = m.total_delivered || 0;
+      const pct = req > 0 ? (del / req * 100) : 100;
+      document.getElementById('metric-deliv-rate').textContent = `${pct.toFixed(1)}%`;
+      document.getElementById('metric-deliv-bw').textContent = `${del.toFixed(0)} / ${req.toFixed(0)} Mbps`;
+      document.getElementById('metric-crit-rate').textContent = `${(m.critical_delivery_pct || 100).toFixed(1)}%`;
+      const congested = (m.link_utilizations || []).filter(l => (l.utilization || 0) >= 80).length;
+      document.getElementById('metric-congested').textContent = congested;
+      document.getElementById('metric-latency').textContent = `${(m.avg_latency || 0).toFixed(1)} ms`;
+      document.getElementById('metric-failed-count').textContent = m.failed_links || 0;
+    }
+
+    // TRAY TABS
+    function switchTrayTab(tabId) {
+      document.querySelectorAll('.tray-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tray-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tray-whatif') populateWhatIfLinks();
+      if (tabId === 'tray-events') loadEvents();
+    }
+
+    function toggleTrayCollapse() {
+      const ws = document.getElementById('app-workspace');
+      const btn = document.getElementById('tray-collapse-btn');
+      const tray = document.getElementById('bottom-tray');
+      if (ws.classList.contains('tray-collapsed')) {
+        ws.classList.remove('tray-collapsed');
+        tray.style.height = "260px";
+        btn.textContent = "Hide Tray ▼";
+      } else {
+        ws.classList.add('tray-collapsed');
+        tray.style.height = "38px";
+        btn.textContent = "Show Tray ▲";
       }
     }
 
-    async function triggerSimulation() {
-      try {
-        const res = await fetch(`${API_BASE}/simulate?algorithm=pacar`, { method: 'POST' });
-        const data = await res.json();
-        showToast(`PACAR Rerouting Complete: ${data.metrics?.delivery_rate_percent.toFixed(1)}% Delivered`);
-        await refreshAll();
-      } catch (err) {
-        showToast(`Simulation failed: ${err.message}`);
-      }
-    }
-
+    // ALGORITHM COMPARISON
     async function runComparison() {
-      switchTab('tab-compare');
-      const container = document.getElementById('compare-container');
-      container.innerHTML = `<p style="color:var(--text-muted);">Running dual algorithm simulation...</p>`;
+      const box = document.getElementById('compare-results-box');
+      box.innerHTML = `<span style="color:var(--text-muted);">Running dual algorithm simulation...</span>`;
       try {
-        const res = await fetch(`${API_BASE}/compare`, { method: 'POST' });
-        const data = await res.json();
-        const pacar = data.pacar || {};
-        const base = data.baseline || {};
-        const pDeliv = pacar.total_requested > 0 ? ((pacar.total_delivered / pacar.total_requested) * 100) : 100;
-        const bDeliv = base.total_requested > 0 ? ((base.total_delivered / base.total_requested) * 100) : 100;
-        const diffDelivery = (pDeliv - bDeliv).toFixed(1);
+        const data = await apiPost('/compare');
+        const p = data.pacar || {};
+        const b = data.baseline || {};
+        const pDel = p.total_requested > 0 ? (p.total_delivered / p.total_requested * 100) : 100;
+        const bDel = b.total_requested > 0 ? (b.total_delivered / b.total_requested * 100) : 100;
 
-        container.innerHTML = `
-          <div class="comparison-grid">
-            <div class="compare-card winner">
-              <h4>🚀 PACAR (Resilience Engine)</h4>
-              <div class="compare-metric"><span>Delivery Rate:</span> <strong>${pDeliv.toFixed(1)}%</strong></div>
-              <div class="compare-metric"><span>Delivered BW:</span> <strong>${(pacar.total_delivered || 0).toFixed(0)} Mbps</strong></div>
-              <div class="compare-metric"><span>Critical Delivered:</span> <strong>${(pacar.critical_delivery_pct || 100).toFixed(1)}%</strong></div>
-              <div class="compare-metric"><span>Avg Latency:</span> <strong>${(pacar.avg_latency || 0).toFixed(1)} ms</strong></div>
-              <div class="compare-metric"><span>Max Link Util:</span> <strong>${(pacar.max_link_utilization || 0).toFixed(1)}%</strong></div>
+        box.innerHTML = `
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.4rem;">
+            <div class="info-card" style="border-color:var(--cyan);">
+              <h4 style="color:var(--cyan); margin-bottom:0.4rem;">🚀 PACAR (Priority Capacity Adaptive)</h4>
+              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${pDel.toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Delivered Bandwidth:</span><span class="info-val">${(p.total_delivered || 0).toFixed(0)} Mbps</span></div>
+              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(p.critical_delivery_pct || 100).toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(p.max_link_utilization || 0).toFixed(0)}%</span></div>
             </div>
-            <div class="compare-card">
-              <h4>Standard Dijkstra Baseline</h4>
-              <div class="compare-metric"><span>Delivery Rate:</span> <strong>${bDeliv.toFixed(1)}%</strong></div>
-              <div class="compare-metric"><span>Delivered BW:</span> <strong>${(base.total_delivered || 0).toFixed(0)} Mbps</strong></div>
-              <div class="compare-metric"><span>Critical Delivered:</span> <strong>${(base.critical_delivery_pct || 100).toFixed(1)}%</strong></div>
-              <div class="compare-metric"><span>Avg Latency:</span> <strong>${(base.avg_latency || 0).toFixed(1)} ms</strong></div>
-              <div class="compare-metric"><span>Max Link Util:</span> <strong>${(base.max_link_utilization || 0).toFixed(1)}%</strong></div>
+            <div class="info-card">
+              <h4 style="color:var(--text-muted); margin-bottom:0.4rem;">Standard Shortest-Path Dijkstra</h4>
+              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${bDel.toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Delivered Bandwidth:</span><span class="info-val">${(b.total_delivered || 0).toFixed(0)} Mbps</span></div>
+              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(b.critical_delivery_pct || 100).toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(b.max_link_utilization || 0).toFixed(0)}%</span></div>
             </div>
-          </div>
-          <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,240,255,0.05); border:1px solid var(--border-accent); border-radius:8px; font-size:0.8rem;">
-            <strong>PACAR Advantage:</strong> ${diffDelivery >= 0 ? '+' : ''}${diffDelivery}% delivery resilience. PACAR uses multi-path capacity-adaptive scoring and progressive filling to prevent bottleneck over-saturation.
           </div>
         `;
       } catch (err) {
-        container.innerHTML = `<p style="color:var(--red);">Comparison failed: ${err.message}</p>`;
+        box.innerHTML = `<span style="color:var(--red);">Comparison failed: ${err.message}</span>`;
       }
     }
 
-    async function loadVulnerabilities() {
-      const container = document.getElementById('vulnerability-list');
-      container.innerHTML = `<p style="color:var(--text-muted);">Analyzing single-point-of-failure vulnerabilities...</p>`;
+    // WHAT-IF ANALYSIS
+    function populateWhatIfLinks() {
+      const container = document.getElementById('whatif-link-selectors');
+      const links = Object.values(state.links);
+      if (!links.length) {
+        container.innerHTML = `<span style="color:var(--text-muted);">No links in network.</span>`;
+        return;
+      }
+      container.innerHTML = links.map(l => `
+        <label style="background:var(--bg-card); border:1px solid var(--border); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
+          <input type="checkbox" value="${l.id}" class="whatif-checkbox">
+          <span>${l.id} (${l.source}↔${l.target})</span>
+        </label>
+      `).join('');
+    }
+
+    async function executeWhatIf() {
+      const checked = Array.from(document.querySelectorAll('.whatif-checkbox:checked')).map(c => c.value);
+      if (!checked.length) return showToast("Select at least one link to simulate failure", "⚠️");
+      const box = document.getElementById('whatif-results-box');
+      box.innerHTML = `<span style="color:var(--text-muted);">Simulating snapshot disaster...</span>`;
       try {
-        const res = await fetch(`${API_BASE}/analyze/vulnerabilities`);
-        const data = await res.json();
-        const rankings = Array.isArray(data) ? data : (data.rankings || []);
-        if (!rankings.length) {
-          container.innerHTML = `<p style="color:var(--text-muted);">No vulnerabilities detected</p>`;
-          return;
-        }
-        container.innerHTML = rankings.slice(0, 10).map((item, idx) => `
-          <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:0.65rem; margin-bottom:0.5rem; font-size:0.78rem;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
-              <span style="font-family:'Fira Code'; font-weight:700; color:var(--cyan);">${item.link_id} (${item.source} ↔ ${item.target})</span>
-              <span style="color:${item.is_bridge ? 'var(--red)' : 'var(--amber)'}; font-weight:600;">
-                ${item.is_bridge ? '🚨 CRITICAL BRIDGE' : `Risk: ${(item.criticality_score || item.vulnerability_score || 0).toFixed(2)}`}
-              </span>
-            </div>
-            <div style="color:var(--text-muted); font-size:0.72rem;">
-              Impact: ${(item.critical_traffic_lost || item.lost_bandwidth || 0).toFixed(0)} Mbps lost (${item.disrupted_demands_count || item.demands_affected || 0} flows impacted)
-            </div>
+        const res = await apiPost('/analyze/what-if', { link_ids: checked });
+        box.innerHTML = `
+          <div class="info-card" style="margin-top:0.5rem;">
+            <div style="font-weight:700; color:var(--amber); margin-bottom:0.35rem;">What-If Disaster Assessment (${checked.join(', ')})</div>
+            <div class="info-row"><span class="info-label">Delivered Before:</span><span class="info-val">${res.total_delivered_before.toFixed(0)} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Delivered After:</span><span class="info-val">${res.total_delivered_after.toFixed(0)} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Bandwidth Lost:</span><span class="info-val" style="color:var(--red);">${res.lost_bandwidth.toFixed(0)} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Flows Disrupted:</span><span class="info-val">${res.disrupted_demands_count}</span></div>
           </div>
-        `).join('');
+        `;
       } catch (err) {
-        container.innerHTML = `<p style="color:var(--red);">Failed to rank vulnerabilities</p>`;
+        box.innerHTML = `<span style="color:var(--red);">What-if simulation failed: ${err.message}</span>`;
       }
     }
 
-    async function refreshEvents() {
-      const log = document.getElementById('events-log-container');
+    // EVENT LOG
+    async function loadEvents() {
+      const container = document.getElementById('event-log-list');
       try {
-        const res = await fetch(`${API_BASE}/events?limit=25`);
-        const data = await res.json();
+        const data = await apiGet('/events?limit=30');
         const events = Array.isArray(data) ? data : (data.events || []);
         if (!events.length) {
-          log.innerHTML = `<div class="event-item">No events recorded.</div>`;
+          container.innerHTML = `<div style="color:var(--text-muted);">No events recorded yet.</div>`;
           return;
         }
-        log.innerHTML = events.slice().reverse().map(e => {
-          let typeClass = "";
-          const evtType = e.event_type || "";
-          if (evtType.includes("failure")) typeClass = "failure";
-          if (evtType.includes("emergency") || evtType.includes("preempt")) typeClass = "emergency";
-          if (evtType.includes("restore")) typeClass = "restore";
-          return `
-            <div class="event-item ${typeClass}">
-              <span class="event-step">[STEP ${e.step}]</span>
-              <strong>${evtType}:</strong> ${e.description}
-            </div>
-          `;
-        }).join('');
-      } catch (err) {
-        console.error("Failed to load events", err);
-      }
+        container.innerHTML = events.slice().reverse().map(e => `
+          <div style="padding:0.3rem 0.5rem; background:var(--bg-card); border-left:3px solid var(--cyan); border-radius:0 4px 4px 0;">
+            <span style="font-family:'Fira Code'; color:var(--text-dim);">[Step ${e.step}]</span>
+            <strong>${e.event_type}:</strong> ${e.description}
+          </div>
+        `).join('');
+      } catch (e) {}
     }
 
-    function openEmergencyModal() {
-      document.getElementById('emergency-modal').classList.add('active');
-    }
-    function closeEmergencyModal() {
-      document.getElementById('emergency-modal').classList.remove('active');
-    }
-
-    async function submitEmergency() {
-      const id = document.getElementById('emg-id').value;
-      const source = document.getElementById('emg-source').value;
-      const destination = document.getElementById('emg-dest').value;
-      const bandwidth = parseFloat(document.getElementById('emg-bw').value);
-
-      try {
-        const res = await fetch(`${API_BASE}/demands/emergency`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, source, destination, bandwidth, category: "emergency" })
-        });
-        if (res.ok) {
-          closeEmergencyModal();
-          showToast(`🚨 P1 Emergency Injected! PACAR triggered preemption.`);
-          await refreshAll();
-        } else {
-          const err = await res.json();
-          showToast(`Failed: ${err.detail}`);
-        }
-      } catch (e) {
-        showToast(`Failed to inject: ${e.message}`);
-      }
-    }
-
-    async function exportDataReport() {
-      window.open(`${API_BASE}/export`, '_blank');
-    }
-
-    async function refreshAll() {
-      await fetchTopology();
-      await fetchDemands();
-      await fetchMetrics();
-      await refreshEvents();
-    }
-
-    async function populateScenarios() {
-      try {
-        const res = await fetch(`${API_BASE}/scenarios`);
-        const list = await res.json();
-        const select = document.getElementById('scenario-select');
-        if (!select || !Array.isArray(list)) return;
-        select.innerHTML = '<option value="" disabled selected>⚡ Load Scenario Preset...</option>';
-        list.forEach(s => {
-          const opt = new Option(`${s.name}`, s.id);
-          select.add(opt);
-        });
-      } catch (e) {
-        console.error('Failed to populate scenarios', e);
-      }
-    }
-
-    // Initialize
+    // INITIALIZATION
     window.addEventListener('load', async () => {
-      await populateScenarios();
-      await loadScenarioPreset('normal_campus');
-      window.addEventListener('resize', () => renderNetwork(currentTopology));
+      await syncState();
     });
   </script>
 </body>
