@@ -429,3 +429,64 @@ def run_pacar(state: SimulationState) -> list[Demand]:
             }))
 
     return results
+
+
+def run_pacar_allocations(
+    demands: dict[str, Any],
+    links: dict[str, Any],
+    candidate_tunnels: dict[str, list[Any]],
+) -> dict[str, dict[str, float]]:
+    """
+    Produce a tunnel-indexed allocation dictionary:
+    flow_id -> {tunnel_id -> mbps}
+    using PACAR priority-aware greedy allocation on candidate tunnels.
+    Strictly respects shared physical-link capacity in both directions.
+    """
+    failed_links = set()
+    residual: dict[str, float] = {}
+    for lid, link in links.items():
+        status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
+        if status == LinkStatus.FAILED or status == "failed":
+            failed_links.add(lid)
+            residual[lid] = 0.0
+        else:
+            cap = float(getattr(link, "capacity", 0.0) if not isinstance(link, dict) else link.get("capacity", 0.0))
+            residual[lid] = cap
+
+    allocations: dict[str, dict[str, float]] = {fid: {} for fid in demands}
+
+    # Sort demands by priority (ascending = P1 first), then ID
+    sorted_fids = sorted(
+        demands.keys(),
+        key=lambda fid: (
+            getattr(demands[fid], "priority", None).value if hasattr(getattr(demands[fid], "priority", None), "value")
+            else (demands[fid].get("priority", 4) if isinstance(demands[fid], dict) else 4),
+            fid
+        )
+    )
+
+    for fid in sorted_fids:
+        d = demands[fid]
+        req_bw = float(getattr(d, "bandwidth", 0.0) if not isinstance(d, dict) else d.get("bandwidth", 0.0))
+        if req_bw <= 0:
+            continue
+
+        surviving = [t for t in candidate_tunnels.get(fid, []) if t.survives_failure(failed_links)]
+        if not surviving:
+            continue
+
+        rem_bw = req_bw
+        for t in surviving:
+            if rem_bw <= 1e-5:
+                break
+            # Bottleneck on physical links for this tunnel
+            avail = min((residual.get(lid, 0.0) for lid in t.link_ids), default=0.0)
+            if avail > 1e-5:
+                alloc_amount = min(rem_bw, avail)
+                allocations[fid][t.id] = alloc_amount
+                rem_bw -= alloc_amount
+                # Deduct from physical links
+                for lid in t.link_ids:
+                    residual[lid] = max(0.0, residual.get(lid, 0.0) - alloc_amount)
+
+    return allocations

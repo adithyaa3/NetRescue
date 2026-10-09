@@ -119,13 +119,15 @@ class Demand(BaseModel):
     route: Optional[list[str]] = None
     status: DemandStatus = DemandStatus.PENDING
     explanation: str = ""
+    max_latency: Optional[float] = Field(default=None, ge=0, description="Max acceptable latency in ms")
+    tunnels: list[dict] = Field(default_factory=list, description="Active tunnel allocations")
 
 
 # ── API Schemas ───────────────────────────────────────────────────────
 
 class NodeCreate(BaseModel):
     id: str
-    name: str
+    name: str = ""
     node_type: NodeType = NodeType.ROUTER
     service_label: Optional[str] = None
     x: float = 0.0
@@ -146,6 +148,7 @@ class DemandCreate(BaseModel):
     destination: str
     bandwidth: float = Field(gt=0)
     category: TrafficCategory = TrafficCategory.GENERAL
+    max_latency: Optional[float] = Field(default=None, ge=0)
 
 
 class DemandUpdate(BaseModel):
@@ -153,6 +156,7 @@ class DemandUpdate(BaseModel):
     category: Optional[TrafficCategory] = None
     source: Optional[str] = None
     destination: Optional[str] = None
+    max_latency: Optional[float] = Field(default=None, ge=0)
 
 
 class TopologyData(BaseModel):
@@ -270,3 +274,46 @@ class ExportData(BaseModel):
     events: list[SimulationEvent]
     metrics: Optional[MetricsResponse] = None
     comparison: Optional[dict] = None
+
+
+# ── Routing & Protection Engine Models ───────────────────────────────
+
+class CandidateTunnelData(BaseModel):
+    id: str
+    flow_id: str
+    node_path: list[str]
+    link_ids: list[str]
+    latency: float
+    is_active: bool = True
+
+
+class FlowProtection(BaseModel):
+    flow_id: str
+    priority: int
+    requested_mbps: float
+    guaranteed_mbps: float
+    delivered_mbps: float
+    protection_pct: float
+    status: str  # "Full", "Partial", "Unprotected", "None"
+
+
+class ProtectionPlanSummary(BaseModel):
+    plan_id: str
+    topology_version: int
+    demand_version: int
+    verified: bool
+    covered_scenarios_count: int
+    total_guaranteed_p1: float
+    total_guaranteed_p2: float
+    critical_flows: list[FlowProtection]
+    runtime_ms: float
+    is_active: bool = True
+    verification_failures: list[str] = []
+
+
+class ValidationResultData(BaseModel):
+    is_valid: bool
+    violations: list[str] = []
+    link_loads: dict[str, float] = {}
+    total_delivered: float = 0.0
+    total_unserved: float = 0.0

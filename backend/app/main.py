@@ -160,7 +160,13 @@ def list_scenarios():
 @app.post("/nodes", tags=["Nodes"])
 def add_node(node: NodeCreate):
     try:
-        n = Node(**node.model_dump())
+        node_data = node.model_dump()
+        node_data["id"] = node_data["id"].strip()
+        if not node_data["id"]:
+            raise ValueError("Node ID cannot be empty")
+        if not node_data.get("name") or not node_data["name"].strip():
+            node_data["name"] = node_data["id"]
+        n = Node(**node_data)
         with state.lock():
             state.add_node(n)
         return n.model_dump()
@@ -260,6 +266,7 @@ def add_demand(demand: DemandCreate):
             bandwidth=demand.bandwidth,
             category=demand.category,
             priority=CATEGORY_TO_PRIORITY[demand.category],
+            max_latency=demand.max_latency,
         )
         with state.lock():
             state.add_demand(d)
@@ -278,6 +285,7 @@ def update_demand(demand_id: str, update: DemandUpdate):
                 category=update.category,
                 source=update.source,
                 destination=update.destination,
+                max_latency=update.max_latency,
             )
         return d.model_dump()
     except ValueError as e:
@@ -294,10 +302,62 @@ def delete_demand(demand_id: str):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+# ── Protection ─────────────────────────────────────────────────────────
+
+@app.get("/protection/plan", tags=["Protection"])
+def get_protection_plan():
+    with state.lock():
+        plan = state.protection_plan
+        if not plan:
+            return {
+                "active": False,
+                "message": "No active protection plan (requires P1 or P2 critical traffic and usable topology)",
+                "critical_flows": [],
+                "covered_scenarios_count": 0,
+            }
+        flows = []
+        for fid, g in plan.per_flow_guaranteed.items():
+            d = state.demands.get(fid)
+            req = d.bandwidth if d else 0.0
+            deliv = d.allocated_bandwidth if d else 0.0
+            p = d.priority.value if (d and hasattr(d.priority, "value")) else 1
+            pct = (g / req * 100) if req > 0 else 100.0
+            status_label = "Full" if g >= req - 1e-4 else ("Partial" if g > 0 else "None")
+            flows.append({
+                "flow_id": fid,
+                "priority": p,
+                "requested_mbps": req,
+                "guaranteed_mbps": round(g, 2),
+                "delivered_mbps": round(deliv, 2),
+                "protection_pct": round(pct, 1),
+                "status": status_label,
+            })
+        return {
+            "active": True,
+            "plan_id": plan.plan_id,
+            "topology_version": plan.topology_version,
+            "demand_version": plan.demand_version,
+            "verified": plan.verified,
+            "covered_scenarios_count": len(plan.covered_scenarios),
+            "solver_status": plan.solver_status,
+            "runtime_ms": round(plan.runtime_ms, 2),
+            "critical_flows": flows,
+            "verification_failures": plan.verification_failures,
+        }
+
+
+@app.post("/protection/replan", tags=["Protection"])
+def trigger_protection_replan():
+    with state.lock():
+        from app.simulation.engine import update_simulation_protection_plan
+        update_simulation_protection_plan(state)
+        return get_protection_plan()
+
+
 # ── Simulation ────────────────────────────────────────────────────────
 
 @app.post("/simulate", tags=["Simulation"])
-def run_simulation(algorithm: str = Query("pacar", enum=["pacar", "baseline"])):
+def run_simulation(algorithm: str = Query("pacar", enum=["pacar", "baseline", "reactive_lp", "lp"])):
     result = simulate(state, algorithm=algorithm)
     return result
 

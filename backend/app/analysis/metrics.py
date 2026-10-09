@@ -38,7 +38,7 @@ def compute_metrics(state: SimulationState) -> dict:
         total_delivered += d.allocated_bandwidth
         total_unserved += d.unserved_bandwidth
         
-        is_critical = d.priority.value <= Priority.P3_ACADEMIC.value
+        is_critical = d.priority.value in (Priority.P1_EMERGENCY.value, Priority.P2_ESSENTIAL.value)
         if is_critical:
             critical_requested += d.bandwidth
             critical_delivered += d.allocated_bandwidth

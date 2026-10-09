@@ -34,6 +34,10 @@ class SimulationState:
         self.step: int = 0
         self.route_changes: int = 0
         self._previous_routes: dict[str, Optional[list[str]]] = {}
+        # Routing Engine State (Algorithms A-H)
+        self.candidate_tunnels: dict[str, list[Any]] = {}
+        self.protection_plan: Optional[Any] = None
+        self.active_allocations: dict[str, dict[str, float]] = {}
         # Flapping config
         self.flap_threshold: int = 3  # flaps within window triggers stabilization
         self.flap_window: int = 10     # simulation steps
@@ -53,6 +57,9 @@ class SimulationState:
     # ── Node operations ──────────────────────────────────────────────
 
     def add_node(self, node: Node) -> Node:
+        node.id = node.id.strip()
+        if not node.id:
+            raise ValueError("Node ID cannot be empty")
         if node.id in self.nodes:
             raise ValueError(f"Node '{node.id}' already exists")
         self.nodes[node.id] = node

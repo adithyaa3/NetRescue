@@ -760,6 +760,9 @@
         <button class="tray-tab-btn" onclick="switchTrayTab('tray-metrics')">
           <span>📊 Resilience Metrics</span>
         </button>
+        <button class="tray-tab-btn" onclick="switchTrayTab('tray-protection')">
+          <span>🛡️ Protection Guarantees</span> <span id="badge-protection-status" style="font-size:0.7rem; color:var(--green);">(Verified)</span>
+        </button>
         <button class="tray-tab-btn" onclick="switchTrayTab('tray-compare')">
           <span>⚖ Algorithm Comparison</span>
         </button>
@@ -832,6 +835,35 @@
           <div style="font-size:0.7rem; color:var(--text-dim);">Physical Outages</div>
         </div>
       </div>
+    </div>
+
+    <!-- TAB: PROTECTION GUARANTEES -->
+    <div id="tray-protection" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">
+          Proactive Protection Planner (LP) & Reflex Recovery. Solves lexicographic optimization to mathematically guarantee critical throughput across every single-link failure.
+        </span>
+        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="recomputeProtectionPlan()">
+          🛡️ Recompute Plan (HiGHS LP)
+        </button>
+      </div>
+      <div id="protection-plan-summary-box" style="margin-bottom:0.6rem;"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Flow ID</th>
+            <th>Priority</th>
+            <th>Requested</th>
+            <th>Guaranteed (Protected)</th>
+            <th>Currently Delivered</th>
+            <th>Protected %</th>
+            <th>Protection Status</th>
+          </tr>
+        </thead>
+        <tbody id="protection-table-body">
+          <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No critical traffic demands (P1/P2) created yet.</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- TAB 3: ALGORITHM COMPARISON -->
@@ -1011,16 +1043,30 @@
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
     // API Helpers
+    async function parseApiError(res) {
+      try {
+        const errJson = await res.json();
+        if (Array.isArray(errJson.detail)) {
+          return errJson.detail.map(e => `${e.loc ? e.loc.slice(-1)[0] : 'field'}: ${e.msg}`).join(', ');
+        } else if (typeof errJson.detail === 'string') {
+          return errJson.detail;
+        } else if (errJson.detail) {
+          return JSON.stringify(errJson.detail);
+        }
+      } catch (_) {}
+      return res.statusText || `HTTP ${res.status}`;
+    }
+
     async function apiGet(path) {
       const res = await fetch(`${API_BASE}${path}`);
-      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiPost(path, body = null) {
       const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
       if (body) opts.body = JSON.stringify(body);
       const res = await fetch(`${API_BASE}${path}`, opts);
-      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiPut(path, body) {
@@ -1029,12 +1075,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiDelete(path) {
       const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
 
@@ -1063,6 +1109,7 @@
         renderMetrics();
         renderInspector();
         updateWorkflowSteps();
+        loadProtectionPlan();
       } catch (err) {
         console.error("State sync failed:", err);
       }
@@ -1142,9 +1189,9 @@
 
     // ADD NODE
     function openAddNodeModal() {
-      const keys = Object.keys(state.nodes);
-      let nextNum = keys.length + 1;
-      while (state.nodes[`R${nextNum}`]) nextNum++;
+      const nodes = state.nodes || {};
+      let nextNum = 1;
+      while (nodes[`R${nextNum}`]) nextNum++;
       document.getElementById('node-input-id').value = `R${nextNum}`;
       document.getElementById('node-input-name').value = `Node ${nextNum}`;
       document.getElementById('node-input-type').value = "router";
@@ -1157,11 +1204,14 @@
       const type = document.getElementById('node-input-type').value;
 
       if (!id) return showToast("Node ID is required", "⚠️");
+      if (state.nodes && state.nodes[id]) {
+        return showToast(`Node ID '${id}' already exists! Please choose a unique ID.`, "⚠️");
+      }
 
       // Place node near center with slight offset
       const svg = document.getElementById('network-canvas');
-      const rect = svg.getBoundingClientRect();
-      const count = Object.keys(state.nodes).length;
+      const rect = svg ? svg.getBoundingClientRect() : { width: 800, height: 600 };
+      const count = Object.keys(state.nodes || {}).length;
       const angle = count * 0.8;
       const radius = 80 + count * 25;
       const x = Math.round((rect.width / 2) + Math.cos(angle) * Math.min(radius, 250));
@@ -1171,6 +1221,7 @@
         await apiPost('/nodes', { id, name, node_type: type, x, y });
         closeModal('modal-add-node');
         showToast(`Node ${id} created`, "✅");
+        await syncState();
         selectItem('node', id);
         await reSimulateIfActive();
       } catch (err) {
@@ -1180,7 +1231,7 @@
 
     // CONNECT NODES
     function openConnectModal(defaultSrc = null) {
-      const nodes = Object.values(state.nodes);
+      const nodes = Object.values(state.nodes || {});
       if (nodes.length < 2) return showToast("Create at least 2 nodes first", "⚠️");
 
       const s = document.getElementById('link-input-src');
@@ -1203,14 +1254,27 @@
 
       if (src === dst) return showToast("Source and destination must be different", "⚠️");
 
+      // Check if parallel link already exists
+      const existing = Object.values(state.links || {}).find(l =>
+        (l.source === src && l.target === dst) || (l.source === dst && l.target === src)
+      );
+      if (existing) {
+        return showToast(`A link between ${src} and ${dst} already exists (${existing.id})!`, "⚠️");
+      }
+
       // Generate Link ID
       let lid = `L_${src}_${dst}`;
-      if (state.links[lid]) lid = `L${Object.keys(state.links).length + 1}`;
+      if (state.links && state.links[lid]) {
+        let n = 1;
+        while (state.links[`L${n}`]) n++;
+        lid = `L${n}`;
+      }
 
       try {
         await apiPost('/links', { id: lid, source: src, target: dst, capacity: cap, latency: lat });
         closeModal('modal-connect');
         showToast(`Connected ${src} ↔ ${dst} (${cap} Mbps)`, "✅");
+        await syncState();
         selectItem('link', lid);
         await reSimulateIfActive();
       } catch (err) {
@@ -1344,7 +1408,7 @@
       if (!confirm("Are you sure you want to clear the entire network canvas?")) return;
       try {
         await apiPost('/simulation/reset');
-        state.selectedItem = null;
+        clearSelection();
         showToast("Network canvas cleared", "🗑️");
         await syncState();
       } catch (err) {
@@ -1372,13 +1436,25 @@
     function renderInspector() {
       const body = document.getElementById('inspector-body');
       const title = document.getElementById('inspector-title');
+      if (!body || !title) return;
 
-      // Update basic counters
-      document.getElementById('stat-nodes').textContent = Object.keys(state.nodes).length;
-      document.getElementById('stat-links').textContent = Object.keys(state.links).length;
-      document.getElementById('stat-demands').textContent = Object.keys(state.demands).length;
-      const failedCount = Object.values(state.links).filter(l => l.status === 'failed').length;
-      document.getElementById('stat-failed').textContent = failedCount;
+      const nodes = state.nodes || {};
+      const links = state.links || {};
+      const demands = state.demands || {};
+      const nodeCount = Object.keys(nodes).length;
+      const linkCount = Object.keys(links).length;
+      const demandCount = Object.keys(demands).length;
+      const failedCount = Object.values(links).filter(l => l && l.status === 'failed').length;
+
+      // Safely update basic counters if elements exist in DOM
+      const statNodes = document.getElementById('stat-nodes');
+      if (statNodes) statNodes.textContent = nodeCount;
+      const statLinks = document.getElementById('stat-links');
+      if (statLinks) statLinks.textContent = linkCount;
+      const statDemands = document.getElementById('stat-demands');
+      if (statDemands) statDemands.textContent = demandCount;
+      const statFailed = document.getElementById('stat-failed');
+      if (statFailed) statFailed.textContent = failedCount;
 
       if (!state.selectedItem) {
         title.textContent = "Inspector";
@@ -1386,28 +1462,31 @@
           <div class="info-card">
             <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Tips</div>
             <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
-              ${Object.keys(state.nodes).length === 0 ? "Start by adding network nodes using the '+ Add Node' button." :
-                Object.keys(state.links).length === 0 ? "Connect your nodes using '+ Connect Nodes' to form communication links." :
+              ${nodeCount === 0 ? "Start by adding network nodes using the '+ Add Node' button." :
+                linkCount === 0 ? "Connect your nodes using '+ Connect Nodes' to form communication links." :
                 !state.simulationActive ? "Add traffic demands below and click 'Start Simulation' to route traffic." :
                 "Simulation active! Click any link to fail or restore it and observe dynamic rerouting."}
             </p>
           </div>
           <div class="info-card">
             <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
-            <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val">${Object.keys(state.nodes).length}</span></div>
-            <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val">${Object.keys(state.links).length}</span></div>
-            <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val">${Object.keys(state.demands).length}</span></div>
-            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" style="color:var(--red);">${failedCount}</span></div>
+            <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val" id="stat-nodes">${nodeCount}</span></div>
+            <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val" id="stat-links">${linkCount}</span></div>
+            <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val" id="stat-demands">${demandCount}</span></div>
+            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">${failedCount}</span></div>
           </div>
         `;
         return;
       }
 
       if (state.selectedItem.type === 'node') {
-        const node = state.nodes[state.selectedItem.id];
-        if (!node) return clearSelection();
+        const node = nodes[state.selectedItem.id];
+        if (!node) {
+          state.selectedItem = null;
+          return renderInspector();
+        }
         title.textContent = `Node: ${node.id}`;
-        const connectedLinks = Object.values(state.links).filter(l => l.source === node.id || l.target === node.id);
+        const connectedLinks = Object.values(links).filter(l => l && (l.source === node.id || l.target === node.id));
 
         body.innerHTML = `
           <div class="info-card">
@@ -1415,7 +1494,7 @@
               <span>${ICONS[node.node_type] || '🌐'}</span> ${node.id}
             </div>
             <div class="info-row"><span class="info-label">Name:</span><span class="info-val">${node.name || node.id}</span></div>
-            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${node.node_type.toUpperCase()}</span></div>
+            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${(node.node_type || 'router').toUpperCase()}</span></div>
             <div class="info-row"><span class="info-label">Connected Links:</span><span class="info-val">${connectedLinks.length}</span></div>
           </div>
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
@@ -1424,8 +1503,11 @@
           </div>
         `;
       } else if (state.selectedItem.type === 'link') {
-        const link = state.links[state.selectedItem.id];
-        if (!link) return clearSelection();
+        const link = links[state.selectedItem.id];
+        if (!link) {
+          state.selectedItem = null;
+          return renderInspector();
+        }
         const isFailed = link.status === "failed";
         title.textContent = `Link: ${link.id}`;
 
@@ -1452,6 +1534,9 @@
             <button class="btn btn-secondary" onclick="deleteLink('${link.id}')">🗑️ Delete Link</button>
           </div>
         `;
+      } else {
+        state.selectedItem = null;
+        return renderInspector();
       }
     }
 
@@ -1728,6 +1813,7 @@
       event.target.classList.add('active');
       document.getElementById(tabId).classList.add('active');
 
+      if (tabId === 'tray-protection') loadProtectionPlan();
       if (tabId === 'tray-whatif') populateWhatIfLinks();
       if (tabId === 'tray-events') loadEvents();
     }
@@ -1747,32 +1833,128 @@
       }
     }
 
+    // PROTECTION GUARANTEES LOADER
+    async function loadProtectionPlan() {
+      try {
+        const data = await apiGet('/protection/plan');
+        const badge = document.getElementById('badge-protection-status');
+        const sumBox = document.getElementById('protection-plan-summary-box');
+        const tbody = document.getElementById('protection-table-body');
+        if (!badge || !sumBox || !tbody) return;
+
+        if (!data.active) {
+          badge.textContent = "(None)";
+          badge.style.color = "var(--text-muted)";
+          sumBox.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); padding:0.5rem; background:var(--bg-card); border-radius:6px;">${data.message}</div>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Add P1 Emergency or P2 Essential traffic demands to generate verified protection guarantees.</td></tr>`;
+          return;
+        }
+
+        const isVerif = data.verified;
+        badge.textContent = isVerif ? "(Verified)" : "(Unverified)";
+        badge.style.color = isVerif ? "var(--green)" : "var(--amber)";
+
+        sumBox.innerHTML = `
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem; font-size:0.8rem;">
+            <div class="info-card">
+              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Covered Scenarios</div>
+              <div style="font-size:1.1rem; font-weight:700; color:var(--cyan);">${data.covered_scenarios_count}</div>
+              <div style="font-size:0.7rem; color:var(--text-dim);">All Single-Link + Baseline</div>
+            </div>
+            <div class="info-card">
+              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Reflex Engine State</div>
+              <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--amber)'};">${isVerif ? 'ACTIVE (O(1) Instant)' : 'Pending'}</div>
+              <div style="font-size:0.7rem; color:var(--text-dim);">${isVerif ? 'Guaranteed Fast Failover' : 'Solver Suboptimal'}</div>
+            </div>
+            <div class="info-card">
+              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">LP Solver Status</div>
+              <div style="font-size:1.1rem; font-weight:700; color:var(--text);">${data.solver_status.toUpperCase()}</div>
+              <div style="font-size:0.7rem; color:var(--text-dim);">${data.runtime_ms} ms (HiGHS LP)</div>
+            </div>
+            <div class="info-card">
+              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guarantee Checker</div>
+              <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--red)'};">${isVerif ? '100% PASS' : 'FAILED'}</div>
+              <div style="font-size:0.7rem; color:var(--text-dim);">Independent Scenario Check</div>
+            </div>
+          </div>
+        `;
+
+        const flows = data.critical_flows || [];
+        if (!flows.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No critical flows configured.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = flows.map(f => {
+          const statusColor = f.status === "Full" ? "var(--green)" : (f.status === "Partial" ? "var(--amber)" : "var(--red)");
+          const pillClass = f.priority === 1 ? "emergency" : "essential";
+          return `
+            <tr>
+              <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${f.flow_id}</td>
+              <td><span class="pill pill-${pillClass}">P${f.priority}</span></td>
+              <td style="font-family:'Fira Code';">${f.requested_mbps} Mbps</td>
+              <td style="font-family:'Fira Code'; font-weight:700; color:var(--green);">${f.guaranteed_mbps} Mbps</td>
+              <td style="font-family:'Fira Code'; color:var(--text);">${f.delivered_mbps} Mbps</td>
+              <td style="font-family:'Fira Code'; font-weight:600;">${f.protection_pct}%</td>
+              <td style="font-weight:700; color:${statusColor};">${f.status === 'Full' ? '🛡️ FULL' : (f.status === 'Partial' ? '⚠️ PARTIAL' : '❌ NONE')}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.warn("Failed to load protection plan:", err);
+      }
+    }
+
+    async function recomputeProtectionPlan() {
+      try {
+        showToast("Recomputing proactive protection plan...", "🛡️");
+        await apiPost('/protection/replan');
+        showToast("Protection plan computed & independently verified.", "✅");
+        await loadProtectionPlan();
+      } catch (err) {
+        showToast(`Replan failed: ${err.message}`, "❌");
+      }
+    }
+
     // ALGORITHM COMPARISON
     async function runComparison() {
       const box = document.getElementById('compare-results-box');
-      box.innerHTML = `<span style="color:var(--text-muted);">Running dual algorithm simulation...</span>`;
+      box.innerHTML = `<span style="color:var(--text-muted);">Running 3-algorithm comparison (PACAR vs Reactive LP vs Baseline Dijkstra)...</span>`;
       try {
         const data = await apiPost('/compare');
         const p = data.pacar || {};
+        const lp = data.reactive_lp || {};
         const b = data.baseline || {};
+
         const pDel = p.total_requested > 0 ? (p.total_delivered / p.total_requested * 100) : 100;
+        const lpDel = lp.total_requested > 0 ? (lp.total_delivered / lp.total_requested * 100) : 100;
         const bDel = b.total_requested > 0 ? (b.total_delivered / b.total_requested * 100) : 100;
 
         box.innerHTML = `
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.4rem;">
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-top:0.4rem;">
             <div class="info-card" style="border-color:var(--cyan);">
-              <h4 style="color:var(--cyan); margin-bottom:0.4rem;">🚀 PACAR (Priority Capacity Adaptive)</h4>
+              <h4 style="color:var(--cyan); margin-bottom:0.4rem;">🚀 PACAR Heuristic</h4>
               <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${pDel.toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Delivered Bandwidth:</span><span class="info-val">${(p.total_delivered || 0).toFixed(0)} Mbps</span></div>
+              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(p.total_delivered || 0).toFixed(0)} Mbps</span></div>
               <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(p.critical_delivery_pct || 100).toFixed(1)}%</span></div>
               <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(p.max_link_utilization || 0).toFixed(0)}%</span></div>
+              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${p.computation_time_ms || 0} ms</span></div>
             </div>
-            <div class="info-card">
-              <h4 style="color:var(--text-muted); margin-bottom:0.4rem;">Standard Shortest-Path Dijkstra</h4>
+            <div class="info-card" style="border-color:var(--green);">
+              <h4 style="color:var(--green); margin-bottom:0.4rem;">⚡ Reactive Multicommodity LP</h4>
+              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${lpDel.toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(lp.total_delivered || 0).toFixed(0)} Mbps</span></div>
+              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(lp.critical_delivery_pct || 100).toFixed(1)}%</span></div>
+              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(lp.max_link_utilization || 0).toFixed(0)}%</span></div>
+              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${lp.computation_time_ms || 0} ms</span></div>
+            </div>
+            <div class="info-card" style="border-color:var(--border);">
+              <h4 style="color:var(--text-muted); margin-bottom:0.4rem;">🌐 Baseline Dijkstra</h4>
               <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${bDel.toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Delivered Bandwidth:</span><span class="info-val">${(b.total_delivered || 0).toFixed(0)} Mbps</span></div>
+              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(b.total_delivered || 0).toFixed(0)} Mbps</span></div>
               <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(b.critical_delivery_pct || 100).toFixed(1)}%</span></div>
               <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(b.max_link_utilization || 0).toFixed(0)}%</span></div>
+              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${b.computation_time_ms || 0} ms</span></div>
             </div>
           </div>
         `;
