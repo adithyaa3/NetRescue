@@ -8,7 +8,19 @@ All bandwidth in Mbps, latency in ms.
 from __future__ import annotations
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class FiniteModel(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
+
+# Numerical domain. Rates below 0.01 Mbps (10 kbps) are below the precision the
+# solvers and validators can certify (absolute tolerances ~1e-5 Mbps); rates above
+# 10 Tbps make the LPs badly scaled. Latencies are bounded for the same reason.
+MIN_RATE_MBPS = 0.01
+MAX_RATE_MBPS = 1e7
+MAX_LATENCY_MS = 1e6
 
 
 # ── Enumerations ──────────────────────────────────────────────────────
@@ -74,7 +86,7 @@ class LinkStatus(str, Enum):
 
 # ── Node ──────────────────────────────────────────────────────────────
 
-class Node(BaseModel):
+class Node(FiniteModel):
     id: str
     name: str
     node_type: NodeType = NodeType.ROUTER
@@ -85,12 +97,12 @@ class Node(BaseModel):
 
 # ── Link ──────────────────────────────────────────────────────────────
 
-class Link(BaseModel):
+class Link(FiniteModel):
     id: str
     source: str
     target: str
-    capacity: float = Field(gt=0, description="Capacity in Mbps")
-    latency: float = Field(ge=0, description="Latency in ms")
+    capacity: float = Field(ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS, description="Capacity in Mbps")
+    latency: float = Field(ge=0, le=MAX_LATENCY_MS, description="Latency in ms")
     status: LinkStatus = LinkStatus.ACTIVE
     allocated_load: float = Field(default=0.0, ge=0)
     utilization: float = Field(default=0.0, ge=0)
@@ -107,11 +119,11 @@ class Link(BaseModel):
 
 # ── Traffic Demand ────────────────────────────────────────────────────
 
-class Demand(BaseModel):
+class Demand(FiniteModel):
     id: str
     source: str
     destination: str
-    bandwidth: float = Field(gt=0, description="Requested bandwidth in Mbps")
+    bandwidth: float = Field(ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS, description="Requested bandwidth in Mbps")
     category: TrafficCategory = TrafficCategory.GENERAL
     priority: Priority = Priority.P4_GENERAL
     allocated_bandwidth: float = Field(default=0.0, ge=0)
@@ -119,13 +131,13 @@ class Demand(BaseModel):
     route: Optional[list[str]] = None
     status: DemandStatus = DemandStatus.PENDING
     explanation: str = ""
-    max_latency: Optional[float] = Field(default=None, ge=0, description="Max acceptable latency in ms")
+    max_latency: Optional[float] = Field(default=None, ge=0, le=MAX_LATENCY_MS, description="Max acceptable latency in ms")
     tunnels: list[dict] = Field(default_factory=list, description="Active tunnel allocations")
 
 
 # ── API Schemas ───────────────────────────────────────────────────────
 
-class NodeCreate(BaseModel):
+class NodeCreate(FiniteModel):
     id: str
     name: str = ""
     node_type: NodeType = NodeType.ROUTER
@@ -134,29 +146,46 @@ class NodeCreate(BaseModel):
     y: float = 0.0
 
 
-class LinkCreate(BaseModel):
+class LinkCreate(FiniteModel):
     id: str
     source: str
     target: str
-    capacity: float = Field(gt=0)
-    latency: float = Field(ge=0)
+    capacity: float = Field(ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS)
+    latency: float = Field(ge=0, le=MAX_LATENCY_MS)
 
 
-class DemandCreate(BaseModel):
+class DemandCreate(FiniteModel):
     id: str
     source: str
     destination: str
-    bandwidth: float = Field(gt=0)
+    bandwidth: float = Field(ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS)
     category: TrafficCategory = TrafficCategory.GENERAL
-    max_latency: Optional[float] = Field(default=None, ge=0)
+    max_latency: Optional[float] = Field(default=None, ge=0, le=MAX_LATENCY_MS)
 
 
-class DemandUpdate(BaseModel):
-    bandwidth: Optional[float] = Field(default=None, gt=0)
+class DemandUpdate(FiniteModel):
+    bandwidth: Optional[float] = Field(default=None, ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS)
     category: Optional[TrafficCategory] = None
     source: Optional[str] = None
     destination: Optional[str] = None
-    max_latency: Optional[float] = Field(default=None, ge=0)
+    max_latency: Optional[float] = Field(default=None, ge=0, le=MAX_LATENCY_MS)
+
+
+class NodeUpdate(FiniteModel):
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
+    name: Optional[str] = None
+    node_type: Optional[NodeType] = None
+    service_label: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+
+
+class LinkUpdate(FiniteModel):
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
+    source: Optional[str] = None
+    target: Optional[str] = None
+    capacity: Optional[float] = Field(default=None, ge=MIN_RATE_MBPS, le=MAX_RATE_MBPS)
+    latency: Optional[float] = Field(default=None, ge=0, le=MAX_LATENCY_MS)
 
 
 class TopologyData(BaseModel):
@@ -171,15 +200,15 @@ class TopologyImport(BaseModel):
 
 
 class FailureRequest(BaseModel):
-    link_ids: list[str]
+    link_ids: list[str] = Field(min_length=1, description="At least one link ID")
 
 
 class WhatIfRequest(BaseModel):
-    link_ids: list[str]
+    link_ids: list[str] = Field(min_length=1, description="At least one link ID")
 
 
 class GenerateTopologyRequest(BaseModel):
-    preset: str = "small_campus"
+    preset: str = "normal_campus"
     seed: Optional[int] = None
 
 

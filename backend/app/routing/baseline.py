@@ -172,6 +172,15 @@ def run_baseline(state: SimulationState) -> list[Demand]:
 
         bottleneck = path_bottleneck(state, path, G, residual)
         latency = path_latency(path, G)
+        if demand.max_latency is not None and demand.max_latency > 0 and latency > demand.max_latency:
+            results.append(demand.model_copy(update={
+                "status": DemandStatus.UNSERVED_CONGESTION,
+                "allocated_bandwidth": 0.0,
+                "unserved_bandwidth": demand.bandwidth,
+                "route": None,
+                "explanation": "No residual-capacity path satisfies the latency limit.",
+            }))
+            continue
 
         if bottleneck >= demand.bandwidth:
             # Full allocation

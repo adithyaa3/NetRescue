@@ -1,0 +1,286 @@
+FFFFFFFFFFFFFFFFFF.....                                                  [100%]
+=================================== FAILURES ===================================
+_______________ test_invalid_edit_is_atomic[/links/L1-payload0] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"L1","source":"A","target":"B","capacity":-1,"latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________ test_invalid_edit_is_atomic[/links/L1-payload1] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"L1","source":"A","target":"B","capacity":"Infinity","latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________ test_invalid_edit_is_atomic[/links/L1-payload2] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"L1","source":"missing","target":"B","capacity":50.0,"latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________ test_invalid_edit_is_atomic[/links/L1-payload3] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"L1","source":"A","target":"A","capacity":50.0,"latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________ test_invalid_edit_is_atomic[/links/L1-payload4] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"L1","source":"C","target":"D","capacity":50.0,"latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________ test_invalid_edit_is_atomic[/links/L1-payload5] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"renamed","source":"A","target":"B","capacity":50.0,"latency":5.0,"status":"active","allocated_load":0.0,"utilization":0.0,"flap_count":0,"last_flap_step":-1}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+________________ test_invalid_edit_is_atomic[/nodes/A-payload6] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"renamed","name":"Source Node A","node_type":"router","service_label":null,"x":100.0,"y":250.0}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+________________ test_invalid_edit_is_atomic[/nodes/A-payload7] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"A","name":"Source Node A","node_type":"invalid","service_label":null,"x":100.0,"y":250.0}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+________________ test_invalid_edit_is_atomic[/nodes/A-payload8] ________________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"A","name":"Source Node A","node_type":"router","service_label":null,"x":"Infinity","y":250.0}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+______________ test_invalid_edit_is_atomic[/demands/D1-payload9] _______________
+backend/tests/test_backend_release.py:31: in test_invalid_edit_is_atomic
+    assert r.status_code in (400,422), r.text
+E   AssertionError: {"id":"D1","source":"missing","destination":"E","bandwidth":40.0,"category":"essential","priority":2,"allocated_bandwidth":0.0,"unserved_bandwidth":0.0,"route":null,"status":"pending","explanation":"","max_latency":null,"tunnels":[]}
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+____________ test_invalid_replacement_preserves_network[/topology] _____________
+backend/tests/test_backend_release.py:41: in test_invalid_replacement_preserves_network
+    assert fingerprint(s) == before
+E   AssertionError: assert {'_previous_r...nds': {}, ...} == {'_previous_r...els=[])}, ...}
+E     Omitting 9 identical items, use -vv to show
+E     Differing items:
+E     {'version': 16} != {'version': 14}
+E     {'links': {}} != {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.ACTIVE: 'active'...0.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1), ...}}
+E     {'demands': {}} != {'demands': {'D1': Demand(id='D1', source='A', destination='E', bandwidth=40.0, category=<TrafficCategory.ESSENTIAL: '...ed_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation=''...
+E     
+E     ...Full output truncated (4 lines hidden), use '-vv' to show
+_________ test_invalid_replacement_preserves_network[/topology/import] _________
+backend/tests/test_backend_release.py:41: in test_invalid_replacement_preserves_network
+    assert fingerprint(s) == before
+E   AssertionError: assert {'_previous_r...nds': {}, ...} == {'_previous_r...els=[])}, ...}
+E     Omitting 9 identical items, use -vv to show
+E     Differing items:
+E     {'version': 16} != {'version': 14}
+E     {'links': {}} != {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.ACTIVE: 'active'...0.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1), ...}}
+E     {'demands': {}} != {'demands': {'D1': Demand(id='D1', source='A', destination='E', bandwidth=40.0, category=<TrafficCategory.ESSENTIAL: '...ed_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation=''...
+E     
+E     ...Full output truncated (4 lines hidden), use '-vv' to show
+__________ test_invalid_action_is_atomic[/demands/emergency-payload0] __________
+backend/tests/test_backend_release.py:52: in test_invalid_action_is_atomic
+    r = client.post(path,json=payload)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+.venv312/lib/python3.12/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:79: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:274: in app
+    raw_response = await run_endpoint_function(
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:193: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv312/lib/python3.12/site-packages/starlette/concurrency.py:41: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv312/lib/python3.12/site-packages/anyio/to_thread.py:33: in run_sync
+    return await get_asynclib().run_sync_in_worker_thread(
+.venv312/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:877: in run_sync_in_worker_thread
+    return await future
+.venv312/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:807: in run
+    result = context.run(func, *args)
+backend/app/main.py:395: in inject_emergency
+    result = add_emergency_demand(state, demand)
+backend/app/simulation/engine.py:367: in add_emergency_demand
+    state.add_demand(d)
+backend/app/state.py:213: in add_demand
+    raise ValueError(f"Demand '{demand.id}' already exists")
+E   ValueError: Demand 'D1' already exists
+__________ test_invalid_action_is_atomic[/demands/emergency-payload1] __________
+backend/tests/test_backend_release.py:52: in test_invalid_action_is_atomic
+    r = client.post(path,json=payload)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+.venv312/lib/python3.12/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:79: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:274: in app
+    raw_response = await run_endpoint_function(
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:193: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv312/lib/python3.12/site-packages/starlette/concurrency.py:41: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv312/lib/python3.12/site-packages/anyio/to_thread.py:33: in run_sync
+    return await get_asynclib().run_sync_in_worker_thread(
+.venv312/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:877: in run_sync_in_worker_thread
+    return await future
+.venv312/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:807: in run
+    result = context.run(func, *args)
+backend/app/main.py:395: in inject_emergency
+    result = add_emergency_demand(state, demand)
+backend/app/simulation/engine.py:367: in add_emergency_demand
+    state.add_demand(d)
+backend/app/state.py:215: in add_demand
+    raise ValueError(f"Source node '{demand.source}' not found")
+E   ValueError: Source node 'missing' not found
+___________ test_invalid_action_is_atomic[/failures/batch-payload2] ____________
+backend/tests/test_backend_release.py:53: in test_invalid_action_is_atomic
+    assert r.status_code == 400
+E   assert 200 == 400
+E    +  where 200 = <Response [200 OK]>.status_code
+___________ test_invalid_action_is_atomic[/analyze/what-if-payload3] ___________
+backend/tests/test_backend_release.py:53: in test_invalid_action_is_atomic
+    assert r.status_code == 400
+E   assert 200 == 400
+E    +  where 200 = <Response [200 OK]>.status_code
+_______________________ test_defaults_and_latency_clear ________________________
+backend/tests/test_backend_release.py:58: in test_defaults_and_latency_clear
+    assert client.post('/topology/generate',json={}).status_code == 200
+E   AssertionError: assert 400 == 200
+E    +  where 400 = <Response [400 Bad Request]>.status_code
+E    +    where <Response [400 Bad Request]> = <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10b7072f0>>('/topology/generate', json={})
+E    +      where <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10b7072f0>> = <starlette.testclient.TestClient object at 0x10b7072f0>.post
+_______________ test_repeated_restore_does_not_restart_cooldown ________________
+backend/tests/test_backend_release.py:71: in test_repeated_restore_does_not_restart_cooldown
+    assert fingerprint(s) == before
+E   AssertionError: assert {'_previous_r...els=[])}, ...} == {'_previous_r...els=[])}, ...}
+E     Omitting 12 identical items, use -vv to show
+E     Differing items:
+E     {'version': 19} != {'version': 18}
+E     {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.FLAPPING: 'flapp...0.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1), ...}} != {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.FLAPPING: 'flapp...0.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1), ...}}
+E     Use -v to get more diff
+=============================== warnings summary ===============================
+backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload1]
+backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/nodes/A-payload8]
+  /Users/adharshsundaramurthy/Desktop/Commitcon/The-Internet-Goes-Down/.venv312/lib/python3.12/site-packages/pydantic/main.py:308: UserWarning: Pydantic serializer warnings:
+    Expected `float` but got `str` - serialized value may not be as expected
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload0]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload1]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload2]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload3]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload4]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/links/L1-payload5]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/nodes/A-payload6]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/nodes/A-payload7]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/nodes/A-payload8]
+FAILED backend/tests/test_backend_release.py::test_invalid_edit_is_atomic[/demands/D1-payload9]
+FAILED backend/tests/test_backend_release.py::test_invalid_replacement_preserves_network[/topology]
+FAILED backend/tests/test_backend_release.py::test_invalid_replacement_preserves_network[/topology/import]
+FAILED backend/tests/test_backend_release.py::test_invalid_action_is_atomic[/demands/emergency-payload0]
+FAILED backend/tests/test_backend_release.py::test_invalid_action_is_atomic[/demands/emergency-payload1]
+FAILED backend/tests/test_backend_release.py::test_invalid_action_is_atomic[/failures/batch-payload2]
+FAILED backend/tests/test_backend_release.py::test_invalid_action_is_atomic[/analyze/what-if-payload3]
+FAILED backend/tests/test_backend_release.py::test_defaults_and_latency_clear
+FAILED backend/tests/test_backend_release.py::test_repeated_restore_does_not_restart_cooldown
+18 failed, 5 passed, 2 warnings in 1.18s

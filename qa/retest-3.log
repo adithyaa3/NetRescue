@@ -1,0 +1,17 @@
+...........................................................F............ [ 55%]
+..........................................................               [100%]
+=================================== FAILURES ===================================
+__________________ test_pacar_enforces_latency_on_live_state ___________________
+
+    def test_pacar_enforces_latency_on_live_state():
+        s = diamond()
+        s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+        result = {d.id: d for d in run_pacar(s)}
+>       assert result['F1'].allocated_bandwidth == 0
+E       AssertionError: assert 6.0 == 0
+E        +  where 6.0 = Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, priorit...ion='PACAR selected path A → B → D (score: inf, latency: 2.0ms). Full bandwidth allocated.', max_latency=1, tunnels=[]).allocated_bandwidth
+
+backend/tests/test_verification.py:309: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/test_verification.py::test_pacar_enforces_latency_on_live_state
+1 failed, 129 passed in 1.24s

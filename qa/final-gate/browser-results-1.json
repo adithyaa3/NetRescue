@@ -1,0 +1,940 @@
+{
+  "base": "http://127.0.0.1:8003",
+  "at": "2026-10-10T01:34:01.998Z",
+  "total": 154,
+  "passed": 154,
+  "failed": 0,
+  "results": [
+    {
+      "step": "initial-load",
+      "ok": true,
+      "msg": "dashboard loads",
+      "detail": ""
+    },
+    {
+      "step": "initial-load",
+      "ok": true,
+      "msg": "empty state shown for empty network",
+      "detail": ""
+    },
+    {
+      "step": "initial-load",
+      "ok": true,
+      "msg": "metrics show — (not 100%) with no data",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "simulation started automatically",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "P1+P2 guaranteed = 50 / 50 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "P1_DEMO guarantee 10 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "D1 guarantee 40 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "six covered scenarios",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "guarantee checker PASS",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "shows positive full-protection notice",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "L3 pre-selected in link picker",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:launch",
+      "ok": true,
+      "msg": "fail button names L3 exactly",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:pre-failure",
+      "ok": true,
+      "msg": "P1_DEMO delivered 10 Mbps before failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:pre-failure",
+      "ok": true,
+      "msg": "D1 delivered 40 Mbps before failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:pre-failure:ui=api",
+      "ok": true,
+      "msg": "pre-failure: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:fail-L3",
+      "ok": true,
+      "msg": "toast reports Reflex used",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:fail-L3",
+      "ok": true,
+      "msg": "toast reports 0 validator violations",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:fail-L3",
+      "ok": true,
+      "msg": "inspector shows Reflex YES",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:fail-L3",
+      "ok": true,
+      "msg": "canvas labels L3 as FAILED",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:fail-L3",
+      "ok": true,
+      "msg": "L1 and L2 at 50/50 Mbps (100%)",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "P1_DEMO still 10 Mbps after L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "D1 still 40 Mbps after L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "last-failure card: P1_DEMO 10→10, guarantee kept",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "last-failure card: D1 40→40, guarantee kept",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "metrics list L3 as down",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "critical delivered 50/50 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure:ui=api",
+      "ok": true,
+      "msg": "post-failure: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "protection tab says the guarantee is in force for L3 down but no further failure is covered",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:post-failure",
+      "ok": true,
+      "msg": "protection badge shows L3 down",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:events",
+      "ok": true,
+      "msg": "event log shows L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:events",
+      "ok": true,
+      "msg": "event log shows reflex_recovery",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:what-if",
+      "ok": true,
+      "msg": "What-If L1 renders without mutating",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:what-if",
+      "ok": true,
+      "msg": "What-If states it replays the real controller",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:what-if",
+      "ok": true,
+      "msg": "API confirms link states unchanged by What-If",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:compare",
+      "ok": true,
+      "msg": "comparison renders all three algorithms with L3 context",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:compare",
+      "ok": true,
+      "msg": "comparison has no NaN/undefined",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:compare",
+      "ok": true,
+      "msg": "comparison labels heuristic vs LP optimality honestly",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:restore-L3",
+      "ok": true,
+      "msg": "restore toast names L3",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:restore-L3",
+      "ok": true,
+      "msg": "traffic restored (D1 40, D2 30, D3 >= 50 Mbps)",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:restore-L3",
+      "ok": true,
+      "msg": "no links shown as failed",
+      "detail": ""
+    },
+    {
+      "step": "journey-1:restore-L3:ui=api",
+      "ok": true,
+      "msg": "restored: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "reset",
+      "ok": true,
+      "msg": "demo reset cleanly",
+      "detail": ""
+    },
+    {
+      "step": "refresh",
+      "ok": true,
+      "msg": "after reload, simulation state recovered from backend",
+      "detail": ""
+    },
+    {
+      "step": "refresh",
+      "ok": true,
+      "msg": "after reload, D1 guarantee still 40 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "simulation started automatically",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "P1+P2 guaranteed = 50 / 50 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "P1_DEMO guarantee 10 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "D1 guarantee 40 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "six covered scenarios",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "guarantee checker PASS",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "shows positive full-protection notice",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "L3 pre-selected in link picker",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:launch",
+      "ok": true,
+      "msg": "fail button names L3 exactly",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:pre-failure",
+      "ok": true,
+      "msg": "P1_DEMO delivered 10 Mbps before failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:pre-failure",
+      "ok": true,
+      "msg": "D1 delivered 40 Mbps before failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:pre-failure:ui=api",
+      "ok": true,
+      "msg": "pre-failure: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:fail-L3",
+      "ok": true,
+      "msg": "toast reports Reflex used",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:fail-L3",
+      "ok": true,
+      "msg": "toast reports 0 validator violations",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:fail-L3",
+      "ok": true,
+      "msg": "inspector shows Reflex YES",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:fail-L3",
+      "ok": true,
+      "msg": "canvas labels L3 as FAILED",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:fail-L3",
+      "ok": true,
+      "msg": "L1 and L2 at 50/50 Mbps (100%)",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "P1_DEMO still 10 Mbps after L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "D1 still 40 Mbps after L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "last-failure card: P1_DEMO 10→10, guarantee kept",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "last-failure card: D1 40→40, guarantee kept",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "metrics list L3 as down",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "critical delivered 50/50 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure:ui=api",
+      "ok": true,
+      "msg": "post-failure: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "protection tab says the guarantee is in force for L3 down but no further failure is covered",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:post-failure",
+      "ok": true,
+      "msg": "protection badge shows L3 down",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:events",
+      "ok": true,
+      "msg": "event log shows L3 failure",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:events",
+      "ok": true,
+      "msg": "event log shows reflex_recovery",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:what-if",
+      "ok": true,
+      "msg": "What-If L1 renders without mutating",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:what-if",
+      "ok": true,
+      "msg": "What-If states it replays the real controller",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:what-if",
+      "ok": true,
+      "msg": "API confirms link states unchanged by What-If",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:compare",
+      "ok": true,
+      "msg": "comparison renders all three algorithms with L3 context",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:compare",
+      "ok": true,
+      "msg": "comparison has no NaN/undefined",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:compare",
+      "ok": true,
+      "msg": "comparison labels heuristic vs LP optimality honestly",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:restore-L3",
+      "ok": true,
+      "msg": "restore toast names L3",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:restore-L3",
+      "ok": true,
+      "msg": "traffic restored (D1 40, D2 30, D3 >= 50 Mbps)",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:restore-L3",
+      "ok": true,
+      "msg": "no links shown as failed",
+      "detail": ""
+    },
+    {
+      "step": "journey-2:restore-L3:ui=api",
+      "ok": true,
+      "msg": "restored: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "node-click-keeps-plan",
+      "ok": true,
+      "msg": "clicking a node keeps the protection plan active",
+      "detail": ""
+    },
+    {
+      "step": "node-click-keeps-plan",
+      "ok": true,
+      "msg": "dragging a node re-verifies the plan (still active)",
+      "detail": ""
+    },
+    {
+      "step": "node-click-keeps-plan",
+      "ok": true,
+      "msg": "Reflex still used after node drag",
+      "detail": ""
+    },
+    {
+      "step": "node-click-keeps-plan",
+      "ok": true,
+      "msg": "Restore All restores L3",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "repeated fail/restore of L3 is shown as FLAPPING (held down)",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "hold-down happens on the restore after the third failure (not the second)",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "held-down link explains failure count and remaining controller steps",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles:ui=api",
+      "ok": true,
+      "msg": "held-down: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "canvas labels L3 FLAPPING",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "Fail is disabled for a held-down link",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "toast explains the link was not restored",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "after reloading the demo, failing L3 uses Reflex again",
+      "detail": ""
+    },
+    {
+      "step": "repeat-cycles",
+      "ok": true,
+      "msg": "critical traffic 50 Mbps after re-run",
+      "detail": ""
+    },
+    {
+      "step": "reload-during-failure",
+      "ok": true,
+      "msg": "after reload L3 is still shown as failed",
+      "detail": ""
+    },
+    {
+      "step": "reload-during-failure",
+      "ok": true,
+      "msg": "after reload the plan shows the covered failure in progress",
+      "detail": ""
+    },
+    {
+      "step": "reload-during-failure",
+      "ok": true,
+      "msg": "after reload the simulation is shown as active",
+      "detail": ""
+    },
+    {
+      "step": "reload-during-failure:ui=api",
+      "ok": true,
+      "msg": "reloaded during failure: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "pan-zoom",
+      "ok": true,
+      "msg": "dragging the empty canvas pans the view",
+      "detail": ""
+    },
+    {
+      "step": "pan-zoom",
+      "ok": true,
+      "msg": "mouse wheel zooms the view",
+      "detail": ""
+    },
+    {
+      "step": "pan-zoom",
+      "ok": true,
+      "msg": "panning and zooming do not touch the protection plan",
+      "detail": ""
+    },
+    {
+      "step": "second-failure",
+      "ok": true,
+      "msg": "second failure is reported as not covered by Reflex",
+      "detail": ""
+    },
+    {
+      "step": "second-failure",
+      "ok": true,
+      "msg": "protection tab says the plan is not in force",
+      "detail": ""
+    },
+    {
+      "step": "second-failure",
+      "ok": true,
+      "msg": "badge says not in force",
+      "detail": ""
+    },
+    {
+      "step": "second-failure:ui=api",
+      "ok": true,
+      "msg": "two failures: every displayed value equals the API",
+      "detail": ""
+    },
+    {
+      "step": "double-click",
+      "ok": true,
+      "msg": "double-clicking Fail sends exactly one failure",
+      "detail": ""
+    },
+    {
+      "step": "double-click",
+      "ok": true,
+      "msg": "double-clicking the simulation toggle never sends duplicate simulate requests",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "sample loads in draft mode",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "unsimulated demand shows — not 0 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "zero-guarantee warning shown for normal_campus",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "tab badge says Verified · 0 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "total guaranteed 0 / 65 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "sample-network",
+      "ok": true,
+      "msg": "P5 flow labelled not planned (not NONE)",
+      "detail": ""
+    },
+    {
+      "step": "what-if-L1",
+      "ok": true,
+      "msg": "What-If L1 shows numbers, no crash",
+      "detail": ""
+    },
+    {
+      "step": "what-if-L1+L7",
+      "ok": true,
+      "msg": "What-If L1+L7: 195→180 Mbps, D6/D7 unreachable",
+      "detail": ""
+    },
+    {
+      "step": "what-if-L7",
+      "ok": true,
+      "msg": "What-If L7 alone: D6, D7 unreachable",
+      "detail": ""
+    },
+    {
+      "step": "canvas-link-select",
+      "ok": true,
+      "msg": "clicking L7 on canvas selects L7 in picker",
+      "detail": ""
+    },
+    {
+      "step": "canvas-link-select",
+      "ok": true,
+      "msg": "inspector shows L7",
+      "detail": ""
+    },
+    {
+      "step": "canvas-link-select",
+      "ok": true,
+      "msg": "exactly L7 failed (no other link)",
+      "detail": ""
+    },
+    {
+      "step": "canvas-link-select",
+      "ok": true,
+      "msg": "L7 restored from inspector",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "Clear empties the network",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "created 3 nodes",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "duplicate node ID rejected with message",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "edit node saved",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "links get short IDs L1..L3",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "parallel link rejected",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "negative capacity rejected client-side",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "edit link saved capacity/latency",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "traffic T1 added",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "zero bandwidth rejected",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "traffic T1 edited to 25 Mbps",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "plan computed before routing is reported as not yet in force",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "custom network simulated",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "recompute plan: T1 guaranteed 25 Mbps on triangle",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "stop simulation toggles UI",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "traffic deleted",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "link deleted",
+      "detail": ""
+    },
+    {
+      "step": "crud",
+      "ok": true,
+      "msg": "node deleted",
+      "detail": ""
+    },
+    {
+      "step": "zoom",
+      "ok": true,
+      "msg": "zoom in/out/fit/reset change the view",
+      "detail": ""
+    },
+    {
+      "step": "export",
+      "ok": true,
+      "msg": "export downloads valid JSON",
+      "detail": ""
+    },
+    {
+      "step": "tray",
+      "ok": true,
+      "msg": "tray collapses",
+      "detail": ""
+    },
+    {
+      "step": "tray",
+      "ok": true,
+      "msg": "switching tab re-opens tray",
+      "detail": ""
+    },
+    {
+      "step": "api-errors",
+      "ok": true,
+      "msg": "double failure surfaces a message",
+      "detail": ""
+    },
+    {
+      "step": "backend-down",
+      "ok": true,
+      "msg": "unreachable backend shows clear message",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1280x720: Start/Stop Simulation visible without scrolling",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1280x720: no horizontal overflow",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1280x720: demo and fail controls visible",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1024x768: Start/Stop Simulation visible without scrolling",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1024x768: no horizontal overflow",
+      "detail": ""
+    },
+    {
+      "step": "responsive",
+      "ok": true,
+      "msg": "1024x768: demo and fail controls visible",
+      "detail": ""
+    },
+    {
+      "step": "summary",
+      "ok": true,
+      "msg": "no requests attempted to port 8000",
+      "detail": ""
+    },
+    {
+      "step": "summary",
+      "ok": true,
+      "msg": "no unexpected console/page errors",
+      "detail": ""
+    },
+    {
+      "step": "summary",
+      "ok": true,
+      "msg": "no unexpected failed HTTP requests",
+      "detail": ""
+    }
+  ],
+  "consoleErrors": [
+    "[backend-down] Failed to load resource: net::ERR_FAILED"
+  ],
+  "failedRequests": [
+    "[backend-down] FAILED GET http://127.0.0.1:8003/topology net::ERR_FAILED"
+  ],
+  "blocked": []
+}

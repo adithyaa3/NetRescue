@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/adharshsundaramurthy/Desktop/Commitcon/The-Internet-Goes-Down/qa/concurrency_stress.py", line 109, in <module>
+    main()
+  File "/Users/adharshsundaramurthy/Desktop/Commitcon/The-Internet-Goes-Down/qa/concurrency_stress.py", line 80, in main
+    assert req("POST", "/topology/generate", {"preset": "congested_shortest"})[0] == 200
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

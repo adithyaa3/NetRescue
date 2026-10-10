@@ -1,0 +1,668 @@
+{
+  "default": {
+    "nodes": 10,
+    "links": 11,
+    "demands": 8,
+    "solver_status": "optimal",
+    "covered_scenarios": [
+      "no_failure",
+      "fail_L1",
+      "fail_L2",
+      "fail_L3",
+      "fail_L4",
+      "fail_L5",
+      "fail_L6",
+      "fail_L7",
+      "fail_L8",
+      "fail_L9",
+      "fail_L10",
+      "fail_L11"
+    ],
+    "guarantees": {
+      "D1": 0.0,
+      "D4": 0.0,
+      "D6": 0.0,
+      "D7": 0.0,
+      "D2": 0.0,
+      "D3": 0.0,
+      "D5": 0.0,
+      "D8": 0.0
+    },
+    "reservations": {
+      "D1": {},
+      "D2": {},
+      "D3": {},
+      "D4": {},
+      "D5": {},
+      "D6": {},
+      "D7": {},
+      "D8": {}
+    },
+    "checker": {
+      "is_verified": true,
+      "scenarios_tested": 12,
+      "scenarios_passed": 12,
+      "failures": []
+    },
+    "critical_flows": {
+      "D1": {
+        "priority": 2,
+        "source": "EP1",
+        "destination": "SRV1",
+        "demand_mbps": 30.0,
+        "guarantee_mbps": 0.0,
+        "baseline_delivered_mbps": 30.0,
+        "candidate_count": 1,
+        "all_simple_path_count": 1,
+        "disconnecting_failures": [
+          "L8",
+          "L9"
+        ],
+        "common_candidate_links": [
+          "L8",
+          "L9"
+        ],
+        "candidates": [
+          {
+            "id": "T_D1_1",
+            "flow_id": "D1",
+            "node_path": [
+              "EP1",
+              "SW1",
+              "SRV1"
+            ],
+            "link_ids": [
+              "L9",
+              "L8"
+            ],
+            "latency": 2.0,
+            "is_active": true
+          }
+        ]
+      },
+      "D4": {
+        "priority": 2,
+        "source": "SRV1",
+        "destination": "GW1",
+        "demand_mbps": 20.0,
+        "guarantee_mbps": 0.0,
+        "baseline_delivered_mbps": 20.0,
+        "candidate_count": 3,
+        "all_simple_path_count": 3,
+        "disconnecting_failures": [
+          "L4",
+          "L8"
+        ],
+        "common_candidate_links": [
+          "L4",
+          "L8"
+        ],
+        "candidates": [
+          {
+            "id": "T_D4_1",
+            "flow_id": "D4",
+            "node_path": [
+              "SRV1",
+              "SW1",
+              "R1",
+              "GW1"
+            ],
+            "link_ids": [
+              "L8",
+              "L4",
+              "L1"
+            ],
+            "latency": 4.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D4_2",
+            "flow_id": "D4",
+            "node_path": [
+              "SRV1",
+              "SW1",
+              "R1",
+              "R2",
+              "GW1"
+            ],
+            "link_ids": [
+              "L8",
+              "L4",
+              "L3",
+              "L2"
+            ],
+            "latency": 6.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D4_3",
+            "flow_id": "D4",
+            "node_path": [
+              "SRV1",
+              "SW1",
+              "R1",
+              "SW2",
+              "R2",
+              "GW1"
+            ],
+            "link_ids": [
+              "L8",
+              "L4",
+              "L5",
+              "L6",
+              "L2"
+            ],
+            "latency": 9.0,
+            "is_active": true
+          }
+        ]
+      },
+      "D6": {
+        "priority": 1,
+        "source": "SRV3",
+        "destination": "GW1",
+        "demand_mbps": 10.0,
+        "guarantee_mbps": 0.0,
+        "baseline_delivered_mbps": 10.0,
+        "candidate_count": 3,
+        "all_simple_path_count": 3,
+        "disconnecting_failures": [
+          "L7",
+          "L11"
+        ],
+        "common_candidate_links": [
+          "L11",
+          "L7"
+        ],
+        "candidates": [
+          {
+            "id": "T_D6_1",
+            "flow_id": "D6",
+            "node_path": [
+              "SRV3",
+              "SW3",
+              "R2",
+              "GW1"
+            ],
+            "link_ids": [
+              "L11",
+              "L7",
+              "L2"
+            ],
+            "latency": 4.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D6_2",
+            "flow_id": "D6",
+            "node_path": [
+              "SRV3",
+              "SW3",
+              "R2",
+              "R1",
+              "GW1"
+            ],
+            "link_ids": [
+              "L11",
+              "L7",
+              "L3",
+              "L1"
+            ],
+            "latency": 6.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D6_3",
+            "flow_id": "D6",
+            "node_path": [
+              "SRV3",
+              "SW3",
+              "R2",
+              "SW2",
+              "R1",
+              "GW1"
+            ],
+            "link_ids": [
+              "L11",
+              "L7",
+              "L6",
+              "L5",
+              "L1"
+            ],
+            "latency": 9.0,
+            "is_active": true
+          }
+        ]
+      },
+      "D7": {
+        "priority": 1,
+        "source": "EP1",
+        "destination": "SRV3",
+        "demand_mbps": 5.0,
+        "guarantee_mbps": 0.0,
+        "baseline_delivered_mbps": 5.0,
+        "candidate_count": 3,
+        "all_simple_path_count": 3,
+        "disconnecting_failures": [
+          "L4",
+          "L7",
+          "L9",
+          "L11"
+        ],
+        "common_candidate_links": [
+          "L11",
+          "L4",
+          "L7",
+          "L9"
+        ],
+        "candidates": [
+          {
+            "id": "T_D7_1",
+            "flow_id": "D7",
+            "node_path": [
+              "EP1",
+              "SW1",
+              "R1",
+              "R2",
+              "SW3",
+              "SRV3"
+            ],
+            "link_ids": [
+              "L9",
+              "L4",
+              "L3",
+              "L7",
+              "L11"
+            ],
+            "latency": 8.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D7_2",
+            "flow_id": "D7",
+            "node_path": [
+              "EP1",
+              "SW1",
+              "R1",
+              "GW1",
+              "R2",
+              "SW3",
+              "SRV3"
+            ],
+            "link_ids": [
+              "L9",
+              "L4",
+              "L1",
+              "L2",
+              "L7",
+              "L11"
+            ],
+            "latency": 8.0,
+            "is_active": true
+          },
+          {
+            "id": "T_D7_3",
+            "flow_id": "D7",
+            "node_path": [
+              "EP1",
+              "SW1",
+              "R1",
+              "SW2",
+              "R2",
+              "SW3",
+              "SRV3"
+            ],
+            "link_ids": [
+              "L9",
+              "L4",
+              "L5",
+              "L6",
+              "L7",
+              "L11"
+            ],
+            "latency": 11.0,
+            "is_active": true
+          }
+        ]
+      }
+    },
+    "all_simple_paths_plan": {
+      "guarantees": {
+        "D1": 0.0,
+        "D4": 0.0,
+        "D6": 0.0,
+        "D7": 0.0,
+        "D2": 0.0,
+        "D3": 0.0,
+        "D5": 0.0,
+        "D8": 0.0
+      },
+      "checker": {
+        "is_verified": true,
+        "scenarios_tested": 12,
+        "scenarios_passed": 12,
+        "failures": []
+      }
+    }
+  },
+  "positive_demo": {
+    "preset": "congested_shortest",
+    "solver_status": "optimal",
+    "guarantees": {
+      "D1": 40.0,
+      "D2": 0.0,
+      "D3": 0.0
+    },
+    "reservations": {
+      "D1": {
+        "T_D1_1": 40.0,
+        "T_D1_2": 40.0
+      },
+      "D2": {},
+      "D3": {}
+    },
+    "checker": {
+      "is_verified": true,
+      "scenarios_tested": 6,
+      "scenarios_passed": 6,
+      "failures": []
+    },
+    "critical_candidates": [
+      {
+        "id": "T_D1_1",
+        "flow_id": "D1",
+        "node_path": [
+          "A",
+          "B",
+          "E"
+        ],
+        "link_ids": [
+          "L1",
+          "L2"
+        ],
+        "latency": 10.0,
+        "is_active": false
+      },
+      {
+        "id": "T_D1_2",
+        "flow_id": "D1",
+        "node_path": [
+          "A",
+          "C",
+          "D",
+          "E"
+        ],
+        "link_ids": [
+          "L3",
+          "L4",
+          "L5"
+        ],
+        "latency": 30.0,
+        "is_active": true
+      }
+    ],
+    "all_single_failures_reflex": {
+      "L1": {
+        "success": true,
+        "critical_mbps": 40.0
+      },
+      "L2": {
+        "success": true,
+        "critical_mbps": 40.0
+      },
+      "L3": {
+        "success": true,
+        "critical_mbps": 40.0
+      },
+      "L4": {
+        "success": true,
+        "critical_mbps": 40.0
+      },
+      "L5": {
+        "success": true,
+        "critical_mbps": 40.0
+      }
+    },
+    "controller_L1_failure": {
+      "version": 20,
+      "step": 2,
+      "event": "link_failure",
+      "link_id": "L1",
+      "reflex_used": true,
+      "reflex_time_ms": 0.03,
+      "route_changes": 1,
+      "violations": [],
+      "congestion_warnings": []
+    },
+    "D1_after_L1_mbps": 40.0,
+    "controller_L3_failure": {
+      "version": 20,
+      "step": 2,
+      "event": "link_failure",
+      "link_id": "L3",
+      "reflex_used": true,
+      "reflex_time_ms": 0.03,
+      "route_changes": 3,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "D2"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, D2."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "D2"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, D2."
+        }
+      ]
+    },
+    "allocated_after_L3_mbps": {
+      "D1": 40.0,
+      "D2": 10.0,
+      "D3": 0
+    }
+  },
+  "positive_P1_demo": {
+    "preset": "congested_shortest",
+    "solver_status": "optimal",
+    "guarantees": {
+      "D1": 40.0,
+      "P1_DEMO": 10.0,
+      "D2": 0.0,
+      "D3": 0.0
+    },
+    "reservations": {
+      "D1": {
+        "T_D1_1": 40.0,
+        "T_D1_2": 40.0
+      },
+      "D2": {},
+      "D3": {},
+      "P1_DEMO": {
+        "T_P1_DEMO_1": 10.0,
+        "T_P1_DEMO_2": 10.0
+      }
+    },
+    "checker": {
+      "is_verified": true,
+      "scenarios_tested": 6,
+      "scenarios_passed": 6,
+      "failures": []
+    },
+    "critical_candidates": [
+      {
+        "id": "T_D1_1",
+        "flow_id": "D1",
+        "node_path": [
+          "A",
+          "B",
+          "E"
+        ],
+        "link_ids": [
+          "L1",
+          "L2"
+        ],
+        "latency": 10.0,
+        "is_active": false
+      },
+      {
+        "id": "T_D1_2",
+        "flow_id": "D1",
+        "node_path": [
+          "A",
+          "C",
+          "D",
+          "E"
+        ],
+        "link_ids": [
+          "L3",
+          "L4",
+          "L5"
+        ],
+        "latency": 30.0,
+        "is_active": true
+      }
+    ],
+    "all_single_failures_reflex": {
+      "L1": {
+        "success": true,
+        "critical_mbps": 50.0
+      },
+      "L2": {
+        "success": true,
+        "critical_mbps": 50.0
+      },
+      "L3": {
+        "success": true,
+        "critical_mbps": 50.0
+      },
+      "L4": {
+        "success": true,
+        "critical_mbps": 50.0
+      },
+      "L5": {
+        "success": true,
+        "critical_mbps": 50.0
+      }
+    },
+    "controller_L1_failure": {
+      "version": 23,
+      "step": 3,
+      "event": "link_failure",
+      "link_id": "L1",
+      "reflex_used": true,
+      "reflex_time_ms": 0.04,
+      "route_changes": 1,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L3",
+          "source": "A",
+          "target": "C",
+          "utilization": 80.0,
+          "capacity": 200.0,
+          "load": 160.0,
+          "contributing_demands": [
+            "D1",
+            "D2",
+            "D3",
+            "P1_DEMO"
+          ],
+          "explanation": "Link A\u2194C at 80.0% utilization (160.0/200.0 Mbps). Contributing flows: D1, D2, D3, P1_DEMO."
+        },
+        {
+          "link_id": "L4",
+          "source": "C",
+          "target": "D",
+          "utilization": 80.0,
+          "capacity": 200.0,
+          "load": 160.0,
+          "contributing_demands": [
+            "D1",
+            "D2",
+            "D3",
+            "P1_DEMO"
+          ],
+          "explanation": "Link C\u2194D at 80.0% utilization (160.0/200.0 Mbps). Contributing flows: D1, D2, D3, P1_DEMO."
+        },
+        {
+          "link_id": "L5",
+          "source": "D",
+          "target": "E",
+          "utilization": 80.0,
+          "capacity": 200.0,
+          "load": 160.0,
+          "contributing_demands": [
+            "D1",
+            "D2",
+            "D3",
+            "P1_DEMO"
+          ],
+          "explanation": "Link D\u2194E at 80.0% utilization (160.0/200.0 Mbps). Contributing flows: D1, D2, D3, P1_DEMO."
+        }
+      ]
+    },
+    "D1_after_L1_mbps": 40.0,
+    "controller_L3_failure": {
+      "version": 23,
+      "step": 3,
+      "event": "link_failure",
+      "link_id": "L3",
+      "reflex_used": true,
+      "reflex_time_ms": 0.03,
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        }
+      ]
+    },
+    "allocated_after_L3_mbps": {
+      "D1": 40.0,
+      "D2": 0,
+      "D3": 0,
+      "P1_DEMO": 10.0
+    }
+  }
+}

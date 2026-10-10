@@ -6,7 +6,10 @@ link utilization updates, and preemption logic.
 """
 
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Any
+import copy
+from app.routing.candidate_paths import CandidateTunnel
+from app.routing.validator import validate_allocation_independently
 import networkx as nx
 
 from app.models import (
@@ -17,7 +20,45 @@ from app.routing.baseline import build_graph
 
 
 def apply_routing_results(state: SimulationState, results: list[Demand]):
-    """Apply routing results to the simulation state."""
+    """Preflight heuristic results on a private state before atomic installation."""
+    with state.lock():
+        staged = state.snapshot()
+        _apply_routing_results(staged, copy.deepcopy(results))
+        lookup = {t.id: t for ts in staged.candidate_tunnels.values() for t in ts}
+        checked = validate_allocation_independently(
+            staged.active_allocations, state.demands, state.links, lookup)
+        if not checked.is_valid:
+            raise ValueError("Invalid routing results: " + "; ".join(checked.violations))
+        state.demands = staged.demands
+        state.links = staged.links
+        state.candidate_tunnels = staged.candidate_tunnels
+        state.active_allocations = staged.active_allocations
+        state.bump_version()
+
+
+def _apply_routing_results(state: SimulationState, results: list[Demand]):
+    """Build installation on a snapshot; the public wrapper validates it."""
+    # Keep the tunnel dictionary and demand detail consistent with single-path routing.
+    state.active_allocations = {}
+    for result in results:
+        rate = result.allocated_bandwidth
+        lids = []
+        for u, v in zip(result.route or [], (result.route or [])[1:]):
+            lid = next((lid for lid, link in state.links.items()
+                        if {link.source, link.target} == {u, v}), None)
+            if lid is not None:
+                lids.append(lid)
+        tunnel = next((t for t in state.candidate_tunnels.get(result.id, [])
+                       if t.node_path == result.route), None)
+        if rate > 0 and result.route and tunnel is None:
+            tunnel = CandidateTunnel(f"T_{result.id}_installed", result.id,
+                                     list(result.route), lids,
+                                     sum(state.links[lid].latency for lid in lids))
+            state.candidate_tunnels.setdefault(result.id, []).append(tunnel)
+        state.active_allocations[result.id] = {tunnel.id: rate} if tunnel and rate > 0 else {}
+        result.tunnels = [{"tunnel_id": tunnel.id, "bandwidth": rate,
+                           "node_path": list(tunnel.node_path), "latency": tunnel.latency}] if tunnel and rate > 0 else []
+
     # Reset all link loads
     for link_id, link in state.links.items():
         state.links[link_id] = link.model_copy(update={
@@ -51,7 +92,16 @@ def apply_routing_results(state: SimulationState, results: list[Demand]):
     state.bump_version()
 
 
-def apply_allocation_dict(
+def apply_allocation_dict(state, allocations, candidate_tunnels, expected_version=None):
+    """Validate and install under one lock; reject stale results before mutation."""
+    with state.lock():
+        if expected_version is not None and expected_version != state.version:
+            raise ValueError("Stale allocation version")
+        _apply_allocation_dict(state, allocations, candidate_tunnels)
+        state.candidate_tunnels = copy.deepcopy(candidate_tunnels)
+
+
+def _apply_allocation_dict(
     state: SimulationState,
     allocations: dict[str, dict[str, float]],
     candidate_tunnels: dict[str, list[Any]],
@@ -65,8 +115,13 @@ def apply_allocation_dict(
         for t in t_list:
             tunnel_lookup[t.id] = t
 
+    checked = validate_allocation_independently(
+        allocations, state.demands, state.links, tunnel_lookup)
+    if not checked.is_valid:
+        raise ValueError("Invalid allocation: " + "; ".join(checked.violations))
+    allocations = {fid: dict(allocations.get(fid, {})) for fid in state.demands}
     link_loads: dict[str, float] = {lid: 0.0 for lid in state.links}
-    state.active_allocations = allocations
+    state.active_allocations = copy.deepcopy(allocations)
 
     for fid, t_allocs in allocations.items():
         demand = state.demands.get(fid)
@@ -85,12 +140,12 @@ def apply_allocation_dict(
         # Build tunnels detail list
         tunnels_detail = []
         for tid, bw in t_allocs.items():
-            if bw > 1e-4:
+            if bw > 0:
                 t = tunnel_lookup.get(tid)
                 if t:
                     tunnels_detail.append({
                         "tunnel_id": tid,
-                        "bandwidth": round(bw, 2),
+                        "bandwidth": bw,
                         "node_path": t.node_path,
                         "latency": t.latency,
                     })
@@ -98,7 +153,7 @@ def apply_allocation_dict(
                         link_loads[lid] = link_loads.get(lid, 0.0) + bw
 
         status = DemandStatus.PENDING
-        if tot_alloc >= demand.bandwidth - 1e-4:
+        if tot_alloc >= demand.bandwidth - min(1e-4, 1e-3 * demand.bandwidth):
             status = DemandStatus.FULLY_SERVED
             tot_alloc = demand.bandwidth
             unserved = 0.0
@@ -120,8 +175,8 @@ def apply_allocation_dict(
                 explanation = "Unserved due to congestion on all feasible paths."
 
         state.demands[fid] = demand.model_copy(update={
-            "allocated_bandwidth": round(tot_alloc, 4),
-            "unserved_bandwidth": round(unserved, 4),
+            "allocated_bandwidth": round(tot_alloc, 6),
+            "unserved_bandwidth": round(unserved, 6),
             "route": route,
             "status": status,
             "explanation": explanation,
@@ -134,7 +189,7 @@ def apply_allocation_dict(
         if link and state.is_link_usable(lid):
             util = (load / link.capacity * 100) if link.capacity > 0 else 0.0
             state.links[lid] = link.model_copy(update={
-                "allocated_load": round(load, 4),
+                "allocated_load": round(load, 6),
                 "utilization": round(util, 2),
             })
         elif link:

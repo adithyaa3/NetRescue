@@ -1,32 +1,39 @@
 """
 Mandatory 25-Step Acceptance Test for NetRescue Rebuilt Workflow
 """
-import urllib.request
-import json
 import pytest
+from fastapi.testclient import TestClient
+from app import main
+from app.state import SimulationState
 
-API = "http://127.0.0.1:8000"
+API = "http://testserver"
+_client = None
+
+@pytest.fixture(autouse=True)
+def isolated_acceptance_api(monkeypatch):
+    global _client
+    monkeypatch.setattr(main, "state", SimulationState())
+    with TestClient(main.app) as client:
+        _client = client
+        yield
+    _client = None
+
+def request(method, url, payload=None):
+    response = _client.request(method, url, json=payload)
+    response.raise_for_status()
+    return response.json()
 
 def post(url, payload=None):
-    data = json.dumps(payload).encode() if payload is not None else b''
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method='POST')
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode())
+    return request("POST", url, payload)
 
 def put(url, payload):
-    data = json.dumps(payload).encode()
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method='PUT')
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode())
+    return request("PUT", url, payload)
 
 def delete(url):
-    req = urllib.request.Request(url, method='DELETE')
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode())
+    return request("DELETE", url)
 
 def get(url):
-    with urllib.request.urlopen(url) as resp:
-        return json.loads(resp.read().decode())
+    return request("GET", url)
 
 def test_full_acceptance_workflow():
     print("\n--- Executing 25-step Acceptance Workflow ---")
@@ -133,4 +140,4 @@ def test_full_acceptance_workflow():
     print("Step 25 Passed: Reset verified, network clean.")
 
 if __name__ == "__main__":
-    test_full_acceptance_workflow()
+    raise SystemExit(pytest.main([__file__, "-q"]))

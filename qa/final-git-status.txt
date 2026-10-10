@@ -1,0 +1,17 @@
+ M .gitignore
+ M backend/app/analysis/metrics.py
+ M backend/app/routing/allocation.py
+ M backend/app/routing/baseline.py
+ M backend/app/routing/candidate_paths.py
+ M backend/app/routing/guarantee_checker.py
+ M backend/app/routing/install_policy.py
+ M backend/app/routing/pacar.py
+ M backend/app/routing/protection_planner.py
+ M backend/app/routing/reactive_lp.py
+ M backend/app/routing/reflex.py
+ M backend/app/routing/validator.py
+ M backend/app/simulation/engine.py
+ M backend/app/state.py
+ M backend/requirements.txt
+?? backend/tests/test_verification.py
+?? qa/

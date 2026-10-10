@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NetRescue — Interactive Network Resilience & Disaster Recovery Playground</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2300c2d6'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Arial' font-weight='700' text-anchor='middle' fill='%23030712'%3ENR%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,6 +27,7 @@
       --red: #ef4444;
       --emergency: #ff0055;
       --purple: #a855f7;
+      --tray-h: 260px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -157,6 +159,7 @@
       align-items: center;
       gap: 0.6rem;
     }
+    .header-actions .btn { white-space: nowrap; }
     .btn {
       font-family: inherit;
       padding: 0.45rem 0.85rem;
@@ -211,7 +214,7 @@
     .app-workspace {
       display: grid;
       grid-template-columns: 210px 1fr 320px;
-      height: calc(100vh - 56px - 260px);
+      height: calc(100vh - 56px - var(--tray-h));
       transition: height 0.25s ease;
       position: relative;
     }
@@ -228,6 +231,7 @@
       flex-direction: column;
       gap: 0.65rem;
       z-index: 20;
+      overflow-y: auto;
     }
     .tool-group-label {
       font-size: 0.68rem;
@@ -407,7 +411,7 @@
 
     /* BOTTOM TRAY */
     .bottom-tray {
-      height: 260px;
+      height: var(--tray-h);
       background: var(--bg-panel);
       border-top: 1px solid var(--border);
       display: flex;
@@ -593,6 +597,105 @@
     .flow-active {
       animation: dash 1.2s linear infinite;
     }
+
+    /* EXACT LINK FAILURE CONTROL */
+    .link-picker {
+      width: 100%;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.74rem;
+      padding: 0.45rem 0.5rem;
+    }
+    .tool-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .tool-btn.danger-action { color: #fca5a5; border-color: rgba(239, 68, 68, 0.45); }
+    .tool-btn.restore-action { color: #6ee7b7; border-color: rgba(16, 185, 129, 0.45); }
+    .tool-btn.demo-action {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(0, 240, 255, 0.10));
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+    }
+
+    /* Shown only until the first backend sync decides between the network and the empty state. */
+    .canvas-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      z-index: 5;
+    }
+
+    /* CANVAS LEGEND */
+    .canvas-legend {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      justify-content: flex-end;
+      z-index: 10;
+      background: rgba(10, 15, 26, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      max-width: calc(100% - 11rem);
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .legend-swatch { width: 18px; height: 0; border-top: 3px solid; display: inline-block; }
+
+    /* HONEST STATUS BANNERS */
+    .notice {
+      font-size: 0.78rem;
+      line-height: 1.45;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      border: 1px solid;
+    }
+    .notice-warn { background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+    .notice-ok { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.45); color: #6ee7b7; }
+    .notice-err { background: rgba(239, 68, 68, 0.10); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+    .notice-info { background: rgba(59, 130, 246, 0.10); border-color: rgba(59, 130, 246, 0.40); color: #93c5fd; }
+
+    .pill-p1 { background: rgba(255, 0, 85, 0.15); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
+    .pill-p2 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .pill-p3 { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+    .pill-p4 { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+    .pill-p5 { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
+
+    @media (max-width: 1500px) {
+      .workflow-guide { display: none; }
+    }
+    @media (max-height: 820px) {
+      :root { --tray-h: 210px; }
+      .left-toolbar { gap: 0.4rem; padding: 0.7rem 0.75rem; }
+      .tool-btn { padding: 0.45rem 0.65rem; }
+      .tool-group-label { margin-top: 0.1rem; }
+      .sim-toggle-btn { padding: 0.55rem 0.75rem; }
+    }
+    @media (max-height: 760px) {
+      :root { --tray-h: 200px; }
+      .left-toolbar .tool-group-label, .left-toolbar label[for="link-picker"] { display: none; }
+    }
+    @media (max-width: 1300px) {
+      .legend-extra { display: none; }
+    }
+    .tray-tabs { overflow-x: auto; overflow-y: hidden; }
+    .tray-tab-btn { white-space: nowrap; }
+    @media (max-width: 1150px) {
+      .tray-tab-btn { padding: 0 0.5rem; font-size: 0.72rem; }
+    }
+    @media (max-width: 1000px) {
+      .app-workspace { grid-template-columns: 180px 1fr 260px; }
+      .header-actions .btn { padding: 0.4rem 0.55rem; font-size: 0.75rem; }
+    }
   </style>
 </head>
 <body>
@@ -628,13 +731,16 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="loadSamplePreset()" title="Load Normal Campus Network">
+      <button class="btn btn-success" id="btn-protected-demo" onclick="loadProtectedDemo()" title="Load congested_shortest + P1_DEMO and start the simulation (positive verified guarantees)">
+        🛡️ Load Protected Demo
+      </button>
+      <button class="btn btn-secondary" id="btn-sample-network" onclick="loadSamplePreset()" title="Load Normal Campus Network">
         🧪 Load Sample Network
       </button>
-      <button class="btn btn-secondary" onclick="promptClearNetwork()" title="Clear all nodes and links">
+      <button class="btn btn-secondary" id="btn-clear-network" onclick="promptClearNetwork()" title="Clear all nodes and links">
         🗑️ Clear
       </button>
-      <button class="btn btn-secondary" onclick="exportNetworkJson()" title="Download Topology JSON">
+      <button class="btn btn-secondary" id="btn-export" onclick="exportNetworkJson()" title="Download Topology JSON">
         💾 Export
       </button>
     </div>
@@ -659,10 +765,17 @@
       </button>
 
       <div class="tool-group-label" style="margin-top:0.6rem;">Disaster Controls</div>
-      <button class="tool-btn" onclick="failSelectedOrRandom()" id="fail-btn" disabled>
-        <span>💥</span> Fail Link
+      <label for="link-picker" style="font-size:0.68rem; color:var(--text-muted); padding-left:0.25rem;">Physical link (ID · endpoints)</label>
+      <select id="link-picker" class="form-select link-picker" onchange="onLinkPickerChange()">
+        <option value="">— no links —</option>
+      </select>
+      <button class="tool-btn danger-action" onclick="failPickedLink()" id="fail-btn" disabled>
+        <span>💥</span> <span id="fail-btn-text">Fail Link</span>
       </button>
-      <button class="tool-btn" onclick="restoreAllLinks()">
+      <button class="tool-btn restore-action" onclick="restorePickedLink()" id="restore-btn" disabled>
+        <span>🔧</span> <span id="restore-btn-text">Restore Link</span>
+      </button>
+      <button class="tool-btn" onclick="restoreAllLinks()" id="restore-all-btn">
         <span>🔄</span> Restore All
       </button>
 
@@ -683,7 +796,9 @@
       </div>
 
       <!-- EMPTY STATE GUIDE -->
-      <div class="empty-state-guide" id="empty-state-guide">
+      <div class="canvas-loading" id="canvas-loading">Loading network…</div>
+
+      <div class="empty-state-guide" id="empty-state-guide" style="display:none">
         <div class="empty-state-icon">🌐</div>
         <h2>Start by adding your first node</h2>
         <p>Construct your custom network from scratch. Add routers, switches, and servers, then connect them with bandwidth-constrained links.</p>
@@ -695,6 +810,18 @@
             Load Sample Network
           </button>
         </div>
+        <div style="margin-top:0.75rem;">
+          <button class="btn btn-success" onclick="loadProtectedDemo()">🛡️ Load Protected Demo</button>
+        </div>
+      </div>
+
+      <div class="canvas-legend" id="canvas-legend" style="display:none">
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#10b981;"></span>&lt;50% load</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#f59e0b;"></span>50–79%</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#ef4444;"></span>≥80% congested (link UP)</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#64748b; border-top-style:dashed;"></span><span style="color:#ff5c7a; font-weight:700;">✖</span> FAILED (link DOWN)</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#b45309; border-top-style:dotted;"></span>FLAPPING (held down)</span>
+        <span class="legend-item legend-extra">Labels: link ID · load/capacity</span>
       </div>
 
       <!-- SVG GRAPH CANVAS -->
@@ -754,22 +881,22 @@
   <div class="bottom-tray" id="bottom-tray">
     <div class="tray-header">
       <div class="tray-tabs">
-        <button class="tray-tab-btn active" onclick="switchTrayTab('tray-demands')">
+        <button class="tray-tab-btn active" data-tab="tray-demands" onclick="switchTrayTab('tray-demands')">
           <span>⚡ Traffic Demands</span> <span id="badge-demands-count" style="font-size:0.7rem; color:var(--cyan);">(0)</span>
         </button>
-        <button class="tray-tab-btn" onclick="switchTrayTab('tray-metrics')">
+        <button class="tray-tab-btn" data-tab="tray-metrics" onclick="switchTrayTab('tray-metrics')">
           <span>📊 Resilience Metrics</span>
         </button>
-        <button class="tray-tab-btn" onclick="switchTrayTab('tray-protection')">
-          <span>🛡️ Protection Guarantees</span> <span id="badge-protection-status" style="font-size:0.7rem; color:var(--green);">(Verified)</span>
+        <button class="tray-tab-btn" data-tab="tray-protection" onclick="switchTrayTab('tray-protection')">
+          <span>🛡️ Protection Guarantees</span> <span id="badge-protection-status" style="font-size:0.7rem; color:var(--text-muted);">(—)</span>
         </button>
-        <button class="tray-tab-btn" onclick="switchTrayTab('tray-compare')">
+        <button class="tray-tab-btn" data-tab="tray-compare" onclick="switchTrayTab('tray-compare')">
           <span>⚖ Algorithm Comparison</span>
         </button>
-        <button class="tray-tab-btn" onclick="switchTrayTab('tray-whatif')">
+        <button class="tray-tab-btn" data-tab="tray-whatif" onclick="switchTrayTab('tray-whatif')">
           <span>🔬 What-If Analysis</span>
         </button>
-        <button class="tray-tab-btn" onclick="switchTrayTab('tray-events')">
+        <button class="tray-tab-btn" data-tab="tray-events" onclick="switchTrayTab('tray-events')">
           <span>📜 Event Log</span>
         </button>
       </div>
@@ -811,28 +938,38 @@
       <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:0.75rem; margin-bottom:0.75rem;">
         <div class="info-card">
           <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Delivery Rate</div>
-          <div style="font-size:1.3rem; font-weight:700; color:var(--cyan);" id="metric-deliv-rate">100%</div>
-          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-deliv-bw">0 / 0 Mbps</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--cyan);" id="metric-deliv-rate">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-deliv-bw">delivered / requested</div>
         </div>
         <div class="info-card">
-          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Critical Traffic Served</div>
-          <div style="font-size:1.3rem; font-weight:700; color:var(--green);" id="metric-crit-rate">100%</div>
-          <div style="font-size:0.7rem; color:var(--text-dim);">P1-P3 Guaranteed QoS</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Critical (P1–P2) Delivered Now</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--green);" id="metric-crit-rate">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-crit-bw">Current rate, not a guarantee</div>
         </div>
         <div class="info-card">
           <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Congested Links</div>
-          <div style="font-size:1.3rem; font-weight:700; color:var(--amber);" id="metric-congested">0</div>
-          <div style="font-size:0.7rem; color:var(--text-dim);">&gt; 80% Utilization</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--amber);" id="metric-congested">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">≥ 80% utilization (link still up)</div>
         </div>
         <div class="info-card">
-          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Average Latency</div>
-          <div style="font-size:1.3rem; font-weight:700; color:var(--text);" id="metric-latency">0 ms</div>
-          <div style="font-size:0.7rem; color:var(--text-dim);">Path Propagation</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Average Path Latency</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--text);" id="metric-latency">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">Sum of link latencies (model)</div>
         </div>
         <div class="info-card">
-          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Active Failures</div>
-          <div style="font-size:1.3rem; font-weight:700; color:var(--red);" id="metric-failed-count">0</div>
-          <div style="font-size:0.7rem; color:var(--text-dim);">Physical Outages</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Failed Links</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--red);" id="metric-failed-count">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-failed-ids">Physical outages</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="info-card" id="last-failure-card">
+          <div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Last Failure / Restore Event</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">No link has been failed in this browser session.</div>
+        </div>
+        <div class="info-card">
+          <div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Delivered by Priority (current)</div>
+          <div id="metric-per-priority" style="font-size:0.75rem; color:var(--text-muted);">No metrics yet.</div>
         </div>
       </div>
     </div>
@@ -841,9 +978,9 @@
     <div id="tray-protection" class="tray-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
         <span style="font-size:0.8rem; color:var(--text-muted);">
-          Proactive Protection Planner (LP) & Reflex Recovery. Solves lexicographic optimization to mathematically guarantee critical throughput across every single-link failure.
+          Protection Planner (LP) computes the worst-case bandwidth each P1/P2 flow keeps across the baseline and every single-link failure; the Guarantee Checker independently re-verifies it. A guarantee can legitimately be 0 Mbps.
         </span>
-        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="recomputeProtectionPlan()">
+        <button class="btn btn-secondary" id="protection-replan-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="recomputeProtectionPlan()">
           🛡️ Recompute Plan (HiGHS LP)
         </button>
       </div>
@@ -870,7 +1007,7 @@
     <div id="tray-compare" class="tray-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
         <span style="font-size:0.8rem; color:var(--text-muted);">Compare PACAR vs Standard Shortest-Path Dijkstra under identical disaster conditions.</span>
-        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
+        <button class="btn btn-secondary" id="compare-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
       </div>
       <div id="compare-results-box" style="font-size:0.8rem; color:var(--text-muted);">
         Click "Run Comparison" to analyze delivery rate and congestion avoidance.
@@ -880,8 +1017,11 @@
     <!-- TAB 4: WHAT-IF ANALYSIS -->
     <div id="tray-whatif" class="tray-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-        <span style="font-size:0.8rem; color:var(--text-muted);">Simulate disaster scenarios on a state snapshot without altering active traffic.</span>
-        <button class="btn btn-primary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="executeWhatIf()">🔬 Evaluate Impact</button>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Simulate one or more link failures on a snapshot. The live network is not changed.</span>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="btn btn-secondary" id="whatif-clear-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="clearWhatIfSelection()">Clear Selection</button>
+          <button class="btn btn-primary" id="whatif-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="executeWhatIf()">🔬 Evaluate Impact</button>
+        </div>
       </div>
       <div id="whatif-link-selectors" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;"></div>
       <div id="whatif-results-box" style="font-size:0.8rem; color:var(--text-muted);">Select links above and click "Evaluate Impact".</div>
@@ -889,6 +1029,10 @@
 
     <!-- TAB 5: EVENT LOG -->
     <div id="tray-events" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Backend event log, newest first. Times shown are algorithm computation times, not measured network downtime.</span>
+        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="loadEvents()">↻ Refresh</button>
+      </div>
       <div id="event-log-list" style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.75rem;">
         <div style="color:var(--text-muted);">Simulator ready.</div>
       </div>
@@ -899,15 +1043,16 @@
   <!-- MODAL: ADD NODE -->
   <div class="modal-backdrop" id="modal-add-node">
     <div class="modal-card">
-      <h3>➕ Add Network Node</h3>
+      <h3 id="modal-node-title">➕ Add Network Node</h3>
       <p class="subtitle">Create a new router, switch, or server in your custom topology.</p>
+      <input type="hidden" id="node-edit-id">
       <div class="form-group">
         <label>Node ID (e.g. R1, SW1, SRV1)</label>
         <input type="text" id="node-input-id" class="form-input" placeholder="R1">
       </div>
       <div class="form-group">
         <label>Display Label</label>
-        <input type="text" id="node-input-name" class="form-input" placeholder="Core Router 1">
+        <input type="text" id="node-input-name" class="form-input" placeholder="Optional — defaults to the Node ID">
       </div>
       <div class="form-group">
         <label>Node Type</label>
@@ -921,7 +1066,7 @@
       </div>
       <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
         <button class="btn btn-secondary" onclick="closeModal('modal-add-node')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAddNode()">Add Node</button>
+        <button class="btn btn-primary" id="node-submit-btn" onclick="submitAddNode()">Add Node</button>
       </div>
     </div>
   </div>
@@ -929,8 +1074,9 @@
   <!-- MODAL: CONNECT NODES -->
   <div class="modal-backdrop" id="modal-connect">
     <div class="modal-card">
-      <h3>🔗 Connect Nodes</h3>
+      <h3 id="modal-connect-title">🔗 Connect Nodes</h3>
       <p class="subtitle">Create a physical bidirectional link with bandwidth and latency constraints.</p>
+      <input type="hidden" id="link-edit-id">
       <div class="form-group">
         <label>Source Node</label>
         <select id="link-input-src" class="form-select"></select>
@@ -942,16 +1088,16 @@
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
         <div class="form-group">
           <label>Capacity (Mbps)</label>
-          <input type="number" id="link-input-cap" class="form-input" value="100" min="1" max="10000">
+          <input type="number" id="link-input-cap" class="form-input" value="100" min="0.01" max="10000000" step="any">
         </div>
         <div class="form-group">
           <label>Latency (ms)</label>
-          <input type="number" id="link-input-lat" class="form-input" value="5" min="0" max="1000">
+          <input type="number" id="link-input-lat" class="form-input" value="5" min="0" max="1000000" step="any">
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
         <button class="btn btn-secondary" onclick="closeModal('modal-connect')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitConnectNodes()">Create Link</button>
+        <button class="btn btn-primary" id="link-submit-btn" onclick="submitConnectNodes()">Create Link</button>
       </div>
     </div>
   </div>
@@ -988,7 +1134,7 @@
       </div>
       <div class="form-group">
         <label>Requested Bandwidth (Mbps)</label>
-        <input type="number" id="demand-input-bw" class="form-input" value="30" min="1" max="5000">
+        <input type="number" id="demand-input-bw" class="form-input" value="30" min="0.01" max="10000000" step="any">
       </div>
       <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
         <button class="btn btn-secondary" onclick="closeModal('modal-demand')">Cancel</button>
@@ -1004,7 +1150,23 @@
   </div>
 
   <script>
-    const API_BASE = (window.location.port === "8000" || window.location.port === "") ? "" : "http://localhost:8000";
+    // Same-origin when FastAPI serves the dashboard (any port). Only fall back to the
+    // default API port when opened from disk or from the Vite dev/preview server.
+    // `?api=http://host:port` overrides explicitly.
+    const API_BASE = (() => {
+      const override = new URLSearchParams(window.location.search).get('api');
+      if (override) return override.replace(/\/+$/, '');
+      if (window.location.protocol === 'file:') return 'http://localhost:8000';
+      if (['5173', '4173'].includes(window.location.port)) return 'http://localhost:8000';
+      return '';
+    })();
+
+    // Positive-protection demo (existing congested_shortest preset + one extra P1 flow).
+    const PROTECTED_DEMO = {
+      preset: 'congested_shortest',
+      extraDemand: { id: 'P1_DEMO', source: 'A', destination: 'E', bandwidth: 10, category: 'emergency' },
+      suggestedLink: 'L3'
+    };
 
     // Application state
     let state = {
@@ -1013,13 +1175,19 @@
       demands: {},     // id -> Demand
       simulationActive: false,
       selectedItem: null, // { type: 'node'|'link', id: string }
+      pickedLinkId: null, // link chosen in the Disaster Controls picker
       zoom: 1,
       pan: { x: 0, y: 0 },
       isDraggingNode: null,
+      dragMoved: false,
       dragOffset: { x: 0, y: 0 },
       isPanning: false,
       panStart: { x: 0, y: 0 },
-      lastMetrics: null
+      lastMetrics: null,
+      lastPlan: null,
+      lastFailure: null,  // { action, linkId, result, before, after, at }
+      initialized: false,
+      busy: false
     };
 
     // Node Type Icons
@@ -1031,12 +1199,48 @@
       endpoint: "📱"
     };
 
-    function showToast(text, icon = "ℹ️") {
+    const PRIORITY_LABELS = { 1: 'P1 Emergency', 2: 'P2 Essential', 3: 'P3 Academic', 4: 'P4 General', 5: 'P5 Background' };
+    const CATEGORY_PRIORITY = { emergency: 1, essential: 2, academic: 3, general: 4, background: 5 };
+
+    // ---- Formatting helpers (never turn missing data into zero) ----
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    // Safe JS string literal for inline onclick attributes.
+    function jsArg(v) { return esc(JSON.stringify(String(v))); }
+    function isNum(v) { return typeof v === 'number' && Number.isFinite(v); }
+    function fmtMbps(v, digits = 1) {
+      if (!isNum(v)) return '—';
+      // Never let fixed-digit rounding display a non-zero rate as zero.
+      if (v !== 0 && Number(v.toFixed(digits)) === 0) return `${Number(v.toPrecision(2))} Mbps`;
+      return `${v.toFixed(digits)} Mbps`;
+    }
+    // Whole numbers without decimals, otherwise up to 2 decimals (or 2 significant digits if smaller).
+    function fmtMbpsAuto(v) {
+      if (!isNum(v)) return '—';
+      const r = Math.round(v * 1e4) / 1e4;
+      if (Number.isInteger(r)) return `${r} Mbps`;
+      return Math.abs(v) < 0.01 ? `${Number(v.toPrecision(2))} Mbps` : `${Number(v.toFixed(2))} Mbps`;
+    }
+    function fmtPct(v, digits = 1) { return isNum(v) ? `${v.toFixed(digits)}%` : '—'; }
+    function priorityOf(d) {
+      if (!d) return null;
+      if (isNum(d.priority)) return d.priority;
+      return CATEGORY_PRIORITY[d.category] ?? null;
+    }
+    function linkLabel(l) {
+      const st = l.status === 'failed' ? ' · FAILED' : (l.status === 'flapping' ? ' · FLAPPING (held down)' : '');
+      return `${l.id} · ${l.source}↔${l.target} · ${l.capacity} Mbps${st}`;
+    }
+
+    let toastTimer = null;
+    function showToast(text, icon = "ℹ️", ms = 4000) {
       const toast = document.getElementById('toast-msg');
       document.getElementById('toast-icon').textContent = icon;
       document.getElementById('toast-text').textContent = text;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3500);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
     }
 
     function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -1057,61 +1261,114 @@
       return res.statusText || `HTTP ${res.status}`;
     }
 
+    // Each helper is self-contained (backend/tests/what_if_dashboard_harness.cjs extracts
+    // apiGet/apiPost/apiPut by name), so the unreachable-backend handling is inlined.
     async function apiGet(path) {
-      const res = await fetch(`${API_BASE}${path}`);
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
       if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiPost(path, body = null) {
       const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
       if (body) opts.body = JSON.stringify(body);
-      const res = await fetch(`${API_BASE}${path}`, opts);
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`, opts); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
       if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiPut(path, body) {
-      const res = await fetch(`${API_BASE}${path}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      let res;
+      try {
+        res = await fetch(`${API_BASE}${path}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      } catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
       if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
     async function apiDelete(path) {
-      const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' }); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
       if (!res.ok) throw new Error(await parseApiError(res));
       return await res.json();
     }
 
+    // Ignore repeated clicks while the same action is still running (double-click,
+    // impatient re-click): each guarded action runs at most once at a time.
+    const runningActions = new Set();
+    async function runExclusive(key, fn) {
+      if (runningActions.has(key)) return;
+      runningActions.add(key);
+      try { return await fn(); } finally { runningActions.delete(key); }
+    }
+    function toggleSimulation(...args) { return runExclusive('toggleSimulation', () => toggleSimulationImpl(...args)); }
+    function submitAddNode(...args) { return runExclusive('submitAddNode', () => submitAddNodeImpl(...args)); }
+    function submitConnectNodes(...args) { return runExclusive('submitConnectNodes', () => submitConnectNodesImpl(...args)); }
+    function submitDemandForm(...args) { return runExclusive('submitDemandForm', () => submitDemandFormImpl(...args)); }
+    function recomputeProtectionPlan(...args) { return runExclusive('recomputeProtectionPlan', () => recomputeProtectionPlanImpl(...args)); }
+
     // Sync from Backend
+    // Several syncs can be in flight (an action finishes while a previous sync is
+    // still waiting). Only the most recently started sync may apply its results;
+    // an older response must never overwrite newer state.
+    let syncSeq = 0;
     async function syncState() {
+      const mySeq = ++syncSeq;
+      const superseded = () => mySeq !== syncSeq;
       try {
-        const topData = await apiGet('/topology');
-        const demData = await apiGet('/demands');
-        
+        const [topData, demData, failData, metrics] = await Promise.all([
+          apiGet('/topology'),
+          apiGet('/demands'),
+          apiGet('/failures').catch(() => null),
+          apiGet('/metrics').catch(() => null),
+        ]);
+        if (superseded()) return;
+
         state.nodes = {};
         (topData.nodes || []).forEach(n => state.nodes[n.id] = n);
-        
+
         state.links = {};
         (topData.links || []).forEach(l => state.links[l.id] = l);
 
         state.demands = {};
         (demData.demands || []).forEach(d => state.demands[d.id] = d);
 
-        // Fetch metrics if available
-        try {
-          state.lastMetrics = await apiGet('/metrics');
-        } catch (e) {}
+        // On first load, reflect whether the backend already holds a simulated allocation.
+        if (!state.initialized) {
+          state.simulationActive = Object.values(state.demands).some(d => d.status && d.status !== 'pending');
+          state.initialized = true;
+          updateSimUi();
+        }
+
+        state.lastMetrics = metrics;
+        state.cooldowns = {};
+        ((failData && failData.flapping_links) || []).forEach(f => { state.cooldowns[f.id] = f.cooldown_remaining; });
+
+        if (state.selectedItem && state.selectedItem.type === 'link' && !state.links[state.selectedItem.id]) state.selectedItem = null;
+        if (state.selectedItem && state.selectedItem.type === 'node' && !state.nodes[state.selectedItem.id]) state.selectedItem = null;
 
         renderCanvas();
+        renderLinkPicker();
         renderDemandsTable();
         renderMetrics();
+        renderLastFailure();
         renderInspector();
         updateWorkflowSteps();
-        loadProtectionPlan();
+        await loadProtectionPlan(mySeq);
+        if (superseded()) return;
+        if (isTabActive('tray-whatif')) populateWhatIfLinks();
+        if (isTabActive('tray-events')) await loadEvents();
       } catch (err) {
-        console.error("State sync failed:", err);
+        if (superseded()) return;
+        console.warn("State sync failed:", err);
+        showToast(err.message, "⚠️", 6000);
+        if (!state.initialized) document.getElementById('canvas-loading').textContent = err.message;
       }
     }
 
@@ -1132,45 +1389,42 @@
         document.getElementById('wf-step-4').classList.add('active');
       }
 
-      // Empty state guide
       const emptyGuide = document.getElementById('empty-state-guide');
-      if (n === 0) {
-        emptyGuide.style.display = 'block';
-      } else {
-        emptyGuide.style.display = 'none';
-      }
+      emptyGuide.style.display = n === 0 ? 'block' : 'none';
+      document.getElementById('canvas-loading').style.display = 'none';
+      document.getElementById('canvas-legend').style.display = n === 0 ? 'none' : 'flex';
+    }
 
-      // Fail button enabled if simulation active
-      const failBtn = document.getElementById('fail-btn');
-      if (failBtn) failBtn.disabled = !state.simulationActive;
+    function updateSimUi() {
+      const active = state.simulationActive;
+      document.getElementById('sim-status').className = `sim-status-pill ${active ? 'active' : 'draft'}`;
+      document.getElementById('sim-status-text').textContent = active ? 'Live Simulation Active' : 'Draft Network';
+      document.getElementById('sim-btn-icon').textContent = active ? '⏹' : '▶';
+      document.getElementById('sim-btn-text').textContent = active ? 'Stop Simulation' : 'Start Simulation';
+      document.getElementById('sim-toggle-btn').className = `btn ${active ? 'btn-danger' : 'btn-primary'} sim-toggle-btn`;
     }
 
     // SIMULATION TOGGLE
-    async function toggleSimulation() {
+    async function toggleSimulationImpl() {
       if (!state.simulationActive) {
-        // Start simulation
         try {
-          await apiPost('/simulate?algorithm=pacar');
+          if (!Object.keys(state.demands).length) {
+            showToast("Add at least one traffic demand before starting the simulation.", "⚠️");
+            return;
+          }
+          const result = await apiPost('/simulate?algorithm=pacar');
           state.simulationActive = true;
-          document.getElementById('sim-status').className = 'sim-status-pill active';
-          document.getElementById('sim-status-text').textContent = 'Live Simulation Active';
-          document.getElementById('sim-btn-icon').textContent = '⏹';
-          document.getElementById('sim-btn-text').textContent = 'Stop Simulation';
-          document.getElementById('sim-toggle-btn').className = 'btn btn-danger sim-toggle-btn';
-          showToast("Simulation Active. Link failures and traffic edits will recalculate live.", "▶");
+          updateSimUi();
+          const v = (result.violations || []).length;
+          showToast(`Simulation active (PACAR). Validator: ${v} violation${v === 1 ? '' : 's'}. Edits and failures now recalculate live.`, "▶");
           await syncState();
         } catch (err) {
           showToast(`Cannot start simulation: ${err.message}`, "⚠️");
         }
       } else {
-        // Stop simulation
         state.simulationActive = false;
-        document.getElementById('sim-status').className = 'sim-status-pill draft';
-        document.getElementById('sim-status-text').textContent = 'Draft Network';
-        document.getElementById('sim-btn-icon').textContent = '▶';
-        document.getElementById('sim-btn-text').textContent = 'Start Simulation';
-        document.getElementById('sim-toggle-btn').className = 'btn btn-primary sim-toggle-btn';
-        showToast("Simulation stopped. Network returned to draft mode.", "⏹");
+        updateSimUi();
+        showToast("Live re-simulation paused. Current routes are kept; edits will not be re-routed until you press Start.", "⏹");
         await syncState();
       }
     }
@@ -1182,79 +1436,140 @@
           await apiPost('/simulate?algorithm=pacar');
         } catch (e) {
           console.warn("Auto-resimulate failed:", e);
+          showToast(`Re-simulation failed: ${e.message}`, "⚠️");
         }
       }
       await syncState();
     }
 
-    // ADD NODE
-    function openAddNodeModal() {
+    // ADD / EDIT NODE
+    function openAddNodeModal(editNode = null) {
       const nodes = state.nodes || {};
-      let nextNum = 1;
-      while (nodes[`R${nextNum}`]) nextNum++;
-      document.getElementById('node-input-id').value = `R${nextNum}`;
-      document.getElementById('node-input-name').value = `Node ${nextNum}`;
-      document.getElementById('node-input-type').value = "router";
+      const idInput = document.getElementById('node-input-id');
+      if (editNode) {
+        document.getElementById('modal-node-title').textContent = `✏️ Edit Node ${editNode.id}`;
+        document.getElementById('node-edit-id').value = editNode.id;
+        idInput.value = editNode.id;
+        idInput.disabled = true;
+        document.getElementById('node-input-name').value = editNode.name || editNode.id;
+        document.getElementById('node-input-type').value = editNode.node_type || 'router';
+        document.getElementById('node-submit-btn').textContent = 'Save Node';
+      } else {
+        let nextNum = 1;
+        while (nodes[`R${nextNum}`]) nextNum++;
+        document.getElementById('modal-node-title').textContent = '➕ Add Network Node';
+        document.getElementById('node-edit-id').value = '';
+        idInput.disabled = false;
+        idInput.value = `R${nextNum}`;
+        // Blank name defaults to the node ID on save.
+        document.getElementById('node-input-name').value = '';
+        document.getElementById('node-input-type').value = "router";
+        document.getElementById('node-submit-btn').textContent = 'Add Node';
+      }
       openModal('modal-add-node');
     }
 
-    async function submitAddNode() {
+    async function submitAddNodeImpl() {
+      const editId = document.getElementById('node-edit-id').value;
       const id = document.getElementById('node-input-id').value.trim();
       const name = document.getElementById('node-input-name').value.trim() || id;
       const type = document.getElementById('node-input-type').value;
+
+      if (editId) {
+        try {
+          await apiPut(`/nodes/${encodeURIComponent(editId)}`, { name, node_type: type });
+          closeModal('modal-add-node');
+          showToast(`Node ${editId} updated`, "✅");
+          await reSimulateIfActive();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, "❌");
+        }
+        return;
+      }
 
       if (!id) return showToast("Node ID is required", "⚠️");
       if (state.nodes && state.nodes[id]) {
         return showToast(`Node ID '${id}' already exists! Please choose a unique ID.`, "⚠️");
       }
 
-      // Place node near center with slight offset
+      // Place node near the centre of the visible canvas (world coordinates).
       const svg = document.getElementById('network-canvas');
       const rect = svg ? svg.getBoundingClientRect() : { width: 800, height: 600 };
       const count = Object.keys(state.nodes || {}).length;
       const angle = count * 0.8;
       const radius = 80 + count * 25;
-      const x = Math.round((rect.width / 2) + Math.cos(angle) * Math.min(radius, 250));
-      const y = Math.round((rect.height / 2) + Math.sin(angle) * Math.min(radius, 180));
+      const cx = (rect.width / 2 - state.pan.x) / state.zoom;
+      const cy = (rect.height / 2 - state.pan.y) / state.zoom;
+      const x = Math.round(cx + Math.cos(angle) * Math.min(radius, 250));
+      const y = Math.round(cy + Math.sin(angle) * Math.min(radius, 180));
 
       try {
         await apiPost('/nodes', { id, name, node_type: type, x, y });
         closeModal('modal-add-node');
         showToast(`Node ${id} created`, "✅");
-        await syncState();
-        selectItem('node', id);
+        state.selectedItem = { type: 'node', id };
         await reSimulateIfActive();
       } catch (err) {
         showToast(`Error: ${err.message}`, "❌");
       }
     }
 
-    // CONNECT NODES
-    function openConnectModal(defaultSrc = null) {
+    // CONNECT NODES / EDIT LINK
+    function openConnectModal(defaultSrc = null, editLink = null) {
       const nodes = Object.values(state.nodes || {});
       if (nodes.length < 2) return showToast("Create at least 2 nodes first", "⚠️");
 
       const s = document.getElementById('link-input-src');
       const d = document.getElementById('link-input-dst');
       s.innerHTML = ""; d.innerHTML = "";
-      nodes.forEach((n, idx) => {
+      nodes.forEach(n => {
         s.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
         d.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
       });
-      if (defaultSrc) s.value = defaultSrc;
-      if (s.selectedIndex === 0 && nodes.length > 1) d.selectedIndex = 1;
+      if (editLink) {
+        document.getElementById('modal-connect-title').textContent = `✏️ Edit Link ${editLink.id}`;
+        document.getElementById('link-edit-id').value = editLink.id;
+        s.value = editLink.source;
+        d.value = editLink.target;
+        s.disabled = true; d.disabled = true;
+        document.getElementById('link-input-cap').value = editLink.capacity;
+        document.getElementById('link-input-lat').value = editLink.latency;
+        document.getElementById('link-submit-btn').textContent = 'Save Link';
+      } else {
+        document.getElementById('modal-connect-title').textContent = '🔗 Connect Nodes';
+        document.getElementById('link-edit-id').value = '';
+        s.disabled = false; d.disabled = false;
+        if (defaultSrc) s.value = defaultSrc;
+        d.selectedIndex = s.selectedIndex === 0 ? 1 : 0;
+        document.getElementById('link-submit-btn').textContent = 'Create Link';
+      }
       openModal('modal-connect');
     }
 
-    async function submitConnectNodes() {
+    async function submitConnectNodesImpl() {
+      const editId = document.getElementById('link-edit-id').value;
       const src = document.getElementById('link-input-src').value;
       const dst = document.getElementById('link-input-dst').value;
       const cap = parseFloat(document.getElementById('link-input-cap').value);
       const lat = parseFloat(document.getElementById('link-input-lat').value);
 
+      if (!isNum(cap) || cap < 0.01 || cap > 1e7) return showToast("Capacity must be a positive number of Mbps between 0.01 and 10,000,000", "⚠️");
+      if (!isNum(lat) || lat < 0 || lat > 1e6) return showToast("Latency must be a non-negative number of ms (at most 1,000,000)", "⚠️");
+
+      if (editId) {
+        try {
+          await apiPut(`/links/${encodeURIComponent(editId)}`, { capacity: cap, latency: lat });
+          closeModal('modal-connect');
+          showToast(`Link ${editId} updated: ${cap} Mbps, ${lat} ms`, "✅");
+          await reSimulateIfActive();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, "❌");
+        }
+        return;
+      }
+
       if (src === dst) return showToast("Source and destination must be different", "⚠️");
 
-      // Check if parallel link already exists
       const existing = Object.values(state.links || {}).find(l =>
         (l.source === src && l.target === dst) || (l.source === dst && l.target === src)
       );
@@ -1262,20 +1577,20 @@
         return showToast(`A link between ${src} and ${dst} already exists (${existing.id})!`, "⚠️");
       }
 
-      // Generate Link ID
-      let lid = `L_${src}_${dst}`;
-      if (state.links && state.links[lid]) {
-        let n = 1;
-        while (state.links[`L${n}`]) n++;
-        lid = `L${n}`;
-      }
+      // Short sequential IDs (L1, L2, ...) are easiest to read and to pick for failure.
+      // Use the backend's current link list, not possibly stale local state.
+      let taken = new Set(Object.keys(state.links));
+      try { taken = new Set((await apiGet('/topology')).links.map(l => l.id)); } catch (_) {}
+      let n = 1;
+      while (taken.has(`L${n}`)) n++;
+      const lid = `L${n}`;
 
       try {
         await apiPost('/links', { id: lid, source: src, target: dst, capacity: cap, latency: lat });
         closeModal('modal-connect');
-        showToast(`Connected ${src} ↔ ${dst} (${cap} Mbps)`, "✅");
-        await syncState();
-        selectItem('link', lid);
+        showToast(`Created ${lid}: ${src} ↔ ${dst} (${cap} Mbps)`, "✅");
+        state.selectedItem = { type: 'link', id: lid };
+        state.pickedLinkId = lid;
         await reSimulateIfActive();
       } catch (err) {
         showToast(`Error: ${err.message}`, "❌");
@@ -1317,7 +1632,7 @@
       openModal('modal-demand');
     }
 
-    async function submitDemandForm() {
+    async function submitDemandFormImpl() {
       const editId = document.getElementById('demand-edit-id').value;
       const id = document.getElementById('demand-input-id').value.trim();
       const src = document.getElementById('demand-input-src').value;
@@ -1325,11 +1640,13 @@
       const cat = document.getElementById('demand-input-cat').value;
       const bw = parseFloat(document.getElementById('demand-input-bw').value);
 
+      if (!editId && !id) return showToast("Demand ID is required", "⚠️");
       if (src === dst) return showToast("Source and destination must be different", "⚠️");
+      if (!isNum(bw) || bw < 0.01 || bw > 1e7) return showToast("Bandwidth must be a positive number of Mbps between 0.01 and 10,000,000", "⚠️");
 
       try {
         if (editId) {
-          await apiPut(`/demands/${editId}`, { bandwidth: bw, category: cat, source: src, destination: dst });
+          await apiPut(`/demands/${encodeURIComponent(editId)}`, { bandwidth: bw, category: cat, source: src, destination: dst });
           showToast(`Demand ${editId} updated`, "✅");
         } else {
           await apiPost('/demands', { id, source: src, destination: dst, bandwidth: bw, category: cat });
@@ -1345,7 +1662,7 @@
     async function deleteDemand(id) {
       if (!confirm(`Delete traffic demand ${id}?`)) return;
       try {
-        await apiDelete(`/demands/${id}`);
+        await apiDelete(`/demands/${encodeURIComponent(id)}`);
         showToast(`Demand ${id} removed`, "🗑️");
         await reSimulateIfActive();
       } catch (err) {
@@ -1353,54 +1670,212 @@
       }
     }
 
-    // FAIL / RESTORE LINK
-    async function toggleLinkFailure(linkId) {
+    // FAIL / RESTORE LINK (always an explicit, named link — never a random one)
+    function snapshotDelivery() {
+      const snap = {};
+      Object.values(state.demands).forEach(d => {
+        snap[d.id] = { allocated: d.allocated_bandwidth, status: d.status, requested: d.bandwidth, priority: priorityOf(d) };
+      });
+      return snap;
+    }
+
+    async function setLinkState(linkId, action) {
       const link = state.links[linkId];
-      if (!link) return;
-      const isFailed = link.status === "failed";
-      const action = isFailed ? "restore" : "fail";
+      if (!link) return showToast(`Link ${linkId} does not exist`, "⚠️");
+      if (action === 'fail' && link.status === 'failed') return showToast(`${linkId} is already failed`, "ℹ️");
+      if (link.status === 'flapping') return showToast(holdDownText(link), "⚠️", 9000);
+      if (action === 'restore' && link.status !== 'failed') return showToast(`${linkId} is already active`, "ℹ️");
+      if (state.busy) return;
+      state.busy = true;
+      const before = snapshotDelivery();
       try {
-        const result = await apiPost(`/links/${linkId}/${action}`);
-        const changedRoutes = result.route_changes || 0;
-        if (action === "fail") {
-          showToast(`Link ${link.source}–${link.target} failed! ${changedRoutes} routes adjusted.`, "💥");
-        } else {
-          showToast(`Link ${link.source}–${link.target} restored. Routes recovered.`, "🔄");
-        }
+        const result = await apiPost(`/links/${encodeURIComponent(linkId)}/${action}`);
         await syncState();
+        if (result.changed === false) {
+          // The backend made no change (already failed/active or held down): report it as such.
+          showToast(result.message || `${linkId}: nothing changed.`, "ℹ️", 7000);
+          return;
+        }
+        state.lastFailure = { action, linkId, link: { source: link.source, target: link.target }, result, before, after: snapshotDelivery(), at: new Date() };
+        renderLastFailure();
+        renderInspector();
+        const v = Array.isArray(result.violations) ? result.violations.length : null;
+        if (action === 'fail') {
+          const reflex = result.reflex_used === true ? 'Reflex used' : (result.reflex_used === false ? 'Reflex NOT used (fallback re-optimization)' : 'Reflex status not reported');
+          showToast(`${linkId} (${link.source}↔${link.target}) FAILED. ${reflex}. Validator violations: ${v ?? '—'}.`, "💥", 6000);
+        } else {
+          const now = state.links[linkId];
+          if (result.event === 'link_flapping' || (now && now.status === 'flapping')) {
+            showToast(`${linkId} was NOT returned to service. ${holdDownText(now || link, result.cooldown_remaining)}`, "⚠️", 10000);
+          } else {
+            showToast(`${linkId} (${link.source}↔${link.target}) restored. Validator violations: ${v ?? '—'}.`, "🔧", 5000);
+          }
+        }
       } catch (err) {
         showToast(`Error: ${err.message}`, "❌");
+        await syncState();
+      } finally {
+        state.busy = false;
+        renderLinkPicker();
       }
     }
 
-    function failSelectedOrRandom() {
-      if (state.selectedItem && state.selectedItem.type === 'link') {
-        toggleLinkFailure(state.selectedItem.id);
+    // Flap damping: a link that failed 3 times within 10 controller steps is held down for
+    // 5 steps. A controller step is one simulation run, link failure or link restore.
+    function holdDownText(link, remaining) {
+      const left = isNum(remaining) ? remaining : (state.cooldowns || {})[link.id];
+      const count = isNum(link.flap_count) ? link.flap_count : null;
+      return `${link.id} is held down by flap damping${count ? ` (failed ${count} times within 10 controller steps)` : ''}: ` +
+        `it carries no traffic and cannot be failed or restored manually. It returns to service automatically` +
+        `${isNum(left) ? ` after ${left} more controller step${left === 1 ? '' : 's'} (each simulation run, failure or restore is one step)` : ' when its cooldown ends'}` +
+        `, or click 🛡️ Load Protected Demo to reload the scenario.`;
+    }
+
+    function toggleLinkFailure(linkId) {
+      const link = state.links[linkId];
+      if (!link) return;
+      return setLinkState(linkId, link.status === 'failed' ? 'restore' : 'fail');
+    }
+
+    function failPickedLink() {
+      if (!state.pickedLinkId) return showToast("Choose a link in the picker (or click one on the canvas) first", "⚠️");
+      return setLinkState(state.pickedLinkId, 'fail');
+    }
+    function restorePickedLink() {
+      if (!state.pickedLinkId) return showToast("Choose a link in the picker first", "⚠️");
+      return setLinkState(state.pickedLinkId, 'restore');
+    }
+
+    function renderLinkPicker() {
+      const picker = document.getElementById('link-picker');
+      const links = Object.values(state.links).sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true }));
+      if (state.pickedLinkId && !state.links[state.pickedLinkId]) state.pickedLinkId = null;
+      if (!links.length) {
+        picker.innerHTML = `<option value="">— no links —</option>`;
       } else {
-        const activeLinks = Object.values(state.links).filter(l => l.status !== 'failed');
-        if (!activeLinks.length) return showToast("No active links available to fail", "⚠️");
-        toggleLinkFailure(activeLinks[0].id);
+        picker.innerHTML = `<option value="">— choose a link —</option>` +
+          links.map(l => `<option value="${esc(l.id)}">${l.status === 'failed' ? '✖ ' : (l.status === 'flapping' ? '⚠ ' : '')}${esc(linkLabel(l))}</option>`).join('');
       }
+      picker.value = state.pickedLinkId || '';
+      const picked = state.pickedLinkId ? state.links[state.pickedLinkId] : null;
+      const failBtn = document.getElementById('fail-btn');
+      const restoreBtn = document.getElementById('restore-btn');
+      failBtn.disabled = state.busy || !picked || picked.status !== 'active';
+      restoreBtn.disabled = state.busy || !picked || picked.status !== 'failed';
+      failBtn.title = picked && picked.status === 'flapping' ? holdDownText(picked) : '';
+      document.getElementById('fail-btn-text').textContent = picked ? `Fail ${picked.id}` : 'Fail Link';
+      document.getElementById('restore-btn-text').textContent = picked ? `Restore ${picked.id}` : 'Restore Link';
+      const anyFailed = links.some(l => l.status === 'failed');
+      document.getElementById('restore-all-btn').disabled = state.busy || !anyFailed;
+    }
+
+    function onLinkPickerChange() {
+      const id = document.getElementById('link-picker').value;
+      state.pickedLinkId = id || null;
+      if (id) {
+        state.selectedItem = { type: 'link', id };
+        renderCanvas();
+        renderInspector();
+      }
+      renderLinkPicker();
     }
 
     async function restoreAllLinks() {
       const failed = Object.values(state.links).filter(l => l.status === 'failed');
       if (!failed.length) return showToast("All links are already active", "ℹ️");
+      if (state.busy) return;
+      state.busy = true;
+      const before = snapshotDelivery();
+      const errors = [];
+      let lastResult = null;
       for (const l of failed) {
-        await apiPost(`/links/${l.id}/restore`);
+        try {
+          lastResult = await apiPost(`/links/${encodeURIComponent(l.id)}/restore`);
+        } catch (err) {
+          errors.push(`${l.id}: ${err.message}`);
+        }
       }
-      showToast("All links restored to normal", "🔄");
+      state.busy = false;
       await syncState();
+      if (lastResult) {
+        state.lastFailure = { action: 'restore-all', linkId: failed.map(l => l.id).join(', '), result: lastResult, before, after: snapshotDelivery(), at: new Date() };
+        renderLastFailure();
+        renderInspector();
+      }
+      if (errors.length) showToast(`Some links could not be restored: ${errors.join('; ')}`, "❌", 7000);
+      else showToast(`Restored ${failed.map(l => l.id).join(', ')}`, "🔄");
     }
 
     // PRESET & CLEAR
+    function resetSessionView() {
+      state.selectedItem = null;
+      state.pickedLinkId = null;
+      state.lastFailure = null;
+      state.lastPlan = null;
+      document.getElementById('whatif-results-box').textContent = 'Select links above and click "Evaluate Impact".';
+      document.getElementById('whatif-results-box').style.color = '';
+      document.getElementById('compare-results-box').textContent = 'Click "Run Comparison" to analyze delivery rate and congestion avoidance.';
+    }
+
     async function loadSamplePreset() {
+      if (state.busy) return;
+      state.busy = true;
       try {
         await apiPost('/topology/generate', { preset: 'normal_campus' });
-        showToast("Loaded Normal Campus Sample Network", "🧪");
+        resetSessionView();
+        state.simulationActive = false;
+        updateSimUi();
+        showToast("Loaded Normal Campus sample. Press Start Simulation to route traffic.", "🧪");
         await syncState();
+        fitView();
       } catch (err) {
         showToast(`Failed to load preset: ${err.message}`, "❌");
+      } finally {
+        state.busy = false;
+        renderLinkPicker();
+      }
+    }
+
+    async function loadProtectedDemo() {
+      if (state.busy) return;
+      state.busy = true;
+      const btn = document.getElementById('btn-protected-demo');
+      if (btn) btn.disabled = true;
+      try {
+        await apiPost('/topology/generate', { preset: PROTECTED_DEMO.preset });
+        try {
+          await apiPost('/demands', PROTECTED_DEMO.extraDemand);
+        } catch (err) {
+          // Tolerate a preset that already ships the demo flow; anything else is a real error.
+          if (!/already exists/i.test(err.message)) throw err;
+        }
+        await apiPost('/simulate?algorithm=pacar');
+        resetSessionView();
+        state.simulationActive = true;
+        updateSimUi();
+        state.pickedLinkId = state.links[PROTECTED_DEMO.suggestedLink] ? PROTECTED_DEMO.suggestedLink : null;
+        await syncState();
+        if (state.links[PROTECTED_DEMO.suggestedLink]) {
+          state.pickedLinkId = PROTECTED_DEMO.suggestedLink;
+          state.selectedItem = { type: 'link', id: PROTECTED_DEMO.suggestedLink };
+          renderLinkPicker();
+          renderCanvas();
+          renderInspector();
+        }
+        fitView();
+        switchTrayTab('tray-protection');
+        const plan = state.lastPlan;
+        const crit = plan && plan.active ? (plan.critical_flows || []).filter(f => f.priority <= 2) : [];
+        const summary = crit.map(f => `${f.flow_id} ${f.guaranteed_mbps} Mbps`).join(', ');
+        showToast(`Protected demo ready. Guarantees: ${summary || 'none reported'}. ${PROTECTED_DEMO.suggestedLink} is pre-selected — click "Fail ${PROTECTED_DEMO.suggestedLink}".`, "🛡️", 7000);
+      } catch (err) {
+        showToast(`Failed to load protected demo: ${err.message}`, "❌", 7000);
+        await syncState();
+      } finally {
+        state.busy = false;
+        if (btn) btn.disabled = false;
+        renderLinkPicker();
       }
     }
 
@@ -1408,7 +1883,9 @@
       if (!confirm("Are you sure you want to clear the entire network canvas?")) return;
       try {
         await apiPost('/simulation/reset');
-        clearSelection();
+        resetSessionView();
+        state.simulationActive = false;
+        updateSimUi();
         showToast("Network canvas cleared", "🗑️");
         await syncState();
       } catch (err) {
@@ -1417,19 +1894,90 @@
     }
 
     async function exportNetworkJson() {
-      window.open(`${API_BASE}/export`, '_blank');
+      try {
+        const data = await apiGet('/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        a.href = url;
+        a.download = `netrescue-export-${stamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast("Exported topology, demands, events and metrics as JSON", "💾");
+      } catch (err) {
+        showToast(`Export failed: ${err.message}`, "❌");
+      }
     }
 
     // CANVAS SELECTION & RENDERING
     function selectItem(type, id) {
       state.selectedItem = { type, id };
+      if (type === 'link') state.pickedLinkId = id;
       renderCanvas();
       renderInspector();
+      renderLinkPicker();
     }
     function clearSelection() {
       state.selectedItem = null;
       renderCanvas();
       renderInspector();
+    }
+
+    // LAST FAILURE / RESTORE SUMMARY
+    function failureSummaryHtml(compact) {
+      const lf = state.lastFailure;
+      if (!lf) return '';
+      const r = lf.result || {};
+      const violations = Array.isArray(r.violations) ? r.violations.length : null;
+      const heldDown = r.event === 'link_flapping';
+      const title = lf.action === 'fail' ? `💥 ${esc(lf.linkId)} failed` : (heldDown ? `⚠️ ${esc(lf.linkId)} held down (flapping) — not restored` : (lf.action === 'restore-all' ? `🔄 Restored ${esc(lf.linkId)}` : `🔧 ${esc(lf.linkId)} restored`));
+      let reflexRow = '';
+      if (lf.action === 'fail') {
+        const used = r.reflex_used;
+        const label = used === true ? '✅ YES (precomputed protection plan)' : (used === false ? '⚠️ NO — fallback re-optimization' : '—');
+        reflexRow = `<div class="info-row"><span class="info-label">Reflex used:</span><span class="info-val" style="color:${used ? 'var(--green)' : 'var(--amber)'};">${label}</span></div>`;
+        if (used === true && isNum(r.reflex_time_ms)) {
+          reflexRow += `<div class="info-row"><span class="info-label">Reflex compute time:</span><span class="info-val">${r.reflex_time_ms.toFixed(2)} ms</span></div>`;
+        }
+      }
+      const vColor = violations === 0 ? 'var(--green)' : 'var(--red)';
+      const rows = Object.entries(lf.after)
+        .filter(([, a]) => a.priority !== null && a.priority <= 2)
+        .map(([id, a]) => {
+          const b = lf.before[id] || {};
+          const g = state.lastPlan && state.lastPlan.active ? (state.lastPlan.critical_flows || []).find(f => f.flow_id === id) : null;
+          const kept = isNum(a.allocated) && isNum(g?.guaranteed_mbps) && a.allocated + 1e-6 >= g.guaranteed_mbps;
+          return `<tr>
+            <td style="font-family:'Fira Code'; color:var(--cyan);">${esc(id)}</td>
+            <td><span class="pill pill-p${a.priority}">P${a.priority}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbps(b.allocated, 0)}</td>
+            <td style="font-family:'Fira Code'; font-weight:700;">${fmtMbps(a.allocated, 0)}</td>
+            ${compact ? '' : `<td style="font-family:'Fira Code';">${g ? fmtMbps(g.guaranteed_mbps, 0) : '—'}</td>`}
+            ${compact ? '' : `<td style="color:${kept ? 'var(--green)' : 'var(--amber)'}; font-weight:600;">${g ? (kept ? '✓ kept' : '✗ below') : '—'}</td>`}
+          </tr>`;
+        }).join('');
+      return `
+        <div style="font-weight:700; font-size:0.82rem; margin-bottom:0.35rem; color:${lf.action === 'fail' ? '#fca5a5' : '#6ee7b7'};">${title}</div>
+        ${reflexRow}
+        <div class="info-row"><span class="info-label">Validator violations:</span><span class="info-val" style="color:${vColor};">${violations ?? '—'}</span></div>
+        <div class="info-row"><span class="info-label">Route changes:</span><span class="info-val">${isNum(r.route_changes) ? r.route_changes : '—'}</span></div>
+        ${rows ? `<table class="data-table" style="margin-top:0.4rem;">
+          <thead><tr><th>Flow</th><th>Pri</th><th>Before</th><th>After</th>${compact ? '' : '<th>Guarantee</th><th>Kept?</th>'}</tr></thead>
+          <tbody>${rows}</tbody></table>` : '<div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.3rem;">No P1/P2 flows in this network.</div>'}
+        <div style="font-size:0.68rem; color:var(--text-dim); margin-top:0.35rem;">Compute times are algorithm runtimes in this simulator, not measured network downtime.</div>
+      `;
+    }
+
+    function renderLastFailure() {
+      const card = document.getElementById('last-failure-card');
+      if (!card) return;
+      card.innerHTML = state.lastFailure
+        ? failureSummaryHtml(false)
+        : `<div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Last Failure / Restore Event</div>
+           <div style="font-size:0.75rem; color:var(--text-muted);">No link has been failed or restored in this browser session.</div>`;
     }
 
     // RENDER INSPECTOR
@@ -1444,36 +1992,29 @@
       const nodeCount = Object.keys(nodes).length;
       const linkCount = Object.keys(links).length;
       const demandCount = Object.keys(demands).length;
-      const failedCount = Object.values(links).filter(l => l && l.status === 'failed').length;
-
-      // Safely update basic counters if elements exist in DOM
-      const statNodes = document.getElementById('stat-nodes');
-      if (statNodes) statNodes.textContent = nodeCount;
-      const statLinks = document.getElementById('stat-links');
-      if (statLinks) statLinks.textContent = linkCount;
-      const statDemands = document.getElementById('stat-demands');
-      if (statDemands) statDemands.textContent = demandCount;
-      const statFailed = document.getElementById('stat-failed');
-      if (statFailed) statFailed.textContent = failedCount;
+      const failedIds = Object.values(links).filter(l => l && l.status === 'failed').map(l => l.id);
+      const flappingIds = Object.values(links).filter(l => l && l.status === 'flapping').map(l => l.id);
 
       if (!state.selectedItem) {
         title.textContent = "Inspector";
         body.innerHTML = `
+          ${state.lastFailure ? `<div class="info-card">${failureSummaryHtml(true)}</div>` : ''}
           <div class="info-card">
             <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Tips</div>
             <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
-              ${nodeCount === 0 ? "Start by adding network nodes using the '+ Add Node' button." :
+              ${nodeCount === 0 ? "Start by adding network nodes, or click '🛡️ Load Protected Demo' for a ready-made protection demo." :
                 linkCount === 0 ? "Connect your nodes using '+ Connect Nodes' to form communication links." :
                 !state.simulationActive ? "Add traffic demands below and click 'Start Simulation' to route traffic." :
-                "Simulation active! Click any link to fail or restore it and observe dynamic rerouting."}
+                "Simulation active. Pick an exact link (e.g. L3) in Disaster Controls or click a link on the canvas, then press Fail."}
             </p>
           </div>
           <div class="info-card">
             <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
             <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val" id="stat-nodes">${nodeCount}</span></div>
             <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val" id="stat-links">${linkCount}</span></div>
-            <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val" id="stat-demands">${demandCount}</span></div>
-            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">${failedCount}</span></div>
+            <div class="info-row"><span class="info-label">Traffic Demands:</span><span class="info-val" id="stat-demands">${demandCount}</span></div>
+            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">${failedIds.length}${failedIds.length ? ` (${esc(failedIds.join(', '))})` : ''}</span></div>
+            ${flappingIds.length ? `<div class="info-row"><span class="info-label">Flapping (held down):</span><span class="info-val" style="color:var(--amber);">${esc(flappingIds.join(', '))}</span></div>` : ''}
           </div>
         `;
         return;
@@ -1491,15 +2032,16 @@
         body.innerHTML = `
           <div class="info-card">
             <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
-              <span>${ICONS[node.node_type] || '🌐'}</span> ${node.id}
+              <span>${ICONS[node.node_type] || '🌐'}</span> ${esc(node.id)}
             </div>
-            <div class="info-row"><span class="info-label">Name:</span><span class="info-val">${node.name || node.id}</span></div>
-            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${(node.node_type || 'router').toUpperCase()}</span></div>
-            <div class="info-row"><span class="info-label">Connected Links:</span><span class="info-val">${connectedLinks.length}</span></div>
+            <div class="info-row"><span class="info-label">Name:</span><span class="info-val">${esc(node.name || node.id)}</span></div>
+            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${esc((node.node_type || 'router').toUpperCase())}</span></div>
+            <div class="info-row"><span class="info-label">Connected Links:</span><span class="info-val">${esc(connectedLinks.map(l => l.id).join(', ') || 'none')}</span></div>
           </div>
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
-            <button class="btn btn-secondary" onclick="openConnectModal('${node.id}')">🔗 Connect to Node...</button>
-            <button class="btn btn-danger" onclick="deleteNode('${node.id}')">🗑️ Delete Node</button>
+            <button class="btn btn-secondary" onclick="openAddNodeModal(state.nodes[${jsArg(node.id)}])">✏️ Edit Node</button>
+            <button class="btn btn-secondary" onclick="openConnectModal(${jsArg(node.id)})">🔗 Connect to Node...</button>
+            <button class="btn btn-danger" onclick="deleteNode(${jsArg(node.id)})">🗑️ Delete Node</button>
           </div>
         `;
       } else if (state.selectedItem.type === 'link') {
@@ -1509,30 +2051,34 @@
           return renderInspector();
         }
         const isFailed = link.status === "failed";
+        const isFlapping = link.status === "flapping";
         title.textContent = `Link: ${link.id}`;
+        const util = isNum(link.utilization) ? link.utilization : null;
 
         body.innerHTML = `
           <div class="info-card">
             <div style="font-size:1rem; font-weight:700; margin-bottom:0.4rem; color:var(--cyan);">
-              ${link.source} ↔ ${link.target}
+              ${esc(link.id)}: ${esc(link.source)} ↔ ${esc(link.target)}
             </div>
             <div class="info-row"><span class="info-label">Status:</span>
-              <span class="info-val" style="color:${isFailed ? 'var(--red)' : 'var(--green)'};">
-                ${isFailed ? '❌ FAILED' : 'ACTIVE'}
+              <span class="info-val" style="color:${isFailed ? 'var(--red)' : (isFlapping ? 'var(--amber)' : 'var(--green)')};">
+                ${isFailed ? '✖ FAILED (down)' : (isFlapping ? '⚠ FLAPPING (held down)' : 'ACTIVE (up)')}
               </span>
             </div>
-            <div class="info-row"><span class="info-label">Capacity:</span><span class="info-val">${link.capacity} Mbps</span></div>
-            <div class="info-row"><span class="info-label">Latency:</span><span class="info-val">${link.latency} ms</span></div>
-            <div class="info-row"><span class="info-label">Allocated Load:</span><span class="info-val">${(link.allocated_load || 0).toFixed(1)} Mbps (${(link.utilization || 0).toFixed(0)}%)</span></div>
+            <div class="info-row"><span class="info-label">Capacity:</span><span class="info-val">${esc(link.capacity)} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Latency:</span><span class="info-val">${esc(link.latency)} ms</span></div>
+            <div class="info-row"><span class="info-label">Allocated Load:</span><span class="info-val">${fmtMbps(link.allocated_load)} (${util === null ? '—' : util.toFixed(0) + '%'})</span></div>
           </div>
 
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
-            <button class="btn ${isFailed ? 'btn-success' : 'btn-danger'}" onclick="toggleLinkFailure('${link.id}')">
-              ${isFailed ? '🔄 Restore Link' : '💥 Fail Link'}
+            ${isFlapping ? `<div class="notice notice-warn" style="margin:0;" id="hold-down-notice">${esc(holdDownText(link))}</div>` : ''}
+            <button class="btn ${isFailed ? 'btn-success' : 'btn-danger'}" id="inspector-toggle-link" ${isFlapping ? 'disabled style="opacity:0.5;"' : ''} onclick="toggleLinkFailure(${jsArg(link.id)})">
+              ${isFailed ? `🔧 Restore ${esc(link.id)}` : `💥 Fail ${esc(link.id)}`}
             </button>
-            <button class="btn btn-secondary" onclick="editLinkCapacity('${link.id}')">✏️ Edit Capacity</button>
-            <button class="btn btn-secondary" onclick="deleteLink('${link.id}')">🗑️ Delete Link</button>
+            <button class="btn btn-secondary" onclick="openConnectModal(null, state.links[${jsArg(link.id)}])">✏️ Edit Link</button>
+            <button class="btn btn-secondary" onclick="deleteLink(${jsArg(link.id)})">🗑️ Delete Link</button>
           </div>
+          ${state.lastFailure ? `<div class="info-card">${failureSummaryHtml(true)}</div>` : ''}
         `;
       } else {
         state.selectedItem = null;
@@ -1543,9 +2089,9 @@
     async function deleteNode(id) {
       if (!confirm(`Delete node ${id} and all its connected links?`)) return;
       try {
-        await apiDelete(`/nodes/${id}`);
+        await apiDelete(`/nodes/${encodeURIComponent(id)}`);
         showToast(`Node ${id} deleted`, "🗑️");
-        clearSelection();
+        state.selectedItem = null;
         await reSimulateIfActive();
       } catch (err) {
         showToast(`Error: ${err.message}`, "❌");
@@ -1555,22 +2101,10 @@
     async function deleteLink(id) {
       if (!confirm(`Delete link ${id}?`)) return;
       try {
-        await apiDelete(`/links/${id}`);
+        await apiDelete(`/links/${encodeURIComponent(id)}`);
         showToast(`Link ${id} deleted`, "🗑️");
-        clearSelection();
-        await reSimulateIfActive();
-      } catch (err) {
-        showToast(`Error: ${err.message}`, "❌");
-      }
-    }
-
-    async function editLinkCapacity(id) {
-      const link = state.links[id];
-      const newCap = prompt("Enter new capacity in Mbps:", link.capacity);
-      if (!newCap || isNaN(newCap)) return;
-      try {
-        await apiPut(`/links/${id}`, { capacity: parseFloat(newCap) });
-        showToast(`Link ${id} capacity updated to ${newCap} Mbps`, "✅");
+        state.selectedItem = null;
+        if (state.pickedLinkId === id) state.pickedLinkId = null;
         await reSimulateIfActive();
       } catch (err) {
         showToast(`Error: ${err.message}`, "❌");
@@ -1578,6 +2112,13 @@
     }
 
     // RENDER SVG GRAPH CANVAS
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    function svgEl(tag, attrs) {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
     function renderCanvas() {
       const linksLayer = document.getElementById('links-layer');
       const flowsLayer = document.getElementById('flows-layer');
@@ -1590,6 +2131,8 @@
       flowsLayer.innerHTML = "";
       nodesLayer.innerHTML = "";
 
+      const labels = [];
+
       // 1. Draw Links
       Object.values(state.links).forEach(link => {
         const src = state.nodes[link.source];
@@ -1598,107 +2141,140 @@
 
         const isSelected = state.selectedItem && state.selectedItem.type === 'link' && state.selectedItem.id === link.id;
         const isFailed = link.status === "failed";
-        const util = link.utilization || 0;
+        const isFlapping = link.status === "flapping";
+        const util = isNum(link.utilization) ? link.utilization : 0;
 
+        // Congestion (link up) uses green/amber/red; a FAILED link is grey + dashed + ✖.
         let strokeColor = "#10b981";
         if (util >= 80) strokeColor = "#ef4444";
         else if (util >= 50) strokeColor = "#f59e0b";
-        if (isFailed) strokeColor = "#ff0055";
+        if (isFailed) strokeColor = "#64748b";
+        if (isFlapping) strokeColor = "#b45309";
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", src.x);
-        line.setAttribute("y1", src.y);
-        line.setAttribute("x2", dst.x);
-        line.setAttribute("y2", dst.y);
-        line.setAttribute("stroke", strokeColor);
-        line.setAttribute("stroke-width", isSelected ? "5" : (Math.max(3, Math.min(link.capacity / 25, 8))));
-        
-        if (isFailed) {
-          line.setAttribute("stroke-dasharray", "8,6");
-          line.setAttribute("filter", "url(#glow-red)");
-        } else if (isSelected) {
-          line.setAttribute("filter", "url(#glow-cyan)");
+        const g = svgEl("g", { "data-link-id": link.id });
+        g.style.cursor = "pointer";
+        g.onmousedown = (e) => e.stopPropagation();
+        g.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
+
+        if (isSelected) {
+          g.appendChild(svgEl("line", { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y, stroke: "#00f0ff", "stroke-width": 11, "stroke-opacity": 0.35 }));
         }
+        const line = svgEl("line", {
+          x1: src.x, y1: src.y, x2: dst.x, y2: dst.y,
+          stroke: strokeColor,
+          "stroke-width": isFailed ? 3 : Math.max(3, Math.min(link.capacity / 25, 8))
+        });
+        if (isFailed) line.setAttribute("stroke-dasharray", "8,6");
+        if (isFlapping) line.setAttribute("stroke-dasharray", "2,5");
+        g.appendChild(line);
+        // Wide transparent hit target so thin links are easy to click.
+        g.appendChild(svgEl("line", { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y, stroke: "transparent", "stroke-width": 18 }));
+        linksLayer.appendChild(g);
 
-        line.style.cursor = "pointer";
-        line.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
-        linksLayer.appendChild(line);
-
-        // Midpoint badge
         const mx = (src.x + dst.x) / 2;
         const my = (src.y + dst.y) / 2;
-        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        txt.setAttribute("x", mx);
-        txt.setAttribute("y", my - 6);
-        txt.setAttribute("text-anchor", "middle");
-        txt.setAttribute("fill", isFailed ? "#ff0055" : "rgba(255,255,255,0.75)");
-        txt.setAttribute("font-size", "11px");
-        txt.setAttribute("font-family", "Fira Code, monospace");
-        txt.setAttribute("font-weight", "600");
-        txt.textContent = isFailed ? "❌ FAILED" : `${link.capacity}M (${util.toFixed(0)}%)`;
-        linksLayer.appendChild(txt);
+        if (isFailed) {
+          const mark = svgEl("g", { transform: `translate(${mx}, ${my})` });
+          mark.appendChild(svgEl("circle", { r: 9, fill: "#1f0a12", stroke: "#ff3b5c", "stroke-width": 2 }));
+          const x = svgEl("text", { "text-anchor": "middle", y: 4, fill: "#ff3b5c", "font-size": "12px", "font-weight": "800" });
+          x.textContent = "✖";
+          mark.appendChild(x);
+          mark.style.pointerEvents = "none";
+          linksLayer.appendChild(mark);
+        }
+        labels.push({ link, src, dst, mx, my, isFailed, isFlapping, isSelected, util });
 
-        // Animated flow particles if active traffic
-        if (!isFailed && (link.allocated_load || 0) > 0 && state.simulationActive) {
-          const flowLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          flowLine.setAttribute("x1", src.x);
-          flowLine.setAttribute("y1", src.y);
-          flowLine.setAttribute("x2", dst.x);
-          flowLine.setAttribute("y2", dst.y);
-          flowLine.setAttribute("stroke", "#00f0ff");
-          flowLine.setAttribute("stroke-width", "3");
-          flowLine.setAttribute("stroke-dasharray", "4,12");
-          flowLine.setAttribute("class", "flow-active");
+        if (!isFailed && !isFlapping && (link.allocated_load || 0) > 0 && state.simulationActive) {
+          const flowLine = svgEl("line", {
+            x1: src.x, y1: src.y, x2: dst.x, y2: dst.y,
+            stroke: "#00f0ff", "stroke-width": 2, "stroke-dasharray": "4,12", class: "flow-active"
+          });
+          flowLine.style.pointerEvents = "none";
           flowsLayer.appendChild(flowLine);
         }
+      });
+
+      // Link labels drawn above lines: "L3 · 40/200M" or "L3 FAILED".
+      // Labels slide along their link to avoid overlapping labels already placed.
+      // Node circles and their ID labels are obstacles too.
+      const placed = Object.values(state.nodes).map(n => ({ x1: n.x - 24, x2: n.x + 24, y1: n.y - 24, y2: n.y + 40 }));
+      const overlaps = (b) => placed.some(o => b.x1 < o.x2 && b.x2 > o.x1 && b.y1 < o.y2 && b.y2 > o.y1);
+      labels.forEach(({ link, src, dst, mx, my, isFailed, isFlapping, isSelected, util }) => {
+        const load = isNum(link.allocated_load) ? link.allocated_load.toFixed(0) : '—';
+        const content = isFailed ? `${link.id} FAILED` : (isFlapping ? `${link.id} FLAPPING (held down)` : `${link.id} · ${load}/${link.capacity}M (${util.toFixed(0)}%)`);
+        const w = content.length * 6.8, h = 13;
+        let lx = mx, ly = my - (isFailed ? 14 : 8);
+        for (const t of [0.5, 0.32, 0.68, 0.22, 0.78]) {
+          const cx = src.x + (dst.x - src.x) * t;
+          const cy = src.y + (dst.y - src.y) * t - (isFailed && t === 0.5 ? 14 : 8);
+          const box = { x1: cx - w / 2, x2: cx + w / 2, y1: cy - h, y2: cy + 2 };
+          if (!overlaps(box) || t === 0.78) {
+            lx = cx; ly = cy;
+            placed.push(box);
+            break;
+          }
+        }
+        const txt = svgEl("text", {
+          x: lx, y: ly,
+          "text-anchor": "middle",
+          fill: isFailed ? "#ff7a90" : (isFlapping ? "#fbbf24" : (isSelected ? "#00f0ff" : "rgba(255,255,255,0.88)")),
+          "font-size": "11px",
+          "font-family": "Fira Code, monospace",
+          "font-weight": "700",
+          stroke: "#060911", "stroke-width": 3, "paint-order": "stroke"
+        });
+        txt.textContent = content;
+        txt.style.cursor = "pointer";
+        txt.onmousedown = (e) => e.stopPropagation();
+        txt.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
+        linksLayer.appendChild(txt);
       });
 
       // 2. Draw Nodes
       Object.values(state.nodes).forEach(node => {
         const isSelected = state.selectedItem && state.selectedItem.type === 'node' && state.selectedItem.id === node.id;
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+        const g = svgEl("g", { transform: `translate(${node.x}, ${node.y})`, "data-node-id": node.id });
         g.style.cursor = "move";
 
-        // Outer glow circle
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("r", "20");
-        circle.setAttribute("fill", "#0f172a");
-        circle.setAttribute("stroke", isSelected ? "#00f0ff" : "rgba(56, 189, 248, 0.6)");
-        circle.setAttribute("stroke-width", isSelected ? "3.5" : "2");
+        const circle = svgEl("circle", {
+          r: 20, fill: "#0f172a",
+          stroke: isSelected ? "#00f0ff" : "rgba(56, 189, 248, 0.6)",
+          "stroke-width": isSelected ? 3.5 : 2
+        });
         if (isSelected) circle.setAttribute("filter", "url(#glow-cyan)");
 
-        // Icon text
-        const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        icon.setAttribute("text-anchor", "middle");
-        icon.setAttribute("y", "5");
-        icon.setAttribute("font-size", "14px");
+        const icon = svgEl("text", { "text-anchor": "middle", y: 5, "font-size": "14px" });
         icon.textContent = ICONS[node.node_type] || "🌐";
 
-        // Label underneath
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("text-anchor", "middle");
-        label.setAttribute("y", "34");
-        label.setAttribute("fill", "#ffffff");
-        label.setAttribute("font-size", "11px");
-        label.setAttribute("font-weight", "700");
-        label.setAttribute("font-family", "Inter, sans-serif");
+        const label = svgEl("text", {
+          "text-anchor": "middle", y: 34, fill: "#ffffff", "font-size": "11px", "font-weight": "700",
+          "font-family": "Inter, sans-serif", stroke: "#060911", "stroke-width": 3, "paint-order": "stroke"
+        });
         label.textContent = node.id;
 
         g.appendChild(circle);
         g.appendChild(icon);
         g.appendChild(label);
 
-        // Dragging & Clicking handlers
         g.onmousedown = (e) => {
           e.stopPropagation();
+          const p = clientToWorld(e.clientX, e.clientY);
           state.isDraggingNode = node.id;
-          state.dragOffset = { x: e.clientX - node.x, y: e.clientY - node.y };
+          state.dragMoved = false;
+          state.dragOffset = { x: p.x - node.x, y: p.y - node.y };
           selectItem('node', node.id);
         };
 
         nodesLayer.appendChild(g);
       });
+    }
+
+    function clientToWorld(clientX, clientY) {
+      const rect = document.getElementById('network-canvas').getBoundingClientRect();
+      return {
+        x: (clientX - rect.left - state.pan.x) / state.zoom,
+        y: (clientY - rect.top - state.pan.y) / state.zoom
+      };
     }
 
     // MOUSE PAN & DRAG HANDLERS
@@ -1714,8 +2290,12 @@
       if (state.isDraggingNode) {
         const node = state.nodes[state.isDraggingNode];
         if (node) {
-          node.x = Math.round(e.clientX - state.dragOffset.x);
-          node.y = Math.round(e.clientY - state.dragOffset.y);
+          const p = clientToWorld(e.clientX, e.clientY);
+          const nx = Math.round(p.x - state.dragOffset.x);
+          const ny = Math.round(p.y - state.dragOffset.y);
+          if (nx !== node.x || ny !== node.y) state.dragMoved = true;
+          node.x = nx;
+          node.y = ny;
           renderCanvas();
         }
       } else if (state.isPanning) {
@@ -1727,31 +2307,73 @@
     window.onmouseup = async () => {
       if (state.isDraggingNode) {
         const nid = state.isDraggingNode;
+        const moved = state.dragMoved;
         state.isDraggingNode = null;
-        // Save node position to backend
-        try {
+        state.dragMoved = false;
+        // A plain click must not touch the backend: any node update invalidates the
+        // protection plan, which would silently disable Reflex for the next failure.
+        if (moved) {
           const n = state.nodes[nid];
-          if (n) await apiPut(`/nodes/${nid}`, { x: n.x, y: n.y });
-        } catch (e) {}
+          const hadPlan = !!(state.lastPlan && state.lastPlan.active);
+          try {
+            if (n) await apiPut(`/nodes/${encodeURIComponent(nid)}`, { x: n.x, y: n.y });
+            if (hadPlan) {
+              await apiPost('/protection/replan');
+              showToast(`Moved ${nid}; protection plan re-verified so Reflex stays armed.`, "🛡️");
+            }
+          } catch (e) {
+            showToast(`Could not save node position: ${e.message}`, "⚠️");
+          }
+          await loadProtectionPlan();
+        }
       }
       state.isPanning = false;
     };
-    canvasViewport.onwheel = (e) => {
+    canvasViewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-      state.zoom = Math.max(0.3, Math.min(state.zoom * zoomFactor, 3.0));
-      renderCanvas();
-    };
+      zoomAt(state.zoom * zoomFactor, e.clientX, e.clientY);
+    }, { passive: false });
 
-    function zoomIn() { state.zoom = Math.min(state.zoom * 1.2, 3.0); renderCanvas(); }
-    function zoomOut() { state.zoom = Math.max(state.zoom / 1.2, 0.3); renderCanvas(); }
+    function zoomAt(newZoom, clientX, clientY) {
+      newZoom = Math.max(0.3, Math.min(newZoom, 3.0));
+      const rect = document.getElementById('network-canvas').getBoundingClientRect();
+      const cx = clientX ?? rect.left + rect.width / 2;
+      const cy = clientY ?? rect.top + rect.height / 2;
+      const before = clientToWorld(cx, cy);
+      state.zoom = newZoom;
+      state.pan.x = cx - rect.left - before.x * newZoom;
+      state.pan.y = cy - rect.top - before.y * newZoom;
+      renderCanvas();
+    }
+    function zoomIn() { zoomAt(state.zoom * 1.2); }
+    function zoomOut() { zoomAt(state.zoom / 1.2); }
     function resetView() { state.zoom = 1; state.pan = { x: 0, y: 0 }; renderCanvas(); }
-    function fitView() { resetView(); }
+    function fitView() {
+      const nodes = Object.values(state.nodes);
+      const svg = document.getElementById('network-canvas');
+      const rect = svg.getBoundingClientRect();
+      if (!nodes.length || rect.width === 0 || rect.height === 0) return resetView();
+      const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+      const pad = 70;
+      // Keep the network clear of the legend and zoom controls along the top edge.
+      const legend = document.getElementById('canvas-legend');
+      const topReserve = legend && legend.style.display !== 'none' ? legend.offsetHeight + 24 : 50;
+      const availH = Math.max(rect.height - topReserve, 100);
+      const w = Math.max(maxX - minX, 1) + pad * 2;
+      const h = Math.max(maxY - minY, 1) + pad * 2;
+      const zoom = Math.max(0.3, Math.min(rect.width / w, availH / h, 1.6));
+      state.zoom = zoom;
+      state.pan.x = rect.width / 2 - ((minX + maxX) / 2) * zoom;
+      state.pan.y = topReserve + availH / 2 - ((minY + maxY) / 2) * zoom;
+      renderCanvas();
+    }
 
     // RENDER DEMANDS TABLE
     function renderDemandsTable() {
       const tbody = document.getElementById('demands-table-body');
-      const demands = Object.values(state.demands);
+      const demands = Object.values(state.demands).sort((a, b) => (priorityOf(a) ?? 9) - (priorityOf(b) ?? 9) || a.id.localeCompare(b.id, undefined, { numeric: true }));
       document.getElementById('badge-demands-count').textContent = `(${demands.length})`;
 
       if (!demands.length) {
@@ -1760,30 +2382,34 @@
       }
 
       tbody.innerHTML = demands.map(d => {
+        const pending = !d.status || d.status === 'pending';
         let statusClass = "status-ready";
-        let statusLabel = "Ready";
-        if (state.simulationActive) {
-          if (d.status === "fully_served") { statusClass = "status-served"; statusLabel = "Fully Served"; }
-          else if (d.status === "partially_served") { statusClass = "status-partial"; statusLabel = "Partially Served"; }
-          else if (d.status === "unreachable") { statusClass = "status-unserved"; statusLabel = "Unreachable"; }
-          else if (d.status === "unserved_congestion") { statusClass = "status-unserved"; statusLabel = "Congested"; }
-        }
+        let statusLabel = "Not simulated yet";
+        if (d.status === "fully_served") { statusClass = "status-served"; statusLabel = "Fully Served"; }
+        else if (d.status === "partially_served") { statusClass = "status-partial"; statusLabel = "Partially Served"; }
+        else if (d.status === "unreachable") { statusClass = "status-unserved"; statusLabel = "Unreachable"; }
+        else if (d.status === "unserved_congestion") { statusClass = "status-unserved"; statusLabel = "Dropped (congestion)"; }
+        else if (!pending) { statusLabel = d.status; }
 
-        const routeStr = (d.route && d.route.length > 1) ? d.route.join(" → ") : (d.route ? d.route[0] : "—");
+        const tunnels = Array.isArray(d.tunnels) ? d.tunnels.filter(t => t && Array.isArray(t.node_path) && (t.bandwidth || 0) > 0) : [];
+        let routeStr = "—";
+        if (tunnels.length > 1) routeStr = tunnels.map(t => `${t.node_path.join("→")} (${t.bandwidth.toFixed(0)})`).join(" + ");
+        else if (d.route && d.route.length > 1) routeStr = d.route.join(" → ");
+        const p = priorityOf(d);
 
         return `
           <tr>
-            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${d.id}</td>
-            <td style="font-weight:600;">${d.source} → ${d.destination}</td>
-            <td><span class="pill pill-${d.category}">${d.category.toUpperCase()}</span></td>
-            <td style="font-family:'Fira Code';">${d.bandwidth} Mbps</td>
-            <td style="font-family:'Fira Code'; color:var(--green);">${(d.allocated_bandwidth || 0).toFixed(1)} Mbps</td>
-            <td style="font-family:'Fira Code'; color:var(--text-muted);">${(d.unserved_bandwidth || 0).toFixed(1)} Mbps</td>
-            <td class="${statusClass}">${statusLabel}</td>
-            <td style="font-family:'Fira Code'; font-size:0.75rem; color:var(--cyan);">${routeStr}</td>
-            <td style="text-align:right;">
-              <button class="btn btn-secondary" style="padding:0.2rem 0.45rem; font-size:0.7rem;" onclick="openAddDemandModal(state.demands['${d.id}'])">✏️</button>
-              <button class="btn btn-secondary" style="padding:0.2rem 0.45rem; font-size:0.7rem; color:var(--red);" onclick="deleteDemand('${d.id}')">🗑️</button>
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${esc(d.id)}</td>
+            <td style="font-weight:600;">${esc(d.source)} → ${esc(d.destination)}</td>
+            <td><span class="pill pill-${esc(d.category)}">${p ? 'P' + p + ' ' : ''}${esc(String(d.category).toUpperCase())}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbps(d.bandwidth, 0)}</td>
+            <td style="font-family:'Fira Code'; color:var(--green);">${pending ? '—' : fmtMbps(d.allocated_bandwidth)}</td>
+            <td style="font-family:'Fira Code'; color:var(--text-muted);">${pending ? '—' : fmtMbps(d.unserved_bandwidth)}</td>
+            <td class="${statusClass}">${esc(statusLabel)}</td>
+            <td style="font-family:'Fira Code'; font-size:0.75rem; color:var(--cyan);">${esc(routeStr)}</td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button class="btn btn-secondary" title="Edit ${esc(d.id)}" style="padding:0.2rem 0.45rem; font-size:0.7rem;" onclick="openAddDemandModal(state.demands[${jsArg(d.id)}])">✏️</button>
+              <button class="btn btn-secondary" title="Delete ${esc(d.id)}" style="padding:0.2rem 0.45rem; font-size:0.7rem; color:var(--red);" onclick="deleteDemand(${jsArg(d.id)})">🗑️</button>
             </td>
           </tr>
         `;
@@ -1793,25 +2419,48 @@
     // RENDER METRICS
     function renderMetrics() {
       const m = state.lastMetrics;
-      if (!m) return;
-      const req = m.total_requested || 0;
-      const del = m.total_delivered || 0;
-      const pct = req > 0 ? (del / req * 100) : 100;
-      document.getElementById('metric-deliv-rate').textContent = `${pct.toFixed(1)}%`;
-      document.getElementById('metric-deliv-bw').textContent = `${del.toFixed(0)} / ${req.toFixed(0)} Mbps`;
-      document.getElementById('metric-crit-rate').textContent = `${(m.critical_delivery_pct || 100).toFixed(1)}%`;
-      const congested = (m.link_utilizations || []).filter(l => (l.utilization || 0) >= 80).length;
-      document.getElementById('metric-congested').textContent = congested;
-      document.getElementById('metric-latency').textContent = `${(m.avg_latency || 0).toFixed(1)} ms`;
-      document.getElementById('metric-failed-count').textContent = m.failed_links || 0;
+      const set = (id, v) => { document.getElementById(id).textContent = v; };
+      if (!m) {
+        ['metric-deliv-rate', 'metric-crit-rate', 'metric-congested', 'metric-latency', 'metric-failed-count'].forEach(id => set(id, '—'));
+        document.getElementById('metric-per-priority').textContent = 'Metrics unavailable.';
+        return;
+      }
+      const req = m.total_requested, del = m.total_delivered;
+      set('metric-deliv-rate', isNum(req) && req > 0 && isNum(del) ? `${(del / req * 100).toFixed(1)}%` : '—');
+      set('metric-deliv-bw', isNum(req) && isNum(del) ? `${del.toFixed(0)} / ${req.toFixed(0)} Mbps` : 'no demands');
+      const creq = m.critical_requested, cdel = m.critical_delivered;
+      set('metric-crit-rate', isNum(creq) && creq > 0 && isNum(cdel) ? `${(cdel / creq * 100).toFixed(1)}%` : '—');
+      set('metric-crit-bw', isNum(creq) && creq > 0 && isNum(cdel) ? `${cdel.toFixed(0)} / ${creq.toFixed(0)} Mbps now (not a guarantee)` : 'No P1/P2 demands');
+      const lu = Array.isArray(m.link_utilizations) ? m.link_utilizations : null;
+      set('metric-congested', lu ? String(lu.filter(l => l.status !== 'failed' && (l.utilization || 0) >= 80).length) : '—');
+      set('metric-latency', isNum(m.avg_latency) && (m.active_demands || 0) > 0 ? `${m.avg_latency.toFixed(1)} ms` : '—');
+      set('metric-failed-count', isNum(m.failed_links) ? String(m.failed_links) : '—');
+      const failedIds = lu ? lu.filter(l => l.status === 'failed').map(l => l.id) : [];
+      const flapIds = lu ? lu.filter(l => l.status === 'flapping').map(l => l.id) : [];
+      set('metric-failed-ids', failedIds.length || flapIds.length ? `Down: ${failedIds.join(', ') || 'none'}${flapIds.length ? ` · held down: ${flapIds.join(', ')}` : ''}` : 'Physical outages');
+
+      const pp = m.per_priority || {};
+      const keys = Object.keys(pp).sort();
+      document.getElementById('metric-per-priority').innerHTML = keys.length ? `
+        <table class="data-table"><thead><tr><th>Class</th><th>Requested</th><th>Delivered</th><th>Unserved</th></tr></thead>
+        <tbody>${keys.map(k => `<tr>
+          <td><span class="pill pill-${esc(k.toLowerCase())}">${esc(k)}</span> ${esc(pp[k].label || '')}</td>
+          <td style="font-family:'Fira Code';">${fmtMbps(pp[k].requested, 0)}</td>
+          <td style="font-family:'Fira Code'; color:var(--green);">${fmtMbps(pp[k].delivered, 0)}</td>
+          <td style="font-family:'Fira Code'; color:${(pp[k].unserved || 0) > 0 ? 'var(--red)' : 'var(--text-muted)'};">${fmtMbps(pp[k].unserved, 0)}</td>
+        </tr>`).join('')}</tbody></table>` : 'No demands.';
     }
 
     // TRAY TABS
+    function isTabActive(tabId) {
+      const el = document.getElementById(tabId);
+      return !!(el && el.classList.contains('active'));
+    }
     function switchTrayTab(tabId) {
-      document.querySelectorAll('.tray-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tray-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
+      document.querySelectorAll('.tray-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+      document.querySelectorAll('.tray-content').forEach(c => c.classList.toggle('active', c.id === tabId));
+      const ws = document.getElementById('app-workspace');
+      if (ws.classList.contains('tray-collapsed')) toggleTrayCollapse();
 
       if (tabId === 'tray-protection') loadProtectionPlan();
       if (tabId === 'tray-whatif') populateWhatIfLinks();
@@ -1824,7 +2473,7 @@
       const tray = document.getElementById('bottom-tray');
       if (ws.classList.contains('tray-collapsed')) {
         ws.classList.remove('tray-collapsed');
-        tray.style.height = "260px";
+        tray.style.height = "";
         btn.textContent = "Hide Tray ▼";
       } else {
         ws.classList.add('tray-collapsed');
@@ -1834,83 +2483,161 @@
     }
 
     // PROTECTION GUARANTEES LOADER
-    async function loadProtectionPlan() {
+    // `seq` is the syncState call that requested this load; a superseded load is ignored.
+    async function loadProtectionPlan(seq) {
+      const badge = document.getElementById('badge-protection-status');
+      const sumBox = document.getElementById('protection-plan-summary-box');
+      const tbody = document.getElementById('protection-table-body');
+      let data;
       try {
-        const data = await apiGet('/protection/plan');
-        const badge = document.getElementById('badge-protection-status');
-        const sumBox = document.getElementById('protection-plan-summary-box');
-        const tbody = document.getElementById('protection-table-body');
-        if (!badge || !sumBox || !tbody) return;
-
-        if (!data.active) {
-          badge.textContent = "(None)";
-          badge.style.color = "var(--text-muted)";
-          sumBox.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); padding:0.5rem; background:var(--bg-card); border-radius:6px;">${data.message}</div>`;
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Add P1 Emergency or P2 Essential traffic demands to generate verified protection guarantees.</td></tr>`;
-          return;
-        }
-
-        const isVerif = data.verified;
-        badge.textContent = isVerif ? "(Verified)" : "(Unverified)";
-        badge.style.color = isVerif ? "var(--green)" : "var(--amber)";
-
-        sumBox.innerHTML = `
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem; font-size:0.8rem;">
-            <div class="info-card">
-              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Covered Scenarios</div>
-              <div style="font-size:1.1rem; font-weight:700; color:var(--cyan);">${data.covered_scenarios_count}</div>
-              <div style="font-size:0.7rem; color:var(--text-dim);">All Single-Link + Baseline</div>
-            </div>
-            <div class="info-card">
-              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Reflex Engine State</div>
-              <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--amber)'};">${isVerif ? 'ACTIVE (O(1) Instant)' : 'Pending'}</div>
-              <div style="font-size:0.7rem; color:var(--text-dim);">${isVerif ? 'Guaranteed Fast Failover' : 'Solver Suboptimal'}</div>
-            </div>
-            <div class="info-card">
-              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">LP Solver Status</div>
-              <div style="font-size:1.1rem; font-weight:700; color:var(--text);">${data.solver_status.toUpperCase()}</div>
-              <div style="font-size:0.7rem; color:var(--text-dim);">${data.runtime_ms} ms (HiGHS LP)</div>
-            </div>
-            <div class="info-card">
-              <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guarantee Checker</div>
-              <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--red)'};">${isVerif ? '100% PASS' : 'FAILED'}</div>
-              <div style="font-size:0.7rem; color:var(--text-dim);">Independent Scenario Check</div>
-            </div>
-          </div>
-        `;
-
-        const flows = data.critical_flows || [];
-        if (!flows.length) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No critical flows configured.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = flows.map(f => {
-          const statusColor = f.status === "Full" ? "var(--green)" : (f.status === "Partial" ? "var(--amber)" : "var(--red)");
-          const pillClass = f.priority === 1 ? "emergency" : "essential";
-          return `
-            <tr>
-              <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${f.flow_id}</td>
-              <td><span class="pill pill-${pillClass}">P${f.priority}</span></td>
-              <td style="font-family:'Fira Code';">${f.requested_mbps} Mbps</td>
-              <td style="font-family:'Fira Code'; font-weight:700; color:var(--green);">${f.guaranteed_mbps} Mbps</td>
-              <td style="font-family:'Fira Code'; color:var(--text);">${f.delivered_mbps} Mbps</td>
-              <td style="font-family:'Fira Code'; font-weight:600;">${f.protection_pct}%</td>
-              <td style="font-weight:700; color:${statusColor};">${f.status === 'Full' ? '🛡️ FULL' : (f.status === 'Partial' ? '⚠️ PARTIAL' : '❌ NONE')}</td>
-            </tr>
-          `;
-        }).join('');
+        data = await apiGet('/protection/plan');
       } catch (err) {
-        console.warn("Failed to load protection plan:", err);
+        if (seq !== undefined && seq !== syncSeq) return;
+        state.lastPlan = null;
+        badge.textContent = "(error)";
+        badge.style.color = "var(--red)";
+        sumBox.innerHTML = `<div class="notice notice-err">Could not load the protection plan: ${esc(err.message)}</div>`;
+        return;
       }
+      if (seq !== undefined && seq !== syncSeq) return;
+      state.lastPlan = data;
+
+      if (!data.active) {
+        badge.textContent = "(None)";
+        badge.style.color = "var(--text-muted)";
+        const hasCritical = Object.values(state.demands).some(d => (priorityOf(d) ?? 9) <= 2);
+        sumBox.innerHTML = `<div class="notice notice-info">${esc(data.message || 'No active protection plan.')}</div>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">${hasCritical ? 'No plan computed for the current topology/demands yet.' : 'Add P1 Emergency or P2 Essential traffic demands to compute protection guarantees.'}</td></tr>`;
+        return;
+      }
+
+      const flows = (data.critical_flows || []).slice().sort((a, b) => (a.priority - b.priority) || String(a.flow_id).localeCompare(String(b.flow_id), undefined, { numeric: true }));
+      const isPlanned = f => (typeof f.planned === 'boolean' ? f.planned : f.priority <= 2);
+      const crit = flows.filter(isPlanned);
+      const others = flows.filter(f => !isPlanned(f));
+      const totalG = crit.reduce((s, f) => s + (isNum(f.guaranteed_mbps) ? f.guaranteed_mbps : 0), 0);
+      const totalR = crit.reduce((s, f) => s + (isNum(f.requested_mbps) ? f.requested_mbps : 0), 0);
+      const positive = crit.filter(f => isNum(f.guaranteed_mbps) && f.guaranteed_mbps > 0).length;
+      const full = crit.filter(f => f.status === 'Full').length;
+      const isVerif = data.verified === true;
+      const n = data.covered_scenarios_count;
+      const failures = Array.isArray(data.verification_failures) ? data.verification_failures : [];
+      const base = Array.isArray(data.base_unavailable_links) ? data.base_unavailable_links : [];
+      const live = Array.isArray(data.live_unavailable_links) ? data.live_unavailable_links : [];
+      // Older backends do not report in_force; treat a verified plan as in force for the baseline.
+      const inForce = typeof data.in_force === 'boolean' ? data.in_force : isVerif;
+      const scenario = data.current_scenario ?? (inForce ? 'no_failure' : null);
+      const furtherCovered = typeof data.further_failures_covered === 'boolean' ? data.further_failures_covered : inForce;
+      const scenarioLink = scenario && scenario.startsWith('fail_') ? scenario.slice(5) : null;
+      const gText = fmtMbpsAuto(totalG).replace(' Mbps', '');
+
+      if (!isVerif) {
+        badge.textContent = "(Unverified)";
+        badge.style.color = "var(--red)";
+      } else if (!inForce && data.not_in_force_reason === 'pending_traffic') {
+        badge.textContent = "(Verified · not simulated yet)";
+        badge.style.color = "var(--amber)";
+      } else if (!inForce) {
+        badge.textContent = "(Verified · not in force)";
+        badge.style.color = "var(--red)";
+      } else if (crit.length && positive === 0) {
+        badge.textContent = "(Verified · 0 Mbps)";
+        badge.style.color = "var(--amber)";
+      } else {
+        badge.textContent = `(Verified · ${gText} Mbps${scenarioLink ? ` · ${scenarioLink} down` : ''})`;
+        badge.style.color = "var(--green)";
+      }
+
+      const baseNote = base.length
+        ? ` Planned for the current network, in which <strong>${esc(base.join(', '))}</strong> ${base.length === 1 ? 'was' : 'were'} already unavailable.`
+        : '';
+      let notice = '';
+      if (!isVerif) {
+        notice = `<div class="notice notice-err"><strong>Guarantee Checker FAILED.</strong> The stated guarantees could not be verified for every covered scenario.${failures.length ? ' Failures: ' + esc(failures.map(f => typeof f === 'string' ? f : JSON.stringify(f)).join('; ')) : ''}</div>`;
+      } else if (!inForce && data.not_in_force_reason === 'pending_traffic') {
+        notice = `<div class="notice notice-warn"><strong>Plan computed, not yet in force:</strong> ${esc((data.pending_flows || []).join(', '))} ${(data.pending_flows || []).length === 1 ? 'is' : 'are'} not routed yet, so nothing is delivered or guaranteed for ${(data.pending_flows || []).length === 1 ? 'it' : 'them'} now. Press <strong>Start Simulation</strong> to route traffic under these guarantees.</div>`;
+      } else if (!inForce && data.not_in_force_reason === 'guarantee_not_met') {
+        notice = `<div class="notice notice-err"><strong>Guarantee not met right now:</strong> ${esc((data.unmet_flows || []).join(', '))} ${(data.unmet_flows || []).length === 1 ? 'receives' : 'receive'} less than the verified guarantee in the current state. See the Event Log; running the simulation re-applies the plan.</div>`;
+      } else if (!inForce) {
+        notice = `<div class="notice notice-err"><strong>Plan not in force.</strong> Unavailable links now: <strong>${esc(live.join(', ') || 'none')}</strong> — more than the single extra failure this plan covers${base.length ? ` (planned with ${esc(base.join(', '))} down)` : ''}. No guarantee is promised right now; traffic is handled by fallback re-optimization. Restore a link or run the simulation to plan for the current network.</div>`;
+      } else if (scenarioLink) {
+        notice = `<div class="notice notice-info"><strong>Covered failure in progress: ${esc(scenarioLink)} is down.</strong> The verified guarantees (${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps) are being honoured now. This single-failure plan does <em>not</em> cover a further failure — restore ${esc(scenarioLink)}, or run the simulation to plan protection for the degraded network.</div>`;
+      } else if (crit.length && positive === 0) {
+        notice = `<div class="notice notice-warn"><strong>Verified, but 0 Mbps is guaranteed for every P1/P2 flow.</strong>
+          "OPTIMAL" means 0 is the best achievable worst case and "PASS" means the checker confirmed those zero guarantees — it does <em>not</em> mean the critical traffic is protected.
+          Each critical flow here can be disconnected by at least one single-link failure (e.g. a single-homed server or endpoint), so no positive bandwidth can be promised.
+          The bandwidth they receive right now is shown under "Currently Delivered" and is not guaranteed.${baseNote}
+          For a positive-protection example, click <strong>🛡️ Load Protected Demo</strong>.</div>`;
+      } else if (crit.length && full === crit.length) {
+        notice = `<div class="notice notice-ok"><strong>All ${crit.length} P1/P2 flow${crit.length === 1 ? ' is' : 's are'} fully protected:</strong> ${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps is guaranteed and independently verified across the baseline and every single-link failure (${isNum(n) ? n : '—'} scenarios).${baseNote}</div>`;
+      } else if (crit.length) {
+        notice = `<div class="notice notice-info"><strong>Partial protection:</strong> ${positive} of ${crit.length} P1/P2 flows have a positive guarantee (${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps). Flows with 0 Mbps can be disconnected or starved by some single-link failure.${baseNote}</div>`;
+      }
+
+      sumBox.innerHTML = `
+        ${notice}
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem; font-size:0.8rem;">
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guaranteed (P1+P2)</div>
+            <div style="font-size:1.1rem; font-weight:700; color:${totalG > 0 && inForce ? 'var(--green)' : 'var(--amber)'};" id="protection-total-guaranteed">${gText} / ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);" id="protection-in-force">${!isVerif ? 'Not verified' : (!inForce ? (data.not_in_force_reason === 'pending_traffic' ? 'Not in force until traffic is routed' : 'NOT in force (failures exceed coverage)') : (scenarioLink ? `In force (${esc(scenarioLink)} down; no further failure covered)` : `In force · ${positive} of ${crit.length} flows positive`))}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Covered Scenarios</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--cyan);" id="protection-scenarios">${isNum(n) ? n : '—'}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">${isNum(n) && n > 0 ? `Baseline + ${n - 1} single-link failures` : 'Baseline + single-link failures'}${base.length ? ` (${esc(base.join(', '))} already down)` : ''}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">LP Solver Status</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--text);">${esc(String(data.solver_status || '—').toUpperCase())}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Best achievable worst case${isNum(data.runtime_ms) ? ` · ${data.runtime_ms} ms` : ''}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guarantee Checker</div>
+            <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--red)'};" id="protection-checker">${isVerif ? 'PASS' : 'FAILED'}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">${isVerif ? 'Stated guarantees hold in every covered scenario' : `${failures.length} verification failure(s)`}</div>
+          </div>
+        </div>
+      `;
+
+      if (!flows.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No flows in the plan.</td></tr>`;
+        return;
+      }
+
+      const row = (f) => {
+        const planned = isPlanned(f);
+        let statusHtml;
+        if (!planned) statusHtml = `<span style="color:var(--text-muted);">Not planned (P3–P5 policy)</span>`;
+        else if (f.status === 'Full') statusHtml = `<span style="color:var(--green); font-weight:700;">🛡️ FULL</span>`;
+        else if (f.status === 'Partial') statusHtml = `<span style="color:var(--amber); font-weight:700;">⚠️ PARTIAL</span>`;
+        else statusHtml = `<span style="color:var(--amber); font-weight:700;">0 Mbps guaranteed</span>`;
+        const gColor = !planned ? 'var(--text-muted)' : (f.guaranteed_mbps > 0 ? 'var(--green)' : 'var(--amber)');
+        return `
+          <tr data-flow-id="${esc(f.flow_id)}" style="${planned ? '' : 'opacity:0.7;'}">
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${esc(f.flow_id)}</td>
+            <td><span class="pill pill-p${esc(f.priority)}">${esc(PRIORITY_LABELS[f.priority] || 'P' + f.priority)}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbpsAuto(f.requested_mbps)}</td>
+            <td class="guaranteed-cell" style="font-family:'Fira Code'; font-weight:700; color:${gColor};">${planned ? fmtMbpsAuto(f.guaranteed_mbps) : '—'}</td>
+            <td style="font-family:'Fira Code'; color:var(--text);">${fmtMbpsAuto(f.delivered_mbps)}</td>
+            <td style="font-family:'Fira Code'; font-weight:600;">${planned ? fmtPct(f.protection_pct, 0) : '—'}</td>
+            <td>${statusHtml}</td>
+          </tr>
+        `;
+      };
+      tbody.innerHTML = crit.map(row).join('') + others.map(row).join('');
     }
 
-    async function recomputeProtectionPlan() {
+    async function recomputeProtectionPlanImpl() {
       try {
-        showToast("Recomputing proactive protection plan...", "🛡️");
-        await apiPost('/protection/replan');
-        showToast("Protection plan computed & independently verified.", "✅");
+        showToast("Recomputing protection plan...", "🛡️");
+        const data = await apiPost('/protection/replan');
         await loadProtectionPlan();
+        if (data && data.active) {
+          showToast(`Plan recomputed: ${String(data.solver_status).toUpperCase()}, checker ${data.verified ? 'PASS' : 'FAILED'}.`, data.verified ? "✅" : "⚠️");
+        } else {
+          showToast(data && data.message ? data.message : "No protection plan could be computed.", "ℹ️");
+        }
       } catch (err) {
         showToast(`Replan failed: ${err.message}`, "❌");
       }
@@ -1922,107 +2649,197 @@
       box.innerHTML = `<span style="color:var(--text-muted);">Running 3-algorithm comparison (PACAR vs Reactive LP vs Baseline Dijkstra)...</span>`;
       try {
         const data = await apiPost('/compare');
-        const p = data.pacar || {};
-        const lp = data.reactive_lp || {};
-        const b = data.baseline || {};
-
-        const pDel = p.total_requested > 0 ? (p.total_delivered / p.total_requested * 100) : 100;
-        const lpDel = lp.total_requested > 0 ? (lp.total_delivered / lp.total_requested * 100) : 100;
-        const bDel = b.total_requested > 0 ? (b.total_delivered / b.total_requested * 100) : 100;
-
+        const card = (title, color, m) => {
+          if (!m || typeof m !== 'object') {
+            return `<div class="info-card"><h4 style="color:${color}; margin-bottom:0.4rem;">${title}</h4><div style="color:var(--text-muted);">No result returned.</div></div>`;
+          }
+          const rate = isNum(m.total_requested) && m.total_requested > 0 && isNum(m.total_delivered) ? m.total_delivered / m.total_requested * 100 : null;
+          const crit = isNum(m.critical_requested) && m.critical_requested > 0 && isNum(m.critical_delivered) ? `${m.critical_delivered.toFixed(0)} / ${m.critical_requested.toFixed(0)} Mbps` : '—';
+          return `
+            <div class="info-card" style="border-color:${color};">
+              <h4 style="color:${color}; margin-bottom:0.4rem;">${title}</h4>
+              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${fmtPct(rate)}</span></div>
+              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${fmtMbps(m.total_delivered, 0)}</span></div>
+              <div class="info-row"><span class="info-label">Critical (P1–P2) delivered:</span><span class="info-val">${crit}</span></div>
+              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${fmtPct(m.max_link_utilization, 0)}</span></div>
+              <div class="info-row"><span class="info-label">Compute Time:</span><span class="info-val">${isNum(m.computation_time_ms) ? m.computation_time_ms + ' ms' : '—'}</span></div>
+              ${m.optimality ? `<div style="font-size:0.68rem; color:${m.fallback_used ? 'var(--amber)' : 'var(--text-dim)'}; margin-top:0.3rem;">${esc(m.optimality)}</div>` : ''}
+            </div>`;
+        };
+        const failed = Object.values(state.links).filter(l => l.status === 'failed').map(l => l.id);
         box.innerHTML = `
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-top:0.4rem;">
-            <div class="info-card" style="border-color:var(--cyan);">
-              <h4 style="color:var(--cyan); margin-bottom:0.4rem;">🚀 PACAR Heuristic</h4>
-              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${pDel.toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(p.total_delivered || 0).toFixed(0)} Mbps</span></div>
-              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(p.critical_delivery_pct || 100).toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(p.max_link_utilization || 0).toFixed(0)}%</span></div>
-              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${p.computation_time_ms || 0} ms</span></div>
-            </div>
-            <div class="info-card" style="border-color:var(--green);">
-              <h4 style="color:var(--green); margin-bottom:0.4rem;">⚡ Reactive Multicommodity LP</h4>
-              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${lpDel.toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(lp.total_delivered || 0).toFixed(0)} Mbps</span></div>
-              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(lp.critical_delivery_pct || 100).toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(lp.max_link_utilization || 0).toFixed(0)}%</span></div>
-              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${lp.computation_time_ms || 0} ms</span></div>
-            </div>
-            <div class="info-card" style="border-color:var(--border);">
-              <h4 style="color:var(--text-muted); margin-bottom:0.4rem;">🌐 Baseline Dijkstra</h4>
-              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${bDel.toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${(b.total_delivered || 0).toFixed(0)} Mbps</span></div>
-              <div class="info-row"><span class="info-label">Critical QoS:</span><span class="info-val">${(b.critical_delivery_pct || 100).toFixed(1)}%</span></div>
-              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${(b.max_link_utilization || 0).toFixed(0)}%</span></div>
-              <div class="info-row"><span class="info-label">Solve Time:</span><span class="info-val">${b.computation_time_ms || 0} ms</span></div>
-            </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.3rem;">Evaluated on the current network state${failed.length ? ` with failed link(s): <strong style="color:#fca5a5;">${esc(failed.join(', '))}</strong>` : ' (no failed links)'}. Each algorithm routes the same demands on a copy; live routes are unchanged.</div>
+          <div id="compare-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-top:0.4rem;">
+            ${card('🚀 PACAR Heuristic', 'var(--cyan)', data.pacar)}
+            ${card('⚡ Reactive Multicommodity LP', 'var(--green)', data.reactive_lp)}
+            ${card('🌐 Baseline Dijkstra', 'var(--text-muted)', data.baseline)}
           </div>
         `;
       } catch (err) {
-        box.innerHTML = `<span style="color:var(--red);">Comparison failed: ${err.message}</span>`;
+        box.innerHTML = `<span style="color:var(--red);">Comparison failed: ${esc(err.message)}</span>`;
       }
     }
 
     // WHAT-IF ANALYSIS
     function populateWhatIfLinks() {
       const container = document.getElementById('whatif-link-selectors');
-      const links = Object.values(state.links);
+      const links = Object.values(state.links).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+      const checked = new Set(Array.from(document.querySelectorAll('.whatif-checkbox:checked')).map(c => c.value));
       if (!links.length) {
         container.innerHTML = `<span style="color:var(--text-muted);">No links in network.</span>`;
         return;
       }
       container.innerHTML = links.map(l => `
-        <label style="background:var(--bg-card); border:1px solid var(--border); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
-          <input type="checkbox" value="${l.id}" class="whatif-checkbox">
-          <span>${l.id} (${l.source}↔${l.target})</span>
+        <label style="background:var(--bg-card); border:1px solid ${l.status === 'failed' ? 'rgba(239,68,68,0.5)' : 'var(--border)'}; padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
+          <input type="checkbox" value="${esc(l.id)}" class="whatif-checkbox" ${checked.has(l.id) ? 'checked' : ''}>
+          <span><strong>${esc(l.id)}</strong> (${esc(l.source)}↔${esc(l.target)})${l.status === 'failed' ? ' <span style="color:#fca5a5;">already failed</span>' : ''}</span>
         </label>
       `).join('');
+    }
+
+    function clearWhatIfSelection() {
+      document.querySelectorAll('.whatif-checkbox').forEach(c => { c.checked = false; });
+      const box = document.getElementById('whatif-results-box');
+      box.style.color = '';
+      box.textContent = 'Select links above and click "Evaluate Impact".';
     }
 
     async function executeWhatIf() {
       const checked = Array.from(document.querySelectorAll('.whatif-checkbox:checked')).map(c => c.value);
       if (!checked.length) return showToast("Select at least one link to simulate failure", "⚠️");
       const box = document.getElementById('whatif-results-box');
+      box.style.color = '';
       box.innerHTML = `<span style="color:var(--text-muted);">Simulating snapshot disaster...</span>`;
+      // Local helpers keep this handler self-contained (it is also exercised in isolation by
+      // backend/tests/what_if_dashboard_harness.cjs).
+      const h = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const fin = v => typeof v === 'number' && Number.isFinite(v);
+      const liveFailed = () => {
+        try { return Object.values(state.links).filter(l => l.status === 'failed').map(l => l.id).sort().join(','); }
+        catch (_) { return null; }
+      };
+      const liveFailedBefore = liveFailed();
       try {
         const res = await apiPost('/analyze/what-if', { link_ids: checked });
+        if (!res || typeof res !== 'object' || Array.isArray(res)) {
+          throw new Error('Invalid What-If response: expected an assessment object');
+        }
+        if (typeof res.detail === 'string' || typeof res.error === 'string') {
+          throw new Error(res.detail || res.error);
+        }
+        for (const field of ['total_delivered_before', 'total_delivered_after']) {
+          if (typeof res[field] !== 'number' || !Number.isFinite(res[field]) || res[field] < 0) {
+            throw new Error(`Invalid What-If response: missing or invalid ${field}`);
+          }
+        }
+        for (const field of ['unreachable_demands', 'congested_demands']) {
+          if (!Array.isArray(res[field]) || !res[field].every(id => typeof id === 'string')) {
+            throw new Error(`Invalid What-If response: missing or invalid ${field}`);
+          }
+        }
+        // These are throughput rates (Mbps), not integrated traffic loss (megabits).
+        const bandwidthLost = res.total_delivered_before - res.total_delivered_after;
+        const changeLabel = bandwidthLost < 0 ? 'Bandwidth Gained:' : 'Bandwidth Lost:';
+        const disruptedCount = new Set([...res.unreachable_demands, ...res.congested_demands]).size;
+        const hasCrit = fin(res.critical_delivered_before) && fin(res.critical_delivered_after);
+        const rerouted = Object.entries(res.alternative_routes || {})
+          .filter(([, r]) => r && Array.isArray(r.new_route))
+          .map(([id, r]) => `${id}: ${r.new_route.join('→')}`);
+        const evaluated = Array.isArray(res.failed_links) ? res.failed_links : checked;
+        const ignored = checked.filter(id => !evaluated.includes(id));
+        const alreadyDown = Array.isArray(res.already_unavailable) ? res.already_unavailable : [];
+        const recovery = res.recovery_mode === 'single_failure'
+          ? (res.reflex_used ? 'Reflex (verified plan) + Reactive LP' : 'PACAR fallback + Reactive LP (not covered by a verified plan)')
+          : res.recovery_mode === 'batch_failure' ? 'Multi-link failure: PACAR re-simulation'
+          : res.recovery_mode === 'none' ? 'No new failure (links already unavailable)' : null;
+
+        // Confirm the live network was not modified by the analysis (dashboard only).
+        let liveNote = '';
+        if (liveFailedBefore !== null && typeof syncState === 'function') {
+          await syncState();
+          const untouched = liveFailedBefore === liveFailed();
+          liveNote = `<div style="font-size:0.72rem; margin-top:0.4rem; color:${untouched ? 'var(--green)' : 'var(--amber)'};">${untouched ? '✓ Live network unchanged (snapshot analysis).' : '⚠ Live link states changed during the analysis — refresh and re-check.'}</div>`;
+        }
+
         box.innerHTML = `
-          <div class="info-card" style="margin-top:0.5rem;">
-            <div style="font-weight:700; color:var(--amber); margin-bottom:0.35rem;">What-If Disaster Assessment (${checked.join(', ')})</div>
-            <div class="info-row"><span class="info-label">Delivered Before:</span><span class="info-val">${res.total_delivered_before.toFixed(0)} Mbps</span></div>
-            <div class="info-row"><span class="info-label">Delivered After:</span><span class="info-val">${res.total_delivered_after.toFixed(0)} Mbps</span></div>
-            <div class="info-row"><span class="info-label">Bandwidth Lost:</span><span class="info-val" style="color:var(--red);">${res.lost_bandwidth.toFixed(0)} Mbps</span></div>
-            <div class="info-row"><span class="info-label">Flows Disrupted:</span><span class="info-val">${res.disrupted_demands_count}</span></div>
+          <div class="info-card" style="margin-top:0.5rem;" id="whatif-assessment">
+            <div style="font-weight:700; color:var(--amber); margin-bottom:0.35rem;">What-If Disaster Assessment (${h(checked.join(', '))})</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 1.5rem;">
+              <div>
+                <div class="info-row"><span class="info-label">Delivered Before:</span><span class="info-val">${res.total_delivered_before.toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">Delivered After:</span><span class="info-val">${res.total_delivered_after.toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">${changeLabel}</span><span class="info-val" style="color:${bandwidthLost > 0 ? 'var(--red)' : 'var(--green)'};">${Math.abs(bandwidthLost).toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">Critical (P1–P2) Before → After:</span><span class="info-val">${hasCrit ? `${res.critical_delivered_before.toFixed(1)} → ${res.critical_delivered_after.toFixed(1)} Mbps` : '—'}</span></div>
+              </div>
+              <div>
+                <div class="info-row"><span class="info-label">Flows Disrupted:</span><span class="info-val">${disruptedCount}</span></div>
+                <div class="info-row"><span class="info-label">Unreachable:</span><span class="info-val" style="color:${res.unreachable_demands.length ? 'var(--red)' : 'var(--text-muted)'};">${h(res.unreachable_demands.join(', ') || 'none')}</span></div>
+                <div class="info-row"><span class="info-label">Congested:</span><span class="info-val">${h(res.congested_demands.join(', ') || 'none')}</span></div>
+                <div class="info-row"><span class="info-label">Rerouted:</span><span class="info-val" style="font-size:0.7rem;">${h(rerouted.join('; ') || 'none')}</span></div>
+              </div>
+            </div>
+            ${recovery ? `<div style="font-size:0.72rem; margin-top:0.4rem; color:var(--text-muted);">Controller response replayed on a private copy: <strong>${h(recovery)}</strong>.</div>` : ''}
+            ${alreadyDown.length ? `<div class="notice notice-info" style="margin-top:0.4rem;">Already unavailable now (no additional effect): ${h(alreadyDown.join(', '))}</div>` : ''}
+            ${ignored.length ? `<div class="notice notice-warn" style="margin-top:0.4rem;">Backend did not evaluate: ${h(ignored.join(', '))}</div>` : ''}
+            ${liveNote}
           </div>
         `;
       } catch (err) {
-        box.innerHTML = `<span style="color:var(--red);">What-if simulation failed: ${err.message}</span>`;
+        box.style.color = 'var(--red)';
+        box.textContent = `What-if simulation failed: ${err.message}`;
       }
     }
 
     // EVENT LOG
+    const EVENT_COLORS = {
+      link_failure: '#ef4444', link_restore: '#10b981', reflex_recovery: '#10b981',
+      reactive_lp_optimization: '#a855f7', reactive_lp_not_installed: '#64748b', scenario_loaded: '#3b82f6',
+      simulation_step: '#00f0ff', link_flapping: '#f59e0b', flap_hold_down_ended: '#10b981',
+      uncovered_failure_fallback: '#f59e0b', guarantee_enforcement: '#a855f7', guarantee_enforcement_failed: '#ef4444',
+      lp_fallback: '#f59e0b', emergency_demand: '#ff0055'
+    };
     async function loadEvents() {
       const container = document.getElementById('event-log-list');
       try {
-        const data = await apiGet('/events?limit=30');
+        const data = await apiGet('/events?limit=50');
         const events = Array.isArray(data) ? data : (data.events || []);
         if (!events.length) {
           container.innerHTML = `<div style="color:var(--text-muted);">No events recorded yet.</div>`;
           return;
         }
-        container.innerHTML = events.slice().reverse().map(e => `
-          <div style="padding:0.3rem 0.5rem; background:var(--bg-card); border-left:3px solid var(--cyan); border-radius:0 4px 4px 0;">
-            <span style="font-family:'Fira Code'; color:var(--text-dim);">[Step ${e.step}]</span>
-            <strong>${e.event_type}:</strong> ${e.description}
+        // The API returns newest first.
+        container.innerHTML = events.map(e => `
+          <div class="event-row" style="padding:0.3rem 0.5rem; background:var(--bg-card); border-left:3px solid ${EVENT_COLORS[e.event_type] || 'var(--cyan)'}; border-radius:0 4px 4px 0;">
+            <span style="font-family:'Fira Code'; color:var(--text-dim);">[Step ${esc(e.step)}]</span>
+            <strong>${esc(e.event_type)}:</strong> ${esc(e.description)}
           </div>
         `).join('');
-      } catch (e) {}
+      } catch (e) {
+        container.innerHTML = `<div style="color:var(--red);">Could not load events: ${esc(e.message)}</div>`;
+      }
     }
 
-    // INITIALIZATION
-    window.addEventListener('load', async () => {
-      await syncState();
+    // Refit the network when the window size changes (e.g. projector / full screen).
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fitView, 350);
     });
+
+    // INITIALIZATION
+    // Start as soon as the document is parsed. Do not wait for the window "load" event:
+    // it also waits for every subresource, including the third-party web-font files,
+    // which on a hard refresh (cache bypassed) or a slow network delays the first real
+    // render while the static placeholder is on screen.
+    async function initDashboard() {
+      await syncState();
+      fitView();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboard, { once: true });
+    } else {
+      initDashboard();
+    }
   </script>
 </body>
 </html>

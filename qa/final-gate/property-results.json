@@ -1,0 +1,39 @@
+{
+  "stateful": {
+    "sequences": 300,
+    "ops_per_sequence": 20,
+    "first_seed": 5000,
+    "op_counts": {
+      "fail": 902,
+      "restore": 652,
+      "add_demand": 330,
+      "predict": 402,
+      "add_link": 181,
+      "sim": 1057,
+      "whatif": 396,
+      "edit_link": 183,
+      "raw_bad": 159,
+      "move_node": 268,
+      "batch": 183,
+      "replan": 246,
+      "del_demand": 199,
+      "edit_demand": 257,
+      "compare": 247,
+      "bad_input": 232,
+      "del_link": 106
+    },
+    "failures": []
+  },
+  "lp_optimality": {
+    "instances": 300,
+    "exact_comparisons": 242,
+    "failures": []
+  },
+  "planner_optimality": {
+    "instances": 286,
+    "exact_comparisons": 252,
+    "failures": []
+  },
+  "elapsed_s": 464.8,
+  "total_failures": 0
+}

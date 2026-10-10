@@ -13,6 +13,7 @@ import itertools
 import networkx as nx
 
 from app.models import LinkStatus
+from app.routing.validator import value
 
 
 @dataclass
@@ -53,13 +54,13 @@ def build_candidate_graph(nodes: dict[str, Any], links: dict[str, Any], include_
 
     for lid, link in links.items():
         status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
-        if not include_failed and (status == LinkStatus.FAILED or status == "failed"):
+        if not include_failed and (status == LinkStatus.FAILED or status in ("failed", "flapping")):
             continue
 
-        src = getattr(link, "source", None) or link.get("source")
-        dst = getattr(link, "target", None) or link.get("target")
-        lat = getattr(link, "latency", 1.0) or link.get("latency", 1.0)
-        cap = getattr(link, "capacity", 100.0) or link.get("capacity", 100.0)
+        src = value(link, "source")
+        dst = value(link, "target")
+        lat = value(link, "latency", 1.0)
+        cap = value(link, "capacity", 100.0)
 
         G.add_edge(src, dst, link_id=lid, latency=float(lat), capacity=float(cap), weight=float(lat))
         edge_to_link[(src, dst)] = lid
@@ -90,6 +91,8 @@ def compute_path_latency(path: list[str], G: nx.Graph) -> float:
 
 def is_simple_path(path: list[str], link_ids: list[str]) -> bool:
     """A tunnel must not visit any node or physical link more than once."""
+    if not path or len(link_ids) != len(path) - 1:
+        return False
     if len(path) != len(set(path)):
         return False
     if len(link_ids) != len(set(link_ids)):
@@ -119,7 +122,7 @@ def generate_candidate_tunnels_for_flow(
     if not G.has_node(source) or not G.has_node(destination):
         return []
     if source == destination:
-        return []
+        return [CandidateTunnel(f"T_{flow_id}_1", flow_id, [source], [], 0.0)] if K > 0 else []
     if not nx.has_path(G, source, destination):
         return []
 
@@ -145,7 +148,7 @@ def generate_candidate_tunnels_for_flow(
         latency = compute_path_latency(path, G)
         if max_latency is not None and max_latency > 0 and latency > max_latency:
             # Latency limit exceeded
-            continue
+            break
 
         seen_paths.add(path_tuple)
         t_id = f"T_{flow_id}_{len(candidates) + 1}"
@@ -162,7 +165,7 @@ def generate_candidate_tunnels_for_flow(
             break
 
     # Second pass: attempt edge-disjoint path if only 1 path found so far
-    if len(candidates) == 1 and len(candidates[0].link_ids) > 0:
+    if len(candidates) < K and len(candidates) == 1 and len(candidates[0].link_ids) > 0:
         first_links = set(candidates[0].link_ids)
         G_disjoint = G.copy()
         for u, v, data in list(G_disjoint.edges(data=True)):
@@ -177,7 +180,7 @@ def generate_candidate_tunnels_for_flow(
                     alt_link_ids = node_path_to_link_ids(alt_path, edge_to_link)
                     if is_simple_path(alt_path, alt_link_ids):
                         alt_lat = compute_path_latency(alt_path, G)
-                        if max_latency is None or max_lat <= 0 or alt_lat <= max_latency:
+                        if max_latency is None or max_latency <= 0 or alt_lat <= max_latency:
                             seen_paths.add(alt_tuple)
                             t_id = f"T_{flow_id}_{len(candidates) + 1}"
                             candidates.append(CandidateTunnel(
@@ -201,24 +204,58 @@ def generate_candidate_tunnels_for_flow(
     return candidates
 
 
+def rebuild_tunnel(tunnel: CandidateTunnel, links: dict[str, Any]) -> Optional[CandidateTunnel]:
+    """Re-derive a known tunnel against the current physical links.
+
+    Returns a copy with recomputed latency, or None when the path no longer exists
+    (a link was deleted or its endpoints changed).
+    """
+    path = list(tunnel.node_path)
+    lids = list(tunnel.link_ids)
+    if len(lids) != max(0, len(path) - 1):
+        return None
+    latency = 0.0
+    for i, lid in enumerate(lids):
+        link = links.get(lid)
+        if link is None or {value(link, "source"), value(link, "target")} != {path[i], path[i + 1]}:
+            return None
+        latency += float(value(link, "latency", 0.0))
+    return CandidateTunnel(tunnel.id, tunnel.flow_id, path, lids, latency, tunnel.is_active, dict(tunnel.metadata))
+
+
 def generate_all_candidate_tunnels(
     demands: dict[str, Any],
     nodes: dict[str, Any],
     links: dict[str, Any],
     K: int = 5,
     include_failed: bool = True,  # Generate on base graph so tunnels can be marked failed
+    previous: Optional[dict[str, list[CandidateTunnel]]] = None,
+    keep: Optional[set[tuple[str, str]]] = None,
 ) -> dict[str, list[CandidateTunnel]]:
     """
     Generate candidate tunnels for all demands.
     Returns: flow_id -> list of CandidateTunnel.
+
+    Candidates are the K shortest paths of the full physical graph (stable across
+    link failures, so protection reservations keep referring to the same paths)
+    plus the K shortest paths of the currently usable graph, so a flow whose
+    full-graph candidates all cross a failed link still has every live route the
+    optimizers need.
+
+    With ``previous`` (the last generation), a path keeps the tunnel ID it already
+    had and new paths never reuse an ID that denoted a different path: an ID in an
+    installed allocation or a protection plan always means the same physical path.
+    Tunnels listed in ``keep`` ((flow_id, tunnel_id) pairs referenced by installed
+    allocations or reservations) are retained while they still exist physically.
     """
     G, edge_to_link = build_candidate_graph(nodes, links, include_failed=include_failed)
+    G_live, edge_live = build_candidate_graph(nodes, links, include_failed=False)
     all_tunnels: dict[str, list[CandidateTunnel]] = {}
 
     failed_link_ids = set()
     for lid, link in links.items():
         status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
-        if status == LinkStatus.FAILED or status == "failed":
+        if status == LinkStatus.FAILED or status in ("failed", "flapping"):
             failed_link_ids.add(lid)
 
     for flow_id, demand in demands.items():
@@ -237,6 +274,40 @@ def generate_all_candidate_tunnels(
             edge_to_link=edge_to_link,
             K=K,
         )
+        if include_failed and failed_link_ids:
+            seen = {tuple(t.node_path) for t in tunnels}
+            for t in generate_candidate_tunnels_for_flow(flow_id, src, dst, max_lat, G_live, edge_live, K):
+                if tuple(t.node_path) not in seen:
+                    seen.add(tuple(t.node_path))
+                    tunnels.append(t)
+        prev_list = (previous or {}).get(flow_id, [])
+        if keep:
+            seen = {tuple(t.node_path) for t in tunnels}
+            for old in prev_list:
+                if (flow_id, old.id) in keep and tuple(old.node_path) not in seen:
+                    rebuilt = rebuild_tunnel(old, links)
+                    if rebuilt is not None and (max_lat is None or max_lat <= 0 or rebuilt.latency <= max_lat):
+                        seen.add(tuple(rebuilt.node_path))
+                        tunnels.append(rebuilt)
+
+        tunnels.sort(key=lambda t: (round(t.latency, 3), len(t.node_path), t.node_path))
+        if previous is None or flow_id not in previous:
+            for idx, t in enumerate(tunnels):
+                t.id = f"T_{flow_id}_{idx + 1}"
+        else:
+            # Stable identity: reuse the previous ID of an identical path; never recycle an ID.
+            by_path = {tuple(t.node_path): t.id for t in prev_list}
+            used = {t.id for t in prev_list}
+            next_idx = 1
+            for t in tunnels:
+                prev_id = by_path.get(tuple(t.node_path))
+                if prev_id is not None:
+                    t.id = prev_id
+                    continue
+                while f"T_{flow_id}_{next_idx}" in used:
+                    next_idx += 1
+                t.id = f"T_{flow_id}_{next_idx}"
+                used.add(t.id)
 
         # Update active status based on surviving links
         for t in tunnels:

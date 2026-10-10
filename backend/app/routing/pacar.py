@@ -51,6 +51,8 @@ this provides defensible and testable fairness behavior.
 
 from __future__ import annotations
 import networkx as nx
+from itertools import islice
+from app.routing.validator import tunnel_errors, value
 from typing import Optional
 
 from app.models import (
@@ -139,7 +141,7 @@ def find_k_shortest_paths(
 ) -> list[list[str]]:
     """Find K shortest simple paths using NetworkX."""
     try:
-        paths = list(nx.shortest_simple_paths(G, source, target, weight="weight"))
+        paths = list(islice(nx.shortest_simple_paths(G, source, target, weight="weight"), max(0, k)))
         return paths[:k]
     except (nx.NetworkXNoPath, nx.NodeNotFound):
         return []
@@ -153,6 +155,7 @@ def find_capacity_feasible_path(
     residual: dict[str, float],
     state: SimulationState,
     max_paths: int = 20,
+    max_latency: Optional[float] = None,
 ) -> Optional[list[str]]:
     """
     Fallback: search beyond K paths for one with enough capacity.
@@ -164,6 +167,8 @@ def find_capacity_feasible_path(
         ):
             if i >= max_paths:
                 break
+            if max_latency is not None and max_latency > 0 and path_latency(path, G) > max_latency:
+                continue
             bottleneck = path_bottleneck(state, path, G, residual)
             if bottleneck >= required_bw:
                 return path
@@ -265,7 +270,9 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                 continue
 
             # Find K candidate paths
-            candidates = find_k_shortest_paths(G, demand.source, demand.destination, K_PATHS)
+            candidates = [path for path in find_k_shortest_paths(G, demand.source, demand.destination, K_PATHS)
+                          if demand.max_latency is None or demand.max_latency <= 0
+                          or path_latency(path, G) <= demand.max_latency]
             
             best_path = None
             best_score = float("inf")
@@ -292,7 +299,7 @@ def run_pacar(state: SimulationState) -> list[Demand]:
             if best_path is None or best_bottleneck <= 0:
                 fallback = find_capacity_feasible_path(
                     G, demand.source, demand.destination,
-                    demand.bandwidth, residual, state,
+                    demand.bandwidth, residual, state, max_latency=demand.max_latency,
                 )
                 if fallback:
                     best_path = fallback
@@ -391,10 +398,10 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                 continue  # Already added (local/unreachable)
 
             path, _, score = pending[demand.id]
-            allocated = round(demand_allocation.get(demand.id, 0.0), 4)
+            allocated = demand_allocation.get(demand.id, 0.0)
             latency = path_latency(path, G)
             
-            if allocated >= demand.bandwidth - 0.001:
+            if allocated >= demand.bandwidth - 1e-9:
                 status = DemandStatus.FULLY_SERVED
                 allocated = demand.bandwidth  # Fix floating point
                 unserved = 0.0
@@ -446,7 +453,7 @@ def run_pacar_allocations(
     residual: dict[str, float] = {}
     for lid, link in links.items():
         status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
-        if status == LinkStatus.FAILED or status == "failed":
+        if status == LinkStatus.FAILED or status in ("failed", "flapping"):
             failed_links.add(lid)
             residual[lid] = 0.0
         else:
@@ -460,7 +467,7 @@ def run_pacar_allocations(
         demands.keys(),
         key=lambda fid: (
             getattr(demands[fid], "priority", None).value if hasattr(getattr(demands[fid], "priority", None), "value")
-            else (demands[fid].get("priority", 4) if isinstance(demands[fid], dict) else 4),
+            else value(demands[fid], "priority", 4),
             fid
         )
     )
@@ -471,7 +478,7 @@ def run_pacar_allocations(
         if req_bw <= 0:
             continue
 
-        surviving = [t for t in candidate_tunnels.get(fid, []) if t.survives_failure(failed_links)]
+        surviving = [t for t in candidate_tunnels.get(fid, []) if t.survives_failure(failed_links) and not tunnel_errors(t, fid, d, links, failed_links)]
         if not surviving:
             continue
 
@@ -480,7 +487,7 @@ def run_pacar_allocations(
             if rem_bw <= 1e-5:
                 break
             # Bottleneck on physical links for this tunnel
-            avail = min((residual.get(lid, 0.0) for lid in t.link_ids), default=0.0)
+            avail = min((residual.get(lid, 0.0) for lid in t.link_ids), default=rem_bw)
             if avail > 1e-5:
                 alloc_amount = min(rem_bw, avail)
                 allocations[fid][t.id] = alloc_amount

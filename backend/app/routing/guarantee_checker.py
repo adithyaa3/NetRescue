@@ -8,13 +8,15 @@ receives at least its declared guaranteed Mbps.
 """
 
 from __future__ import annotations
+import math
+import copy
 from dataclasses import dataclass, field
 from typing import Any
 
 from app.routing.candidate_paths import CandidateTunnel
 from app.routing.protection_planner import ProtectionPlan
 from app.routing.reflex import run_reflex_recovery
-from app.routing.validator import validate_allocation_independently
+from app.routing.validator import validate_allocation_independently, value
 
 
 @dataclass
@@ -48,6 +50,44 @@ def verify_protection_guarantees(
     for fid, t_list in candidate_tunnels.items():
         for t in t_list:
             tunnel_lookup[t.id] = t
+
+    # Validate the plan itself before trying scaled recovery allocations.
+    if plan.solver_status.startswith(("infeasible", "failed")):
+        result.failures.append("Protection solver did not produce a feasible plan")
+    if not plan.covered_scenarios:
+        result.failures.append("Protection plan declares no covered scenarios")
+    for scenario in plan.covered_scenarios:
+        lid = scenario[5:] if scenario.startswith("fail_") else scenario
+        if scenario != "no_failure" and lid not in links:
+            result.failures.append(f"Unknown covered scenario: {scenario}")
+    for fid, guarantee in plan.per_flow_guaranteed.items():
+        if fid not in demands or not math.isfinite(guarantee) or guarantee < 0:
+            result.failures.append(f"Invalid guarantee for flow {fid}")
+        elif guarantee > value(demands[fid], "bandwidth", 0) + tolerance:
+            result.failures.append(f"Guarantee exceeds demand for flow {fid}")
+    reservation_demands = copy.deepcopy(demands)
+    for fid, reservations in plan.per_tunnel_reservations.items():
+        if fid not in demands:
+            result.failures.append(f"Unknown reserved flow {fid}")
+            continue
+        if any(not isinstance(a, (int, float)) or not math.isfinite(a) or a < 0 for a in reservations.values()):
+            result.failures.append(f"Invalid reservations for flow {fid}")
+            continue
+        # Total reservation can exceed demand because backups reserve in parallel.
+        demand = reservation_demands[fid]
+        total = sum(reservations.values())
+        if isinstance(demand, dict):
+            demand["bandwidth"] = max(total, value(demand, "bandwidth", 0))
+        else:
+            reservation_demands[fid] = demand.model_copy(update={"bandwidth": max(total, demand.bandwidth)})
+    reservation_check = validate_allocation_independently(
+        plan.per_tunnel_reservations, reservation_demands, links, tunnel_lookup)
+    result.failures.extend(reservation_check.violations)
+    if result.failures:
+        result.is_verified = False
+        plan.verified = False
+        plan.verification_failures = result.failures
+        return result
 
     for scenario in plan.covered_scenarios:
         # Determine failed links in this scenario

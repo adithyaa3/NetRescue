@@ -1,0 +1,44 @@
+{
+  "guarantees": {
+    "F1": 6.0,
+    "F2": 0.0
+  },
+  "reservations": {
+    "F1": {
+      "T_F1_1": 6.0,
+      "T_F1_2": 6.0
+    },
+    "F2": {}
+  },
+  "scenarios_passed": 5,
+  "initial": {
+    "F1": {
+      "T_F1_1": 3,
+      "T_F1_2": 3
+    },
+    "F2": {
+      "T_F2_1": 6,
+      "T_F2_2": 6
+    }
+  },
+  "failure": "BD",
+  "reflex": {
+    "F1": {
+      "T_F1_2": 6.0
+    },
+    "F2": {
+      "T_F2_2": 4.0
+    }
+  },
+  "link_loads": {
+    "AB": 0.0,
+    "BD": 0.0,
+    "AC": 10.0,
+    "CD": 10.0
+  },
+  "critical_during_delay_mbps": 3.0,
+  "critical_after_install_mbps": 6.0,
+  "illustrative_interval_seconds": 0.26,
+  "illustrative_loss_megabits": 0.78,
+  "timing_note": "Supplied delay interval; synchronous controller has no event scheduler."
+}

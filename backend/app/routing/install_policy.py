@@ -60,7 +60,7 @@ def evaluate_install_policy(
             failed_links.add(lid)
 
     # 1. Reject stale versions (unless recovery from failure)
-    if expected_version < current_version and trigger_reason != "link_failure":
+    if expected_version != current_version:
         return InstallDecision(
             should_install=False,
             reason=f"Stale state version: candidate computed for v{expected_version}, current is v{current_version}",
@@ -100,8 +100,11 @@ def evaluate_install_policy(
     )
 
     # If current allocation is invalid (e.g. because a link just failed),
-    # ALWAYS install the valid candidate recovery allocation!
-    if not curr_val.is_valid or trigger_reason == "link_failure":
+    # ALWAYS install the valid candidate recovery allocation. When the current
+    # allocation is already a valid recovery (Reflex or PACAR fallback), the
+    # trigger alone never justifies installing a candidate that delivers less:
+    # the lexicographic comparison below decides.
+    if not curr_val.is_valid:
         return InstallDecision(
             should_install=True,
             reason=f"Installed recovery allocation (current allocation invalid under current failures). Delivered: {cand_delivered:.1f} Mbps",

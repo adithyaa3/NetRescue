@@ -1,0 +1,572 @@
+{
+  "runs": 27,
+  "results": [
+    {
+      "preset": "normal_campus",
+      "algorithm": "pacar",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "normal_campus",
+      "algorithm": "baseline",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "normal_campus",
+      "algorithm": "lp",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "primary_failure",
+      "algorithm": "pacar",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "primary_failure",
+      "algorithm": "baseline",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "primary_failure",
+      "algorithm": "lp",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "multiple_disaster",
+      "algorithm": "pacar",
+      "delivered_mbps": 180.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "multiple_disaster",
+      "algorithm": "baseline",
+      "delivered_mbps": 180.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "multiple_disaster",
+      "algorithm": "lp",
+      "delivered_mbps": 180.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": true
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "congested_shortest",
+      "algorithm": "pacar",
+      "delivered_mbps": 120.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "congested_shortest",
+      "algorithm": "baseline",
+      "delivered_mbps": 130.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "congested_shortest",
+      "algorithm": "lp",
+      "delivered_mbps": 150.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "emergency_preemption",
+      "algorithm": "pacar",
+      "delivered_mbps": 140.0,
+      "plan_verified": false,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "emergency_preemption",
+      "algorithm": "baseline",
+      "delivered_mbps": 100.0,
+      "plan_verified": false,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "emergency_preemption",
+      "algorithm": "lp",
+      "delivered_mbps": 140.0,
+      "plan_verified": false,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": false
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "equal_priority",
+      "algorithm": "pacar",
+      "delivered_mbps": 100.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "equal_priority",
+      "algorithm": "baseline",
+      "delivered_mbps": 100.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "equal_priority",
+      "algorithm": "lp",
+      "delivered_mbps": 100.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "flapping_link",
+      "algorithm": "pacar",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "flapping_link",
+      "algorithm": "baseline",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "flapping_link",
+      "algorithm": "lp",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "what_if",
+      "algorithm": "pacar",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "what_if",
+      "algorithm": "baseline",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "what_if",
+      "algorithm": "lp",
+      "delivered_mbps": 195.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "pacar_vs_dijkstra",
+      "algorithm": "pacar",
+      "delivered_mbps": 120.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "pacar_vs_dijkstra",
+      "algorithm": "baseline",
+      "delivered_mbps": 130.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    },
+    {
+      "preset": "pacar_vs_dijkstra",
+      "algorithm": "lp",
+      "delivered_mbps": 150.0,
+      "plan_verified": true,
+      "failures": [
+        {
+          "link": "L1",
+          "reflex_used": true
+        },
+        {
+          "link": "L2",
+          "reflex_used": false
+        }
+      ],
+      "comparisons": [
+        "pacar",
+        "reactive_lp",
+        "baseline"
+      ]
+    }
+  ]
+}

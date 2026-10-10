@@ -13,9 +13,18 @@ import time
 from typing import Optional, Any
 import numpy as np
 from scipy.optimize import linprog
+from types import SimpleNamespace
 
+from app.routing.validator import tunnel_errors, value
 from app.models import Priority, LinkStatus
 from app.routing.candidate_paths import CandidateTunnel
+
+
+def _solve_lp(*args, **kwargs):
+    try:
+        return linprog(*args, **kwargs)
+    except (RuntimeError, ValueError) as exc:
+        return SimpleNamespace(success=False, message=str(exc))
 
 
 def solve_reactive_multicommodity_lp(
@@ -24,6 +33,7 @@ def solve_reactive_multicommodity_lp(
     candidate_tunnels: dict[str, list[CandidateTunnel]],
     previous_allocations: Optional[dict[str, dict[str, float]]] = None,
     beta_churn: float = 0.05,
+    protection_floors: Optional[dict[str, float]] = None,
 ) -> dict:
     """
     Executes lexicographic multicommodity flow LP.
@@ -45,7 +55,7 @@ def solve_reactive_multicommodity_lp(
     usable_links = {}
     for lid, link in links.items():
         status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
-        if status == LinkStatus.FAILED or status == "failed":
+        if status == LinkStatus.FAILED or status in ("failed", "flapping"):
             failed_links.add(lid)
         else:
             usable_links[lid] = link
@@ -61,7 +71,7 @@ def solve_reactive_multicommodity_lp(
             flow_tunnels[fid] = []
             continue
 
-        surviving = [t for t in candidate_tunnels.get(fid, []) if t.survives_failure(failed_links)]
+        surviving = [t for t in candidate_tunnels.get(fid, []) if t.survives_failure(failed_links) and not tunnel_errors(t, fid, demand, links, failed_links)]
         flow_tunnels[fid] = surviving
         for t in surviving:
             var_map_x[(fid, t.id)] = col
@@ -72,7 +82,7 @@ def solve_reactive_multicommodity_lp(
         elapsed = (time.perf_counter() - start_time) * 1000
         total_req = sum(float(getattr(d, "bandwidth", 0.0) if not isinstance(d, dict) else d.get("bandwidth", 0.0)) for d in demands.values())
         return {
-            "success": True,
+            "success": not any(floor > 0 for floor in (protection_floors or {}).values()),
             "allocations": {fid: {} for fid in demands},
             "runtime_ms": elapsed,
             "solver_status": "no_surviving_tunnels",
@@ -115,6 +125,15 @@ def solve_reactive_multicommodity_lp(
         A_rows.append(row)
         b_rows.append(cap)
 
+    for fid, floor in (protection_floors or {}).items():
+        if floor <= 0:
+            continue
+        row = np.zeros(num_vars)
+        for t in flow_tunnels.get(fid, []):
+            row[var_map_x[(fid, t.id)]] = -1.0
+        A_rows.append(row)
+        b_rows.append(-float(floor))
+
     A_ub = np.array(A_rows)
     b_ub = np.array(b_rows)
 
@@ -123,7 +142,7 @@ def solve_reactive_multicommodity_lp(
     for fid, demand in demands.items():
         if not flow_tunnels.get(fid):
             continue
-        p = getattr(demand, "priority", None)
+        p = value(demand, "priority")
         pval = getattr(p, "value", p) if p is not None else 4
         if pval not in priority_groups:
             pval = 4
@@ -145,21 +164,25 @@ def solve_reactive_multicommodity_lp(
                 idx = var_map_x[(fid, t.id)]
                 c_stage[idx] = -1.0  # maximize sum x[f,t] for this priority
 
-        res = linprog(c_stage, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
+        res = _solve_lp(c_stage, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
         if res.success:
             opt_val = -res.fun
             delivered_by_pri[f"P{pval}"] = max(0.0, opt_val)
             current_x = res.x
 
-            # Lock this priority's throughput: sum_{f in flows, t} x[f,t] >= opt_val - 1e-5
+            # Lock this priority's throughput: sum_{f in flows, t} x[f,t] >= opt_val
             lock_row = np.zeros(num_vars)
             for fid in flows:
                 for t in flow_tunnels[fid]:
                     lock_row[var_map_x[(fid, t.id)]] = -1.0
             A_ub = np.vstack([A_ub, lock_row])
-            b_ub = np.append(b_ub, -opt_val + 1e-5)
+            b_ub = np.append(b_ub, -opt_val)
         else:
-            delivered_by_pri[f"P{pval}"] = 0.0
+            return {"success": False, "allocations": {},
+                    "runtime_ms": (time.perf_counter()-start_time)*1000,
+                    "solver_status": f"failed_P{pval}: {res.message}",
+                    "delivered_by_priority": {}, "total_delivered": 0.0,
+                    "total_unserved": sum(value(d, "bandwidth", 0) for d in demands.values())}
 
     # Stage D6: Latency minimization while preserving all achieved priority totals
     c_lat = np.zeros(num_vars)
@@ -168,7 +191,7 @@ def solve_reactive_multicommodity_lp(
         lat = t.latency if t else 1.0
         c_lat[idx] = lat * 0.01
 
-    res_final = linprog(c_lat, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
+    res_final = _solve_lp(c_lat, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
     if res_final.success:
         sol_x = res_final.x
         solver_status = "optimal"
@@ -182,7 +205,7 @@ def solve_reactive_multicommodity_lp(
 
     for (fid, tid), idx in var_map_x.items():
         val = float(sol_x[idx])
-        if val >= 1e-4:
+        if val >= 1e-9:
             allocations[fid][tid] = val
             total_delivered += val
 

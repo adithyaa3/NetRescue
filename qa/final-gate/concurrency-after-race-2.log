@@ -1,0 +1,9 @@
+{
+  "requests": 2400,
+  "by_status": {
+    "200": 2400
+  },
+  "server_errors": [],
+  "invariant_failures": [],
+  "elapsed_s": 3.4
+}

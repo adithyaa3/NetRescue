@@ -1,0 +1,4 @@
+qa/run_numerical.py exit=0
+qa/run_end_to_end.py exit=0
+qa/backend-repeat-demo.py exit=0
+qa/investigate_sample_protection.py exit=0

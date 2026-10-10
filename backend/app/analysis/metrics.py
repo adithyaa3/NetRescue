@@ -5,12 +5,52 @@ Calculates all simulation metrics from current state.
 """
 
 from __future__ import annotations
+import math
 from app.state import SimulationState
 from app.models import (
     DemandStatus, Priority, PRIORITY_LABELS, LinkStatus,
     LinkMetrics, DemandMetrics,
 )
 from app.routing.baseline import build_graph
+
+
+def delivered_bandwidth(state: SimulationState, demand) -> float:
+    """Configured bandwidth on an unavailable path is not delivered bandwidth."""
+    if demand.source == demand.destination:
+        return min(demand.bandwidth, demand.allocated_bandwidth)
+    if demand.id in state.active_allocations:
+        lookup = {t.id: t for t in state.candidate_tunnels.get(demand.id, [])}
+        total = 0.0
+        for tid, rate in state.active_allocations[demand.id].items():
+            tunnel = lookup.get(tid)
+            if tunnel and all(state.is_link_usable(lid) for lid in tunnel.link_ids):
+                total += rate
+        return min(demand.bandwidth, total)
+    if not demand.route:
+        return 0.0
+    for u, v in zip(demand.route, demand.route[1:]):
+        if not any({l.source, l.target} == {u, v} and state.is_link_usable(lid)
+                   for lid, l in state.links.items()):
+            return 0.0
+    return min(demand.bandwidth, demand.allocated_bandwidth)
+
+
+def integrate_critical_loss(intervals) -> float:
+    """Integrate (per-flow demand - delivered)+ over supplied durations in seconds.
+
+    Each interval is (duration_seconds, critical_demand_by_id, delivered_by_id).
+    The synchronous controller does not itself generate elapsed-time intervals.
+    """
+    loss = 0.0
+    for duration, demands, delivered in intervals:
+        if not math.isfinite(duration) or duration < 0:
+            raise ValueError("Interval duration must be finite and nonnegative")
+        for fid, demand in demands.items():
+            rate = delivered.get(fid, 0.0)
+            if not math.isfinite(demand) or not math.isfinite(rate) or demand < 0 or rate < 0:
+                raise ValueError("Demand and delivery must be finite and nonnegative")
+            loss += max(0.0, demand-rate)*duration
+    return loss
 
 
 def compute_metrics(state: SimulationState) -> dict:
@@ -34,17 +74,19 @@ def compute_metrics(state: SimulationState) -> dict:
     G = build_graph(state)
 
     for d in state.demands.values():
+        delivered = delivered_bandwidth(state, d)
+        unserved = max(0.0, d.bandwidth-delivered)
         total_requested += d.bandwidth
-        total_delivered += d.allocated_bandwidth
-        total_unserved += d.unserved_bandwidth
+        total_delivered += delivered
+        total_unserved += unserved
         
         is_critical = d.priority.value in (Priority.P1_EMERGENCY.value, Priority.P2_ESSENTIAL.value)
         if is_critical:
             critical_requested += d.bandwidth
-            critical_delivered += d.allocated_bandwidth
+            critical_delivered += delivered
         else:
             general_requested += d.bandwidth
-            general_delivered += d.allocated_bandwidth
+            general_delivered += delivered
         
         if d.status == DemandStatus.UNREACHABLE:
             disconnected += 1
@@ -72,8 +114,8 @@ def compute_metrics(state: SimulationState) -> dict:
                 "count": 0,
             }
         per_priority[pkey]["requested"] += d.bandwidth
-        per_priority[pkey]["delivered"] += d.allocated_bandwidth
-        per_priority[pkey]["unserved"] += d.unserved_bandwidth
+        per_priority[pkey]["delivered"] += delivered
+        per_priority[pkey]["unserved"] += unserved
         per_priority[pkey]["count"] += 1
         
         demand_details.append(DemandMetrics(
@@ -83,8 +125,8 @@ def compute_metrics(state: SimulationState) -> dict:
             category=d.category.value,
             priority=d.priority.value,
             requested=d.bandwidth,
-            allocated=d.allocated_bandwidth,
-            unserved=d.unserved_bandwidth,
+            allocated=delivered,
+            unserved=unserved,
             status=d.status.value,
             route=d.route,
         ))
