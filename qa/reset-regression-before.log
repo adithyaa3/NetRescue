@@ -1,0 +1,16 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ test_version_does_not_rewind_on_reset _____________________
+
+    def test_version_does_not_rewind_on_reset():
+        s = diamond()
+        old = s.version
+        s.reset()
+>       assert s.version > old
+E       assert 0 > 10
+E        +  where 0 = <app.state.SimulationState object at 0x109616ab0>.version
+
+backend/tests/test_verification.py:394: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/test_verification.py::test_version_does_not_rewind_on_reset
+1 failed in 0.66s

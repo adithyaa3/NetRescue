@@ -1,0 +1,19 @@
+....................................................F......F....         [100%]
+=================================== FAILURES ===================================
+_____________ test_planner_solver_failure_is_unverified[exception] _____________
+backend/tests/test_verification.py:258: in test_planner_solver_failure_is_unverified
+    p = plan_proactive_protection(s.demands, s.links, s.candidate_tunnels)
+backend/app/routing/protection_planner.py:192: in plan_proactive_protection
+    res1 = linprog(c_stage1, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
+backend/tests/test_verification.py:255: in broken
+    if fault == 'exception': raise RuntimeError('solver unavailable')
+E   RuntimeError: solver unavailable
+__________________ test_pacar_enforces_latency_on_live_state ___________________
+backend/tests/test_verification.py:309: in test_pacar_enforces_latency_on_live_state
+    assert result['F1'].allocated_bandwidth == 0
+E   AssertionError: assert 6.0 == 0
+E    +  where 6.0 = Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, priorit...ion='PACAR selected path A → B → D (score: inf, latency: 2.0ms). Full bandwidth allocated.', max_latency=1, tunnels=[]).allocated_bandwidth
+=========================== short test summary info ============================
+FAILED backend/tests/test_verification.py::test_planner_solver_failure_is_unverified[exception]
+FAILED backend/tests/test_verification.py::test_pacar_enforces_latency_on_live_state
+2 failed, 62 passed in 1.60s

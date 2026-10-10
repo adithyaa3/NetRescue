@@ -1,0 +1,11 @@
+{
+  "name": "netrescue-frontend-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node run-e2e.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.48.2"
+  }
+}

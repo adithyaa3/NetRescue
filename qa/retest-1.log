@@ -1,0 +1,10 @@
+........................................................................ [ 62%]
+..........................................F.                             [100%]
+=================================== FAILURES ===================================
+______________________ test_12_no_fabricated_comparisons _______________________
+backend/tests/test_routing_engine.py:470: in test_12_no_fabricated_comparisons
+    assert comp["reactive_lp"]["total_delivered"] > 0
+E   assert 0.0 > 0
+=========================== short test summary info ============================
+FAILED backend/tests/test_routing_engine.py::test_12_no_fabricated_comparisons
+1 failed, 115 passed in 1.29s

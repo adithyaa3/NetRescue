@@ -1,0 +1,2845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetRescue — Interactive Network Resilience & Disaster Recovery Playground</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2300c2d6'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Arial' font-weight='700' text-anchor='middle' fill='%23030712'%3ENR%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080b12;
+      --bg-panel: rgba(14, 20, 34, 0.92);
+      --bg-card: rgba(20, 29, 48, 0.7);
+      --bg-card-hover: rgba(28, 41, 68, 0.9);
+      --border: rgba(45, 68, 105, 0.35);
+      --border-focus: rgba(0, 240, 255, 0.6);
+      --text: #f0f6fc;
+      --text-muted: #8b9bb4;
+      --text-dim: #5c6d85;
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
+      --blue: #3b82f6;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --emergency: #ff0055;
+      --purple: #a855f7;
+      --tray-h: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #0d1527 0%, #06080e 100%);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* HEADER */
+    header {
+      height: 56px;
+      background: rgba(10, 14, 24, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #00f0ff, #2563eb);
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #030712;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sim-status-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sim-status-pill.draft {
+      background: rgba(139, 155, 180, 0.1);
+      color: var(--text-muted);
+      border: 1px solid rgba(139, 155, 180, 0.25);
+    }
+    .sim-status-pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .sim-status-pill.active .pulse-dot {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    .workflow-guide {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .wf-step {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .wf-step.active {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+    .wf-step-num {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+    }
+    .wf-step.active .wf-step-num {
+      background: var(--cyan);
+      color: #050b14;
+      font-weight: 700;
+    }
+    .wf-arrow { color: var(--text-dim); font-size: 0.7rem; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .header-actions .btn { white-space: nowrap; }
+    .btn {
+      font-family: inherit;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00f0ff, #0284c7);
+      color: #030b15;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+    }
+    .btn-success:hover {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+    }
+    .btn-danger:hover {
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(22, 33, 54, 0.8);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(33, 49, 78, 0.95);
+      border-color: var(--border-focus);
+    }
+
+    /* MAIN APP WORKSPACE */
+    .app-workspace {
+      display: grid;
+      grid-template-columns: 210px 1fr 320px;
+      height: calc(100vh - 56px - var(--tray-h));
+      transition: height 0.25s ease;
+      position: relative;
+    }
+    .app-workspace.tray-collapsed {
+      height: calc(100vh - 56px - 36px);
+    }
+
+    /* LEFT TOOLBAR */
+    .left-toolbar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 1rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      z-index: 20;
+      overflow-y: auto;
+    }
+    .tool-group-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-top: 0.3rem;
+      margin-bottom: 0.15rem;
+      padding-left: 0.25rem;
+    }
+    .tool-btn {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(18, 26, 43, 0.75);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tool-btn:hover {
+      background: rgba(28, 41, 68, 0.95);
+      border-color: var(--cyan);
+      transform: translateX(2px);
+    }
+    .tool-btn.primary-action {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(59, 130, 246, 0.12));
+      border-color: rgba(0, 240, 255, 0.4);
+      color: var(--cyan);
+    }
+    .tool-btn.primary-action:hover {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(59, 130, 246, 0.25));
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    .sim-toggle-btn {
+      margin-top: auto;
+      padding: 0.75rem 0.85rem;
+      font-size: 0.88rem;
+    }
+
+    /* CENTER CANVAS */
+    .canvas-viewport {
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, #0d1526 0%, #060911 100%);
+      overflow: hidden;
+      cursor: grab;
+    }
+    .canvas-viewport:active {
+      cursor: grabbing;
+    }
+    svg#network-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* CANVAS FLOATING CONTROLS */
+    .canvas-controls-overlay {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      display: flex;
+      gap: 0.4rem;
+      z-index: 10;
+      background: rgba(10, 15, 26, 0.85);
+      padding: 0.3rem 0.4rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .canvas-ctrl-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .canvas-ctrl-btn:hover {
+      color: var(--cyan);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* EMPTY STATE GUIDE */
+    .empty-state-guide {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(14, 21, 37, 0.95);
+      border: 1px solid var(--border-focus);
+      border-radius: 16px;
+      padding: 2.25rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+      z-index: 15;
+      max-width: 480px;
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    .empty-state-icon {
+      font-size: 2.75rem;
+      margin-bottom: 0.85rem;
+      display: inline-block;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .empty-state-guide h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .empty-state-guide p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* RIGHT INSPECTOR */
+    .right-inspector {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+    .inspector-header {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .inspector-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex: 1;
+    }
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); }
+    .info-val { font-weight: 600; font-family: 'Fira Code', monospace; }
+
+    /* BOTTOM TRAY */
+    .bottom-tray {
+      height: var(--tray-h);
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      transition: height 0.25s ease;
+    }
+    .tray-header {
+      height: 38px;
+      background: rgba(10, 15, 26, 0.98);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+    }
+    .tray-tabs {
+      display: flex;
+      height: 100%;
+    }
+    .tray-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    .tray-tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.04);
+    }
+    .tray-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.85rem 1rem;
+      display: none;
+    }
+    .tray-content.active {
+      display: block;
+    }
+
+    /* DATA TABLE */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+    }
+    .pill-emergency { background: rgba(255, 0, 85, 0.15); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
+    .pill-essential { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .pill-academic { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+    .pill-general { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+    .pill-background { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
+
+    .status-served { color: #10b981; font-weight: 600; }
+    .status-partial { color: #f59e0b; font-weight: 600; }
+    .status-unserved { color: #ef4444; font-weight: 600; }
+    .status-ready { color: var(--text-muted); }
+
+    /* MODAL */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal-card {
+      background: #0f1629;
+      border: 1px solid var(--border-focus);
+      border-radius: 14px;
+      width: 440px;
+      padding: 1.5rem;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.2);
+    }
+    .modal-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.4rem;
+    }
+    .modal-card p.subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      background: rgba(19, 28, 48, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      color: white;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.15s;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+    }
+
+    /* TOAST */
+    #toast-msg {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--cyan);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+      font-size: 0.85rem;
+      z-index: 200;
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      backdrop-filter: blur(8px);
+      max-width: 440px;
+    }
+    #toast-msg.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* FLOW PARTICLES IN SVG */
+    @keyframes dash {
+      to { stroke-dashoffset: -40; }
+    }
+    .flow-active {
+      animation: dash 1.2s linear infinite;
+    }
+
+    /* EXACT LINK FAILURE CONTROL */
+    .link-picker {
+      width: 100%;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.74rem;
+      padding: 0.45rem 0.5rem;
+    }
+    .tool-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .tool-btn.danger-action { color: #fca5a5; border-color: rgba(239, 68, 68, 0.45); }
+    .tool-btn.restore-action { color: #6ee7b7; border-color: rgba(16, 185, 129, 0.45); }
+    .tool-btn.demo-action {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(0, 240, 255, 0.10));
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+    }
+
+    /* Shown only until the first backend sync decides between the network and the empty state. */
+    .canvas-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      z-index: 5;
+    }
+
+    /* CANVAS LEGEND */
+    .canvas-legend {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      justify-content: flex-end;
+      z-index: 10;
+      background: rgba(10, 15, 26, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      max-width: calc(100% - 11rem);
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .legend-swatch { width: 18px; height: 0; border-top: 3px solid; display: inline-block; }
+
+    /* HONEST STATUS BANNERS */
+    .notice {
+      font-size: 0.78rem;
+      line-height: 1.45;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      border: 1px solid;
+    }
+    .notice-warn { background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+    .notice-ok { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.45); color: #6ee7b7; }
+    .notice-err { background: rgba(239, 68, 68, 0.10); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+    .notice-info { background: rgba(59, 130, 246, 0.10); border-color: rgba(59, 130, 246, 0.40); color: #93c5fd; }
+
+    .pill-p1 { background: rgba(255, 0, 85, 0.15); color: #ff3377; border: 1px solid rgba(255,0,85,0.4); }
+    .pill-p2 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .pill-p3 { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+    .pill-p4 { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+    .pill-p5 { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.4); }
+
+    @media (max-width: 1500px) {
+      .workflow-guide { display: none; }
+    }
+    @media (max-height: 820px) {
+      :root { --tray-h: 210px; }
+      .left-toolbar { gap: 0.4rem; padding: 0.7rem 0.75rem; }
+      .tool-btn { padding: 0.45rem 0.65rem; }
+      .tool-group-label { margin-top: 0.1rem; }
+      .sim-toggle-btn { padding: 0.55rem 0.75rem; }
+    }
+    @media (max-height: 760px) {
+      :root { --tray-h: 200px; }
+      .left-toolbar .tool-group-label, .left-toolbar label[for="link-picker"] { display: none; }
+    }
+    @media (max-width: 1300px) {
+      .legend-extra { display: none; }
+    }
+    .tray-tabs { overflow-x: auto; overflow-y: hidden; }
+    .tray-tab-btn { white-space: nowrap; }
+    @media (max-width: 1150px) {
+      .tray-tab-btn { padding: 0 0.5rem; font-size: 0.72rem; }
+    }
+    @media (max-width: 1000px) {
+      .app-workspace { grid-template-columns: 180px 1fr 260px; }
+      .header-actions .btn { padding: 0.4rem 0.55rem; font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-wrap">
+      <div class="logo-badge">NR</div>
+      <div class="brand-title">NetRescue</div>
+      <div id="sim-status" class="sim-status-pill draft">
+        <span class="pulse-dot"></span>
+        <span id="sim-status-text">Draft Network</span>
+      </div>
+    </div>
+
+    <!-- WORKFLOW STAGE INDICATOR -->
+    <div class="workflow-guide">
+      <div class="wf-step active" id="wf-step-1">
+        <span class="wf-step-num">1</span> Build Topology
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-2">
+        <span class="wf-step-num">2</span> Add Traffic
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-3">
+        <span class="wf-step-num">3</span> Simulate Flow
+      </div>
+      <span class="wf-arrow">→</span>
+      <div class="wf-step" id="wf-step-4">
+        <span class="wf-step-num">4</span> Test Failures
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-success" id="btn-protected-demo" onclick="loadProtectedDemo()" title="Load congested_shortest + P1_DEMO and start the simulation (positive verified guarantees)">
+        🛡️ Load Protected Demo
+      </button>
+      <button class="btn btn-secondary" id="btn-sample-network" onclick="loadSamplePreset()" title="Load Normal Campus Network">
+        🧪 Load Sample Network
+      </button>
+      <button class="btn btn-secondary" id="btn-clear-network" onclick="promptClearNetwork()" title="Clear all nodes and links">
+        🗑️ Clear
+      </button>
+      <button class="btn btn-secondary" id="btn-export" onclick="exportNetworkJson()" title="Download Topology JSON">
+        💾 Export
+      </button>
+    </div>
+  </header>
+
+  <!-- APP WORKSPACE -->
+  <div class="app-workspace" id="app-workspace">
+    
+    <!-- LEFT TOOLBAR: PRIMARY ACTIONS -->
+    <div class="left-toolbar">
+      <div class="tool-group-label">Network Builder</div>
+      <button class="tool-btn primary-action" onclick="openAddNodeModal()">
+        <span>➕</span> Add Node
+      </button>
+      <button class="tool-btn primary-action" onclick="openConnectModal()">
+        <span>🔗</span> Connect Nodes
+      </button>
+      
+      <div class="tool-group-label" style="margin-top:0.6rem;">Traffic Demands</div>
+      <button class="tool-btn primary-action" onclick="openAddDemandModal()">
+        <span>⚡</span> Add Traffic
+      </button>
+
+      <div class="tool-group-label" style="margin-top:0.6rem;">Disaster Controls</div>
+      <label for="link-picker" style="font-size:0.68rem; color:var(--text-muted); padding-left:0.25rem;">Physical link (ID · endpoints)</label>
+      <select id="link-picker" class="form-select link-picker" onchange="onLinkPickerChange()">
+        <option value="">— no links —</option>
+      </select>
+      <button class="tool-btn danger-action" onclick="failPickedLink()" id="fail-btn" disabled>
+        <span>💥</span> <span id="fail-btn-text">Fail Link</span>
+      </button>
+      <button class="tool-btn restore-action" onclick="restorePickedLink()" id="restore-btn" disabled>
+        <span>🔧</span> <span id="restore-btn-text">Restore Link</span>
+      </button>
+      <button class="tool-btn" onclick="restoreAllLinks()" id="restore-all-btn">
+        <span>🔄</span> Restore All
+      </button>
+
+      <!-- SIMULATION TOGGLE -->
+      <button class="btn btn-primary sim-toggle-btn" id="sim-toggle-btn" onclick="toggleSimulation()">
+        <span id="sim-btn-icon">▶</span>
+        <span id="sim-btn-text">Start Simulation</span>
+      </button>
+    </div>
+
+    <!-- CENTER HERO CANVAS -->
+    <div class="canvas-viewport" id="canvas-viewport">
+      <div class="canvas-controls-overlay">
+        <button class="canvas-ctrl-btn" onclick="zoomIn()" title="Zoom In">+</button>
+        <button class="canvas-ctrl-btn" onclick="zoomOut()" title="Zoom Out">-</button>
+        <button class="canvas-ctrl-btn" onclick="fitView()" title="Fit View">⛶</button>
+        <button class="canvas-ctrl-btn" onclick="resetView()" title="Reset View">↺</button>
+      </div>
+
+      <!-- EMPTY STATE GUIDE -->
+      <div class="canvas-loading" id="canvas-loading">Loading network…</div>
+
+      <div class="empty-state-guide" id="empty-state-guide" style="display:none">
+        <div class="empty-state-icon">🌐</div>
+        <h2>Start by adding your first node</h2>
+        <p>Construct your custom network from scratch. Add routers, switches, and servers, then connect them with bandwidth-constrained links.</p>
+        <div style="display:flex; justify-content:center; gap:0.75rem;">
+          <button class="btn btn-primary" onclick="openAddNodeModal()">
+            ➕ Add First Node
+          </button>
+          <button class="btn btn-secondary" onclick="loadSamplePreset()">
+            Load Sample Network
+          </button>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <button class="btn btn-success" onclick="loadProtectedDemo()">🛡️ Load Protected Demo</button>
+        </div>
+      </div>
+
+      <div class="canvas-legend" id="canvas-legend" style="display:none">
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#10b981;"></span>&lt;50% load</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#f59e0b;"></span>50–79%</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#ef4444;"></span>≥80% congested (link UP)</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#64748b; border-top-style:dashed;"></span><span style="color:#ff5c7a; font-weight:700;">✖</span> FAILED (link DOWN)</span>
+        <span class="legend-item"><span class="legend-swatch" style="border-color:#b45309; border-top-style:dotted;"></span>FLAPPING (held down)</span>
+        <span class="legend-item legend-extra">Labels: link ID · load/capacity</span>
+      </div>
+
+      <!-- SVG GRAPH CANVAS -->
+      <svg id="network-canvas">
+        <defs>
+          <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g id="canvas-world">
+          <g id="links-layer"></g>
+          <g id="flows-layer"></g>
+          <g id="nodes-layer"></g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- RIGHT INSPECTOR -->
+    <div class="right-inspector" id="right-inspector">
+      <div class="inspector-header">
+        <span id="inspector-title">Inspector</span>
+        <button class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="clearSelection()">Deselect</button>
+      </div>
+      <div class="inspector-body" id="inspector-body">
+        <!-- Rendered dynamically based on selection -->
+        <div class="info-card">
+          <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Instructions</div>
+          <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;" id="guided-tip">
+            Click on any node or link in the network canvas to view details, edit capacity, or simulate failure.
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
+          <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val" id="stat-nodes">0</span></div>
+          <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val" id="stat-links">0</span></div>
+          <div class="info-row"><span class="info-label">Active Demands:</span><span class="info-val" id="stat-demands">0</span></div>
+          <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">0</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM TRAY -->
+  <div class="bottom-tray" id="bottom-tray">
+    <div class="tray-header">
+      <div class="tray-tabs">
+        <button class="tray-tab-btn active" data-tab="tray-demands" onclick="switchTrayTab('tray-demands')">
+          <span>⚡ Traffic Demands</span> <span id="badge-demands-count" style="font-size:0.7rem; color:var(--cyan);">(0)</span>
+        </button>
+        <button class="tray-tab-btn" data-tab="tray-metrics" onclick="switchTrayTab('tray-metrics')">
+          <span>📊 Resilience Metrics</span>
+        </button>
+        <button class="tray-tab-btn" data-tab="tray-protection" onclick="switchTrayTab('tray-protection')">
+          <span>🛡️ Protection Guarantees</span> <span id="badge-protection-status" style="font-size:0.7rem; color:var(--text-muted);">(—)</span>
+        </button>
+        <button class="tray-tab-btn" data-tab="tray-compare" onclick="switchTrayTab('tray-compare')">
+          <span>⚖ Algorithm Comparison</span>
+        </button>
+        <button class="tray-tab-btn" data-tab="tray-whatif" onclick="switchTrayTab('tray-whatif')">
+          <span>🔬 What-If Analysis</span>
+        </button>
+        <button class="tray-tab-btn" data-tab="tray-events" onclick="switchTrayTab('tray-events')">
+          <span>📜 Event Log</span>
+        </button>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <button class="btn btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="toggleTrayCollapse()" id="tray-collapse-btn">
+          Hide Tray ▼
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: TRAFFIC DEMANDS -->
+    <div id="tray-demands" class="tray-content active">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Active multi-priority traffic demands. Add, edit, or delete demands at any time.</span>
+        <button class="btn btn-primary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="openAddDemandModal()">+ Add Demand</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Source → Destination</th>
+            <th>Category</th>
+            <th>Requested</th>
+            <th>Delivered</th>
+            <th>Unserved</th>
+            <th>Status</th>
+            <th>Active Route</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="demands-table-body">
+          <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:1rem;">No traffic demands created yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 2: METRICS -->
+    <div id="tray-metrics" class="tray-content">
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:0.75rem; margin-bottom:0.75rem;">
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Delivery Rate</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--cyan);" id="metric-deliv-rate">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-deliv-bw">delivered / requested</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Critical (P1–P2) Delivered Now</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--green);" id="metric-crit-rate">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-crit-bw">Current rate, not a guarantee</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Congested Links</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--amber);" id="metric-congested">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">≥ 80% utilization (link still up)</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Average Path Latency</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--text);" id="metric-latency">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);">Sum of link latencies (model)</div>
+        </div>
+        <div class="info-card">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Failed Links</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--red);" id="metric-failed-count">—</div>
+          <div style="font-size:0.7rem; color:var(--text-dim);" id="metric-failed-ids">Physical outages</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="info-card" id="last-failure-card">
+          <div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Last Failure / Restore Event</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">No link has been failed in this browser session.</div>
+        </div>
+        <div class="info-card">
+          <div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Delivered by Priority (current)</div>
+          <div id="metric-per-priority" style="font-size:0.75rem; color:var(--text-muted);">No metrics yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PROTECTION GUARANTEES -->
+    <div id="tray-protection" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">
+          Protection Planner (LP) computes the worst-case bandwidth each P1/P2 flow keeps across the baseline and every single-link failure; the Guarantee Checker independently re-verifies it. A guarantee can legitimately be 0 Mbps.
+        </span>
+        <button class="btn btn-secondary" id="protection-replan-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="recomputeProtectionPlan()">
+          🛡️ Recompute Plan (HiGHS LP)
+        </button>
+      </div>
+      <div id="protection-plan-summary-box" style="margin-bottom:0.6rem;"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Flow ID</th>
+            <th>Priority</th>
+            <th>Requested</th>
+            <th>Guaranteed (Protected)</th>
+            <th>Currently Delivered</th>
+            <th>Protected %</th>
+            <th>Protection Status</th>
+          </tr>
+        </thead>
+        <tbody id="protection-table-body">
+          <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No critical traffic demands (P1/P2) created yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 3: ALGORITHM COMPARISON -->
+    <div id="tray-compare" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Compare PACAR vs Standard Shortest-Path Dijkstra under identical disaster conditions.</span>
+        <button class="btn btn-secondary" id="compare-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
+      </div>
+      <div id="compare-results-box" style="font-size:0.8rem; color:var(--text-muted);">
+        Click "Run Comparison" to analyze delivery rate and congestion avoidance.
+      </div>
+    </div>
+
+    <!-- TAB 4: WHAT-IF ANALYSIS -->
+    <div id="tray-whatif" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Simulate one or more link failures on a snapshot. The live network is not changed.</span>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="btn btn-secondary" id="whatif-clear-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="clearWhatIfSelection()">Clear Selection</button>
+          <button class="btn btn-primary" id="whatif-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="executeWhatIf()">🔬 Evaluate Impact</button>
+        </div>
+      </div>
+      <div id="whatif-link-selectors" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;"></div>
+      <div id="whatif-results-box" style="font-size:0.8rem; color:var(--text-muted);">Select links above and click "Evaluate Impact".</div>
+    </div>
+
+    <!-- TAB 5: EVENT LOG -->
+    <div id="tray-events" class="tray-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Backend event log, newest first. Times shown are algorithm computation times, not measured network downtime.</span>
+        <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="loadEvents()">↻ Refresh</button>
+      </div>
+      <div id="event-log-list" style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.75rem;">
+        <div style="color:var(--text-muted);">Simulator ready.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: ADD NODE -->
+  <div class="modal-backdrop" id="modal-add-node">
+    <div class="modal-card">
+      <h3 id="modal-node-title">➕ Add Network Node</h3>
+      <p class="subtitle">Create a new router, switch, or server in your custom topology.</p>
+      <input type="hidden" id="node-edit-id">
+      <div class="form-group">
+        <label>Node ID (e.g. R1, SW1, SRV1)</label>
+        <input type="text" id="node-input-id" class="form-input" placeholder="R1">
+      </div>
+      <div class="form-group">
+        <label>Display Label</label>
+        <input type="text" id="node-input-name" class="form-input" placeholder="Optional — defaults to the Node ID">
+      </div>
+      <div class="form-group">
+        <label>Node Type</label>
+        <select id="node-input-type" class="form-select">
+          <option value="router">🌐 Router (Layer 3 Routing)</option>
+          <option value="switch">🔀 Switch (Distribution Switch)</option>
+          <option value="server">🖥️ Server (Application Host)</option>
+          <option value="gateway">🚪 Gateway (Border Uplink)</option>
+          <option value="endpoint">📱 Endpoint (Client/Workstation)</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-node')">Cancel</button>
+        <button class="btn btn-primary" id="node-submit-btn" onclick="submitAddNode()">Add Node</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONNECT NODES -->
+  <div class="modal-backdrop" id="modal-connect">
+    <div class="modal-card">
+      <h3 id="modal-connect-title">🔗 Connect Nodes</h3>
+      <p class="subtitle">Create a physical bidirectional link with bandwidth and latency constraints.</p>
+      <input type="hidden" id="link-edit-id">
+      <div class="form-group">
+        <label>Source Node</label>
+        <select id="link-input-src" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label>Destination Node</label>
+        <select id="link-input-dst" class="form-select"></select>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label>Capacity (Mbps)</label>
+          <input type="number" id="link-input-cap" class="form-input" value="100" min="0.01" max="10000000" step="any">
+        </div>
+        <div class="form-group">
+          <label>Latency (ms)</label>
+          <input type="number" id="link-input-lat" class="form-input" value="5" min="0" max="1000000" step="any">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-connect')">Cancel</button>
+        <button class="btn btn-primary" id="link-submit-btn" onclick="submitConnectNodes()">Create Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT DEMAND -->
+  <div class="modal-backdrop" id="modal-demand">
+    <div class="modal-card">
+      <h3 id="modal-demand-title">⚡ Add Traffic Demand</h3>
+      <p class="subtitle">Define bandwidth requirements and QoS priority classification.</p>
+      <input type="hidden" id="demand-edit-id">
+      <div class="form-group">
+        <label>Demand ID</label>
+        <input type="text" id="demand-input-id" class="form-input" placeholder="D1">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label>Source</label>
+          <select id="demand-input-src" class="form-select"></select>
+        </div>
+        <div class="form-group">
+          <label>Destination</label>
+          <select id="demand-input-dst" class="form-select"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Traffic Category (Priority)</label>
+        <select id="demand-input-cat" class="form-select">
+          <option value="emergency">🚨 P1 — Emergency (Preempts all lower traffic)</option>
+          <option value="essential">🛡️ P2 — Essential Infrastructure</option>
+          <option value="academic">🎓 P3 — Academic / Research</option>
+          <option value="general" selected>🌐 P4 — General Traffic</option>
+          <option value="background">📦 P5 — Background (Dropped first on congestion)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Requested Bandwidth (Mbps)</label>
+        <input type="number" id="demand-input-bw" class="form-input" value="30" min="0.01" max="10000000" step="any">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-demand')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitDemandForm()">Save Demand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-msg">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-text">Message</span>
+  </div>
+
+  <script>
+    // Same-origin when FastAPI serves the dashboard (any port). Only fall back to the
+    // default API port when opened from disk or from the Vite dev/preview server.
+    // `?api=http://host:port` overrides explicitly.
+    const API_BASE = (() => {
+      const override = new URLSearchParams(window.location.search).get('api');
+      if (override) return override.replace(/\/+$/, '');
+      if (window.location.protocol === 'file:') return 'http://localhost:8000';
+      if (['5173', '4173'].includes(window.location.port)) return 'http://localhost:8000';
+      return '';
+    })();
+
+    // Positive-protection demo (existing congested_shortest preset + one extra P1 flow).
+    const PROTECTED_DEMO = {
+      preset: 'congested_shortest',
+      extraDemand: { id: 'P1_DEMO', source: 'A', destination: 'E', bandwidth: 10, category: 'emergency' },
+      suggestedLink: 'L3'
+    };
+
+    // Application state
+    let state = {
+      nodes: {},       // id -> Node
+      links: {},       // id -> Link
+      demands: {},     // id -> Demand
+      simulationActive: false,
+      selectedItem: null, // { type: 'node'|'link', id: string }
+      pickedLinkId: null, // link chosen in the Disaster Controls picker
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+      isDraggingNode: null,
+      dragMoved: false,
+      dragOffset: { x: 0, y: 0 },
+      isPanning: false,
+      panStart: { x: 0, y: 0 },
+      lastMetrics: null,
+      lastPlan: null,
+      lastFailure: null,  // { action, linkId, result, before, after, at }
+      initialized: false,
+      busy: false
+    };
+
+    // Node Type Icons
+    const ICONS = {
+      router: "🌐",
+      switch: "🔀",
+      server: "🖥️",
+      gateway: "🚪",
+      endpoint: "📱"
+    };
+
+    const PRIORITY_LABELS = { 1: 'P1 Emergency', 2: 'P2 Essential', 3: 'P3 Academic', 4: 'P4 General', 5: 'P5 Background' };
+    const CATEGORY_PRIORITY = { emergency: 1, essential: 2, academic: 3, general: 4, background: 5 };
+
+    // ---- Formatting helpers (never turn missing data into zero) ----
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    // Safe JS string literal for inline onclick attributes.
+    function jsArg(v) { return esc(JSON.stringify(String(v))); }
+    function isNum(v) { return typeof v === 'number' && Number.isFinite(v); }
+    function fmtMbps(v, digits = 1) {
+      if (!isNum(v)) return '—';
+      // Never let fixed-digit rounding display a non-zero rate as zero.
+      if (v !== 0 && Number(v.toFixed(digits)) === 0) return `${Number(v.toPrecision(2))} Mbps`;
+      return `${v.toFixed(digits)} Mbps`;
+    }
+    // Whole numbers without decimals, otherwise up to 2 decimals (or 2 significant digits if smaller).
+    function fmtMbpsAuto(v) {
+      if (!isNum(v)) return '—';
+      const r = Math.round(v * 1e4) / 1e4;
+      if (Number.isInteger(r)) return `${r} Mbps`;
+      return Math.abs(v) < 0.01 ? `${Number(v.toPrecision(2))} Mbps` : `${Number(v.toFixed(2))} Mbps`;
+    }
+    function fmtPct(v, digits = 1) { return isNum(v) ? `${v.toFixed(digits)}%` : '—'; }
+    function priorityOf(d) {
+      if (!d) return null;
+      if (isNum(d.priority)) return d.priority;
+      return CATEGORY_PRIORITY[d.category] ?? null;
+    }
+    function linkLabel(l) {
+      const st = l.status === 'failed' ? ' · FAILED' : (l.status === 'flapping' ? ' · FLAPPING (held down)' : '');
+      return `${l.id} · ${l.source}↔${l.target} · ${l.capacity} Mbps${st}`;
+    }
+
+    let toastTimer = null;
+    function showToast(text, icon = "ℹ️", ms = 4000) {
+      const toast = document.getElementById('toast-msg');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-text').textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // API Helpers
+    async function parseApiError(res) {
+      try {
+        const errJson = await res.json();
+        if (Array.isArray(errJson.detail)) {
+          return errJson.detail.map(e => `${e.loc ? e.loc.slice(-1)[0] : 'field'}: ${e.msg}`).join(', ');
+        } else if (typeof errJson.detail === 'string') {
+          return errJson.detail;
+        } else if (errJson.detail) {
+          return JSON.stringify(errJson.detail);
+        }
+      } catch (_) {}
+      return res.statusText || `HTTP ${res.status}`;
+    }
+
+    // Each helper is self-contained (backend/tests/what_if_dashboard_harness.cjs extracts
+    // apiGet/apiPost/apiPut by name), so the unreachable-backend handling is inlined.
+    async function apiGet(path) {
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
+      if (!res.ok) throw new Error(await parseApiError(res));
+      return await res.json();
+    }
+    async function apiPost(path, body = null) {
+      const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`, opts); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
+      if (!res.ok) throw new Error(await parseApiError(res));
+      return await res.json();
+    }
+    async function apiPut(path, body) {
+      let res;
+      try {
+        res = await fetch(`${API_BASE}${path}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      } catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
+      if (!res.ok) throw new Error(await parseApiError(res));
+      return await res.json();
+    }
+    async function apiDelete(path) {
+      let res;
+      try { res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' }); }
+      catch (e) { throw new Error(`Cannot reach the NetRescue backend${API_BASE ? ' at ' + API_BASE : ''}. Is the server running?`); }
+      if (!res.ok) throw new Error(await parseApiError(res));
+      return await res.json();
+    }
+
+    // Ignore repeated clicks while the same action is still running (double-click,
+    // impatient re-click): each guarded action runs at most once at a time.
+    const runningActions = new Set();
+    async function runExclusive(key, fn) {
+      if (runningActions.has(key)) return;
+      runningActions.add(key);
+      try { return await fn(); } finally { runningActions.delete(key); }
+    }
+    function toggleSimulation(...args) { return runExclusive('toggleSimulation', () => toggleSimulationImpl(...args)); }
+    function submitAddNode(...args) { return runExclusive('submitAddNode', () => submitAddNodeImpl(...args)); }
+    function submitConnectNodes(...args) { return runExclusive('submitConnectNodes', () => submitConnectNodesImpl(...args)); }
+    function submitDemandForm(...args) { return runExclusive('submitDemandForm', () => submitDemandFormImpl(...args)); }
+    function recomputeProtectionPlan(...args) { return runExclusive('recomputeProtectionPlan', () => recomputeProtectionPlanImpl(...args)); }
+
+    // Sync from Backend
+    // Several syncs can be in flight (an action finishes while a previous sync is
+    // still waiting). Only the most recently started sync may apply its results;
+    // an older response must never overwrite newer state.
+    let syncSeq = 0;
+    async function syncState() {
+      const mySeq = ++syncSeq;
+      const superseded = () => mySeq !== syncSeq;
+      try {
+        const [topData, demData, failData, metrics] = await Promise.all([
+          apiGet('/topology'),
+          apiGet('/demands'),
+          apiGet('/failures').catch(() => null),
+          apiGet('/metrics').catch(() => null),
+        ]);
+        if (superseded()) return;
+
+        state.nodes = {};
+        (topData.nodes || []).forEach(n => state.nodes[n.id] = n);
+
+        state.links = {};
+        (topData.links || []).forEach(l => state.links[l.id] = l);
+
+        state.demands = {};
+        (demData.demands || []).forEach(d => state.demands[d.id] = d);
+
+        // On first load, reflect whether the backend already holds a simulated allocation.
+        if (!state.initialized) {
+          state.simulationActive = Object.values(state.demands).some(d => d.status && d.status !== 'pending');
+          state.initialized = true;
+          updateSimUi();
+        }
+
+        state.lastMetrics = metrics;
+        state.cooldowns = {};
+        ((failData && failData.flapping_links) || []).forEach(f => { state.cooldowns[f.id] = f.cooldown_remaining; });
+
+        if (state.selectedItem && state.selectedItem.type === 'link' && !state.links[state.selectedItem.id]) state.selectedItem = null;
+        if (state.selectedItem && state.selectedItem.type === 'node' && !state.nodes[state.selectedItem.id]) state.selectedItem = null;
+
+        renderCanvas();
+        renderLinkPicker();
+        renderDemandsTable();
+        renderMetrics();
+        renderLastFailure();
+        renderInspector();
+        updateWorkflowSteps();
+        await loadProtectionPlan(mySeq);
+        if (superseded()) return;
+        if (isTabActive('tray-whatif')) populateWhatIfLinks();
+        if (isTabActive('tray-events')) await loadEvents();
+      } catch (err) {
+        if (superseded()) return;
+        console.warn("State sync failed:", err);
+        showToast(err.message, "⚠️", 6000);
+        if (!state.initialized) document.getElementById('canvas-loading').textContent = err.message;
+      }
+    }
+
+    // WORKFLOW STEPS UPDATE
+    function updateWorkflowSteps() {
+      const n = Object.keys(state.nodes).length;
+      const l = Object.keys(state.links).length;
+      const d = Object.keys(state.demands).length;
+
+      document.querySelectorAll('.wf-step').forEach(s => s.classList.remove('active'));
+      if (n === 0 || l === 0) {
+        document.getElementById('wf-step-1').classList.add('active');
+      } else if (d === 0 && !state.simulationActive) {
+        document.getElementById('wf-step-2').classList.add('active');
+      } else if (!state.simulationActive) {
+        document.getElementById('wf-step-3').classList.add('active');
+      } else {
+        document.getElementById('wf-step-4').classList.add('active');
+      }
+
+      const emptyGuide = document.getElementById('empty-state-guide');
+      emptyGuide.style.display = n === 0 ? 'block' : 'none';
+      document.getElementById('canvas-loading').style.display = 'none';
+      document.getElementById('canvas-legend').style.display = n === 0 ? 'none' : 'flex';
+    }
+
+    function updateSimUi() {
+      const active = state.simulationActive;
+      document.getElementById('sim-status').className = `sim-status-pill ${active ? 'active' : 'draft'}`;
+      document.getElementById('sim-status-text').textContent = active ? 'Live Simulation Active' : 'Draft Network';
+      document.getElementById('sim-btn-icon').textContent = active ? '⏹' : '▶';
+      document.getElementById('sim-btn-text').textContent = active ? 'Stop Simulation' : 'Start Simulation';
+      document.getElementById('sim-toggle-btn').className = `btn ${active ? 'btn-danger' : 'btn-primary'} sim-toggle-btn`;
+    }
+
+    // SIMULATION TOGGLE
+    async function toggleSimulationImpl() {
+      if (!state.simulationActive) {
+        try {
+          if (!Object.keys(state.demands).length) {
+            showToast("Add at least one traffic demand before starting the simulation.", "⚠️");
+            return;
+          }
+          const result = await apiPost('/simulate?algorithm=pacar');
+          state.simulationActive = true;
+          updateSimUi();
+          const v = (result.violations || []).length;
+          showToast(`Simulation active (PACAR). Validator: ${v} violation${v === 1 ? '' : 's'}. Edits and failures now recalculate live.`, "▶");
+          await syncState();
+        } catch (err) {
+          showToast(`Cannot start simulation: ${err.message}`, "⚠️");
+        }
+      } else {
+        state.simulationActive = false;
+        updateSimUi();
+        showToast("Live re-simulation paused. Current routes are kept; edits will not be re-routed until you press Start.", "⏹");
+        await syncState();
+      }
+    }
+
+    // AUTO RE-SIMULATE IF RUNNING
+    async function reSimulateIfActive() {
+      if (state.simulationActive) {
+        try {
+          await apiPost('/simulate?algorithm=pacar');
+        } catch (e) {
+          console.warn("Auto-resimulate failed:", e);
+          showToast(`Re-simulation failed: ${e.message}`, "⚠️");
+        }
+      }
+      await syncState();
+    }
+
+    // ADD / EDIT NODE
+    function openAddNodeModal(editNode = null) {
+      const nodes = state.nodes || {};
+      const idInput = document.getElementById('node-input-id');
+      if (editNode) {
+        document.getElementById('modal-node-title').textContent = `✏️ Edit Node ${editNode.id}`;
+        document.getElementById('node-edit-id').value = editNode.id;
+        idInput.value = editNode.id;
+        idInput.disabled = true;
+        document.getElementById('node-input-name').value = editNode.name || editNode.id;
+        document.getElementById('node-input-type').value = editNode.node_type || 'router';
+        document.getElementById('node-submit-btn').textContent = 'Save Node';
+      } else {
+        let nextNum = 1;
+        while (nodes[`R${nextNum}`]) nextNum++;
+        document.getElementById('modal-node-title').textContent = '➕ Add Network Node';
+        document.getElementById('node-edit-id').value = '';
+        idInput.disabled = false;
+        idInput.value = `R${nextNum}`;
+        // Blank name defaults to the node ID on save.
+        document.getElementById('node-input-name').value = '';
+        document.getElementById('node-input-type').value = "router";
+        document.getElementById('node-submit-btn').textContent = 'Add Node';
+      }
+      openModal('modal-add-node');
+    }
+
+    async function submitAddNodeImpl() {
+      const editId = document.getElementById('node-edit-id').value;
+      const id = document.getElementById('node-input-id').value.trim();
+      const name = document.getElementById('node-input-name').value.trim() || id;
+      const type = document.getElementById('node-input-type').value;
+
+      if (editId) {
+        try {
+          await apiPut(`/nodes/${encodeURIComponent(editId)}`, { name, node_type: type });
+          closeModal('modal-add-node');
+          showToast(`Node ${editId} updated`, "✅");
+          await reSimulateIfActive();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, "❌");
+        }
+        return;
+      }
+
+      if (!id) return showToast("Node ID is required", "⚠️");
+      if (state.nodes && state.nodes[id]) {
+        return showToast(`Node ID '${id}' already exists! Please choose a unique ID.`, "⚠️");
+      }
+
+      // Place node near the centre of the visible canvas (world coordinates).
+      const svg = document.getElementById('network-canvas');
+      const rect = svg ? svg.getBoundingClientRect() : { width: 800, height: 600 };
+      const count = Object.keys(state.nodes || {}).length;
+      const angle = count * 0.8;
+      const radius = 80 + count * 25;
+      const cx = (rect.width / 2 - state.pan.x) / state.zoom;
+      const cy = (rect.height / 2 - state.pan.y) / state.zoom;
+      const x = Math.round(cx + Math.cos(angle) * Math.min(radius, 250));
+      const y = Math.round(cy + Math.sin(angle) * Math.min(radius, 180));
+
+      try {
+        await apiPost('/nodes', { id, name, node_type: type, x, y });
+        closeModal('modal-add-node');
+        showToast(`Node ${id} created`, "✅");
+        state.selectedItem = { type: 'node', id };
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // CONNECT NODES / EDIT LINK
+    function openConnectModal(defaultSrc = null, editLink = null) {
+      const nodes = Object.values(state.nodes || {});
+      if (nodes.length < 2) return showToast("Create at least 2 nodes first", "⚠️");
+
+      const s = document.getElementById('link-input-src');
+      const d = document.getElementById('link-input-dst');
+      s.innerHTML = ""; d.innerHTML = "";
+      nodes.forEach(n => {
+        s.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+        d.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+      });
+      if (editLink) {
+        document.getElementById('modal-connect-title').textContent = `✏️ Edit Link ${editLink.id}`;
+        document.getElementById('link-edit-id').value = editLink.id;
+        s.value = editLink.source;
+        d.value = editLink.target;
+        s.disabled = true; d.disabled = true;
+        document.getElementById('link-input-cap').value = editLink.capacity;
+        document.getElementById('link-input-lat').value = editLink.latency;
+        document.getElementById('link-submit-btn').textContent = 'Save Link';
+      } else {
+        document.getElementById('modal-connect-title').textContent = '🔗 Connect Nodes';
+        document.getElementById('link-edit-id').value = '';
+        s.disabled = false; d.disabled = false;
+        if (defaultSrc) s.value = defaultSrc;
+        d.selectedIndex = s.selectedIndex === 0 ? 1 : 0;
+        document.getElementById('link-submit-btn').textContent = 'Create Link';
+      }
+      openModal('modal-connect');
+    }
+
+    async function submitConnectNodesImpl() {
+      const editId = document.getElementById('link-edit-id').value;
+      const src = document.getElementById('link-input-src').value;
+      const dst = document.getElementById('link-input-dst').value;
+      const cap = parseFloat(document.getElementById('link-input-cap').value);
+      const lat = parseFloat(document.getElementById('link-input-lat').value);
+
+      if (!isNum(cap) || cap < 0.01 || cap > 1e7) return showToast("Capacity must be a positive number of Mbps between 0.01 and 10,000,000", "⚠️");
+      if (!isNum(lat) || lat < 0 || lat > 1e6) return showToast("Latency must be a non-negative number of ms (at most 1,000,000)", "⚠️");
+
+      if (editId) {
+        try {
+          await apiPut(`/links/${encodeURIComponent(editId)}`, { capacity: cap, latency: lat });
+          closeModal('modal-connect');
+          showToast(`Link ${editId} updated: ${cap} Mbps, ${lat} ms`, "✅");
+          await reSimulateIfActive();
+        } catch (err) {
+          showToast(`Error: ${err.message}`, "❌");
+        }
+        return;
+      }
+
+      if (src === dst) return showToast("Source and destination must be different", "⚠️");
+
+      const existing = Object.values(state.links || {}).find(l =>
+        (l.source === src && l.target === dst) || (l.source === dst && l.target === src)
+      );
+      if (existing) {
+        return showToast(`A link between ${src} and ${dst} already exists (${existing.id})!`, "⚠️");
+      }
+
+      // Short sequential IDs (L1, L2, ...) are easiest to read and to pick for failure.
+      // Use the backend's current link list, not possibly stale local state.
+      let taken = new Set(Object.keys(state.links));
+      try { taken = new Set((await apiGet('/topology')).links.map(l => l.id)); } catch (_) {}
+      let n = 1;
+      while (taken.has(`L${n}`)) n++;
+      const lid = `L${n}`;
+
+      try {
+        await apiPost('/links', { id: lid, source: src, target: dst, capacity: cap, latency: lat });
+        closeModal('modal-connect');
+        showToast(`Created ${lid}: ${src} ↔ ${dst} (${cap} Mbps)`, "✅");
+        state.selectedItem = { type: 'link', id: lid };
+        state.pickedLinkId = lid;
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // ADD / EDIT DEMAND
+    function openAddDemandModal(editDemand = null) {
+      const nodes = Object.values(state.nodes);
+      if (nodes.length < 2) return showToast("Create at least 2 nodes before adding traffic", "⚠️");
+
+      const s = document.getElementById('demand-input-src');
+      const d = document.getElementById('demand-input-dst');
+      s.innerHTML = ""; d.innerHTML = "";
+      nodes.forEach(n => {
+        s.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+        d.add(new Option(`${n.id} (${n.name || n.node_type})`, n.id));
+      });
+
+      if (editDemand) {
+        document.getElementById('modal-demand-title').textContent = `✏️ Edit Demand ${editDemand.id}`;
+        document.getElementById('demand-edit-id').value = editDemand.id;
+        document.getElementById('demand-input-id').value = editDemand.id;
+        document.getElementById('demand-input-id').disabled = true;
+        s.value = editDemand.source;
+        d.value = editDemand.destination;
+        document.getElementById('demand-input-cat').value = editDemand.category;
+        document.getElementById('demand-input-bw').value = editDemand.bandwidth;
+      } else {
+        document.getElementById('modal-demand-title').textContent = `⚡ Add Traffic Demand`;
+        document.getElementById('demand-edit-id').value = "";
+        let nextD = Object.keys(state.demands).length + 1;
+        while (state.demands[`D${nextD}`]) nextD++;
+        document.getElementById('demand-input-id').value = `D${nextD}`;
+        document.getElementById('demand-input-id').disabled = false;
+        if (s.selectedIndex === 0 && nodes.length > 1) d.selectedIndex = 1;
+        document.getElementById('demand-input-bw').value = 30;
+      }
+      openModal('modal-demand');
+    }
+
+    async function submitDemandFormImpl() {
+      const editId = document.getElementById('demand-edit-id').value;
+      const id = document.getElementById('demand-input-id').value.trim();
+      const src = document.getElementById('demand-input-src').value;
+      const dst = document.getElementById('demand-input-dst').value;
+      const cat = document.getElementById('demand-input-cat').value;
+      const bw = parseFloat(document.getElementById('demand-input-bw').value);
+
+      if (!editId && !id) return showToast("Demand ID is required", "⚠️");
+      if (src === dst) return showToast("Source and destination must be different", "⚠️");
+      if (!isNum(bw) || bw < 0.01 || bw > 1e7) return showToast("Bandwidth must be a positive number of Mbps between 0.01 and 10,000,000", "⚠️");
+
+      try {
+        if (editId) {
+          await apiPut(`/demands/${encodeURIComponent(editId)}`, { bandwidth: bw, category: cat, source: src, destination: dst });
+          showToast(`Demand ${editId} updated`, "✅");
+        } else {
+          await apiPost('/demands', { id, source: src, destination: dst, bandwidth: bw, category: cat });
+          showToast(`Demand ${id} added`, "✅");
+        }
+        closeModal('modal-demand');
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    async function deleteDemand(id) {
+      if (!confirm(`Delete traffic demand ${id}?`)) return;
+      try {
+        await apiDelete(`/demands/${encodeURIComponent(id)}`);
+        showToast(`Demand ${id} removed`, "🗑️");
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // FAIL / RESTORE LINK (always an explicit, named link — never a random one)
+    function snapshotDelivery() {
+      const snap = {};
+      Object.values(state.demands).forEach(d => {
+        snap[d.id] = { allocated: d.allocated_bandwidth, status: d.status, requested: d.bandwidth, priority: priorityOf(d) };
+      });
+      return snap;
+    }
+
+    async function setLinkState(linkId, action) {
+      const link = state.links[linkId];
+      if (!link) return showToast(`Link ${linkId} does not exist`, "⚠️");
+      if (action === 'fail' && link.status === 'failed') return showToast(`${linkId} is already failed`, "ℹ️");
+      if (link.status === 'flapping') return showToast(holdDownText(link), "⚠️", 9000);
+      if (action === 'restore' && link.status !== 'failed') return showToast(`${linkId} is already active`, "ℹ️");
+      if (state.busy) return;
+      state.busy = true;
+      const before = snapshotDelivery();
+      try {
+        const result = await apiPost(`/links/${encodeURIComponent(linkId)}/${action}`);
+        await syncState();
+        if (result.changed === false) {
+          // The backend made no change (already failed/active or held down): report it as such.
+          showToast(result.message || `${linkId}: nothing changed.`, "ℹ️", 7000);
+          return;
+        }
+        state.lastFailure = { action, linkId, link: { source: link.source, target: link.target }, result, before, after: snapshotDelivery(), at: new Date() };
+        renderLastFailure();
+        renderInspector();
+        const v = Array.isArray(result.violations) ? result.violations.length : null;
+        if (action === 'fail') {
+          const reflex = result.reflex_used === true ? 'Reflex used' : (result.reflex_used === false ? 'Reflex NOT used (fallback re-optimization)' : 'Reflex status not reported');
+          showToast(`${linkId} (${link.source}↔${link.target}) FAILED. ${reflex}. Validator violations: ${v ?? '—'}.`, "💥", 6000);
+        } else {
+          const now = state.links[linkId];
+          if (result.event === 'link_flapping' || (now && now.status === 'flapping')) {
+            showToast(`${linkId} was NOT returned to service. ${holdDownText(now || link, result.cooldown_remaining)}`, "⚠️", 10000);
+          } else {
+            showToast(`${linkId} (${link.source}↔${link.target}) restored. Validator violations: ${v ?? '—'}.`, "🔧", 5000);
+          }
+        }
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+        await syncState();
+      } finally {
+        state.busy = false;
+        renderLinkPicker();
+      }
+    }
+
+    // Flap damping: a link that failed 3 times within 10 controller steps is held down for
+    // 5 steps. A controller step is one simulation run, link failure or link restore.
+    function holdDownText(link, remaining) {
+      const left = isNum(remaining) ? remaining : (state.cooldowns || {})[link.id];
+      const count = isNum(link.flap_count) ? link.flap_count : null;
+      return `${link.id} is held down by flap damping${count ? ` (failed ${count} times within 10 controller steps)` : ''}: ` +
+        `it carries no traffic and cannot be failed or restored manually. It returns to service automatically` +
+        `${isNum(left) ? ` after ${left} more controller step${left === 1 ? '' : 's'} (each simulation run, failure or restore is one step)` : ' when its cooldown ends'}` +
+        `, or click 🛡️ Load Protected Demo to reload the scenario.`;
+    }
+
+    function toggleLinkFailure(linkId) {
+      const link = state.links[linkId];
+      if (!link) return;
+      return setLinkState(linkId, link.status === 'failed' ? 'restore' : 'fail');
+    }
+
+    function failPickedLink() {
+      if (!state.pickedLinkId) return showToast("Choose a link in the picker (or click one on the canvas) first", "⚠️");
+      return setLinkState(state.pickedLinkId, 'fail');
+    }
+    function restorePickedLink() {
+      if (!state.pickedLinkId) return showToast("Choose a link in the picker first", "⚠️");
+      return setLinkState(state.pickedLinkId, 'restore');
+    }
+
+    function renderLinkPicker() {
+      const picker = document.getElementById('link-picker');
+      const links = Object.values(state.links).sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true }));
+      if (state.pickedLinkId && !state.links[state.pickedLinkId]) state.pickedLinkId = null;
+      if (!links.length) {
+        picker.innerHTML = `<option value="">— no links —</option>`;
+      } else {
+        picker.innerHTML = `<option value="">— choose a link —</option>` +
+          links.map(l => `<option value="${esc(l.id)}">${l.status === 'failed' ? '✖ ' : (l.status === 'flapping' ? '⚠ ' : '')}${esc(linkLabel(l))}</option>`).join('');
+      }
+      picker.value = state.pickedLinkId || '';
+      const picked = state.pickedLinkId ? state.links[state.pickedLinkId] : null;
+      const failBtn = document.getElementById('fail-btn');
+      const restoreBtn = document.getElementById('restore-btn');
+      failBtn.disabled = state.busy || !picked || picked.status !== 'active';
+      restoreBtn.disabled = state.busy || !picked || picked.status !== 'failed';
+      failBtn.title = picked && picked.status === 'flapping' ? holdDownText(picked) : '';
+      document.getElementById('fail-btn-text').textContent = picked ? `Fail ${picked.id}` : 'Fail Link';
+      document.getElementById('restore-btn-text').textContent = picked ? `Restore ${picked.id}` : 'Restore Link';
+      const anyFailed = links.some(l => l.status === 'failed');
+      document.getElementById('restore-all-btn').disabled = state.busy || !anyFailed;
+    }
+
+    function onLinkPickerChange() {
+      const id = document.getElementById('link-picker').value;
+      state.pickedLinkId = id || null;
+      if (id) {
+        state.selectedItem = { type: 'link', id };
+        renderCanvas();
+        renderInspector();
+      }
+      renderLinkPicker();
+    }
+
+    async function restoreAllLinks() {
+      const failed = Object.values(state.links).filter(l => l.status === 'failed');
+      if (!failed.length) return showToast("All links are already active", "ℹ️");
+      if (state.busy) return;
+      state.busy = true;
+      const before = snapshotDelivery();
+      const errors = [];
+      let lastResult = null;
+      for (const l of failed) {
+        try {
+          lastResult = await apiPost(`/links/${encodeURIComponent(l.id)}/restore`);
+        } catch (err) {
+          errors.push(`${l.id}: ${err.message}`);
+        }
+      }
+      state.busy = false;
+      await syncState();
+      if (lastResult) {
+        state.lastFailure = { action: 'restore-all', linkId: failed.map(l => l.id).join(', '), result: lastResult, before, after: snapshotDelivery(), at: new Date() };
+        renderLastFailure();
+        renderInspector();
+      }
+      if (errors.length) showToast(`Some links could not be restored: ${errors.join('; ')}`, "❌", 7000);
+      else showToast(`Restored ${failed.map(l => l.id).join(', ')}`, "🔄");
+    }
+
+    // PRESET & CLEAR
+    function resetSessionView() {
+      state.selectedItem = null;
+      state.pickedLinkId = null;
+      state.lastFailure = null;
+      state.lastPlan = null;
+      document.getElementById('whatif-results-box').textContent = 'Select links above and click "Evaluate Impact".';
+      document.getElementById('whatif-results-box').style.color = '';
+      document.getElementById('compare-results-box').textContent = 'Click "Run Comparison" to analyze delivery rate and congestion avoidance.';
+    }
+
+    async function loadSamplePreset() {
+      if (state.busy) return;
+      state.busy = true;
+      try {
+        await apiPost('/topology/generate', { preset: 'normal_campus' });
+        resetSessionView();
+        state.simulationActive = false;
+        updateSimUi();
+        showToast("Loaded Normal Campus sample. Press Start Simulation to route traffic.", "🧪");
+        await syncState();
+        fitView();
+      } catch (err) {
+        showToast(`Failed to load preset: ${err.message}`, "❌");
+      } finally {
+        state.busy = false;
+        renderLinkPicker();
+      }
+    }
+
+    async function loadProtectedDemo() {
+      if (state.busy) return;
+      state.busy = true;
+      const btn = document.getElementById('btn-protected-demo');
+      if (btn) btn.disabled = true;
+      try {
+        await apiPost('/topology/generate', { preset: PROTECTED_DEMO.preset });
+        try {
+          await apiPost('/demands', PROTECTED_DEMO.extraDemand);
+        } catch (err) {
+          // Tolerate a preset that already ships the demo flow; anything else is a real error.
+          if (!/already exists/i.test(err.message)) throw err;
+        }
+        await apiPost('/simulate?algorithm=pacar');
+        resetSessionView();
+        state.simulationActive = true;
+        updateSimUi();
+        state.pickedLinkId = state.links[PROTECTED_DEMO.suggestedLink] ? PROTECTED_DEMO.suggestedLink : null;
+        await syncState();
+        if (state.links[PROTECTED_DEMO.suggestedLink]) {
+          state.pickedLinkId = PROTECTED_DEMO.suggestedLink;
+          state.selectedItem = { type: 'link', id: PROTECTED_DEMO.suggestedLink };
+          renderLinkPicker();
+          renderCanvas();
+          renderInspector();
+        }
+        fitView();
+        switchTrayTab('tray-protection');
+        const plan = state.lastPlan;
+        const crit = plan && plan.active ? (plan.critical_flows || []).filter(f => f.priority <= 2) : [];
+        const summary = crit.map(f => `${f.flow_id} ${f.guaranteed_mbps} Mbps`).join(', ');
+        showToast(`Protected demo ready. Guarantees: ${summary || 'none reported'}. ${PROTECTED_DEMO.suggestedLink} is pre-selected — click "Fail ${PROTECTED_DEMO.suggestedLink}".`, "🛡️", 7000);
+      } catch (err) {
+        showToast(`Failed to load protected demo: ${err.message}`, "❌", 7000);
+        await syncState();
+      } finally {
+        state.busy = false;
+        if (btn) btn.disabled = false;
+        renderLinkPicker();
+      }
+    }
+
+    async function promptClearNetwork() {
+      if (!confirm("Are you sure you want to clear the entire network canvas?")) return;
+      try {
+        await apiPost('/simulation/reset');
+        resetSessionView();
+        state.simulationActive = false;
+        updateSimUi();
+        showToast("Network canvas cleared", "🗑️");
+        await syncState();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    async function exportNetworkJson() {
+      try {
+        const data = await apiGet('/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        a.href = url;
+        a.download = `netrescue-export-${stamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast("Exported topology, demands, events and metrics as JSON", "💾");
+      } catch (err) {
+        showToast(`Export failed: ${err.message}`, "❌");
+      }
+    }
+
+    // CANVAS SELECTION & RENDERING
+    function selectItem(type, id) {
+      state.selectedItem = { type, id };
+      if (type === 'link') state.pickedLinkId = id;
+      renderCanvas();
+      renderInspector();
+      renderLinkPicker();
+    }
+    function clearSelection() {
+      state.selectedItem = null;
+      renderCanvas();
+      renderInspector();
+    }
+
+    // LAST FAILURE / RESTORE SUMMARY
+    function failureSummaryHtml(compact) {
+      const lf = state.lastFailure;
+      if (!lf) return '';
+      const r = lf.result || {};
+      const violations = Array.isArray(r.violations) ? r.violations.length : null;
+      const heldDown = r.event === 'link_flapping';
+      const title = lf.action === 'fail' ? `💥 ${esc(lf.linkId)} failed` : (heldDown ? `⚠️ ${esc(lf.linkId)} held down (flapping) — not restored` : (lf.action === 'restore-all' ? `🔄 Restored ${esc(lf.linkId)}` : `🔧 ${esc(lf.linkId)} restored`));
+      let reflexRow = '';
+      if (lf.action === 'fail') {
+        const used = r.reflex_used;
+        const label = used === true ? '✅ YES (precomputed protection plan)' : (used === false ? '⚠️ NO — fallback re-optimization' : '—');
+        reflexRow = `<div class="info-row"><span class="info-label">Reflex used:</span><span class="info-val" style="color:${used ? 'var(--green)' : 'var(--amber)'};">${label}</span></div>`;
+        if (used === true && isNum(r.reflex_time_ms)) {
+          reflexRow += `<div class="info-row"><span class="info-label">Reflex compute time:</span><span class="info-val">${r.reflex_time_ms.toFixed(2)} ms</span></div>`;
+        }
+      }
+      const vColor = violations === 0 ? 'var(--green)' : 'var(--red)';
+      const rows = Object.entries(lf.after)
+        .filter(([, a]) => a.priority !== null && a.priority <= 2)
+        .map(([id, a]) => {
+          const b = lf.before[id] || {};
+          const g = state.lastPlan && state.lastPlan.active ? (state.lastPlan.critical_flows || []).find(f => f.flow_id === id) : null;
+          const kept = isNum(a.allocated) && isNum(g?.guaranteed_mbps) && a.allocated + 1e-6 >= g.guaranteed_mbps;
+          return `<tr>
+            <td style="font-family:'Fira Code'; color:var(--cyan);">${esc(id)}</td>
+            <td><span class="pill pill-p${a.priority}">P${a.priority}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbps(b.allocated, 0)}</td>
+            <td style="font-family:'Fira Code'; font-weight:700;">${fmtMbps(a.allocated, 0)}</td>
+            ${compact ? '' : `<td style="font-family:'Fira Code';">${g ? fmtMbps(g.guaranteed_mbps, 0) : '—'}</td>`}
+            ${compact ? '' : `<td style="color:${kept ? 'var(--green)' : 'var(--amber)'}; font-weight:600;">${g ? (kept ? '✓ kept' : '✗ below') : '—'}</td>`}
+          </tr>`;
+        }).join('');
+      return `
+        <div style="font-weight:700; font-size:0.82rem; margin-bottom:0.35rem; color:${lf.action === 'fail' ? '#fca5a5' : '#6ee7b7'};">${title}</div>
+        ${reflexRow}
+        <div class="info-row"><span class="info-label">Validator violations:</span><span class="info-val" style="color:${vColor};">${violations ?? '—'}</span></div>
+        <div class="info-row"><span class="info-label">Route changes:</span><span class="info-val">${isNum(r.route_changes) ? r.route_changes : '—'}</span></div>
+        ${rows ? `<table class="data-table" style="margin-top:0.4rem;">
+          <thead><tr><th>Flow</th><th>Pri</th><th>Before</th><th>After</th>${compact ? '' : '<th>Guarantee</th><th>Kept?</th>'}</tr></thead>
+          <tbody>${rows}</tbody></table>` : '<div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.3rem;">No P1/P2 flows in this network.</div>'}
+        <div style="font-size:0.68rem; color:var(--text-dim); margin-top:0.35rem;">Compute times are algorithm runtimes in this simulator, not measured network downtime.</div>
+      `;
+    }
+
+    function renderLastFailure() {
+      const card = document.getElementById('last-failure-card');
+      if (!card) return;
+      card.innerHTML = state.lastFailure
+        ? failureSummaryHtml(false)
+        : `<div style="font-weight:700; font-size:0.8rem; margin-bottom:0.35rem;">Last Failure / Restore Event</div>
+           <div style="font-size:0.75rem; color:var(--text-muted);">No link has been failed or restored in this browser session.</div>`;
+    }
+
+    // RENDER INSPECTOR
+    function renderInspector() {
+      const body = document.getElementById('inspector-body');
+      const title = document.getElementById('inspector-title');
+      if (!body || !title) return;
+
+      const nodes = state.nodes || {};
+      const links = state.links || {};
+      const demands = state.demands || {};
+      const nodeCount = Object.keys(nodes).length;
+      const linkCount = Object.keys(links).length;
+      const demandCount = Object.keys(demands).length;
+      const failedIds = Object.values(links).filter(l => l && l.status === 'failed').map(l => l.id);
+      const flappingIds = Object.values(links).filter(l => l && l.status === 'flapping').map(l => l.id);
+
+      if (!state.selectedItem) {
+        title.textContent = "Inspector";
+        body.innerHTML = `
+          ${state.lastFailure ? `<div class="info-card">${failureSummaryHtml(true)}</div>` : ''}
+          <div class="info-card">
+            <div style="font-weight:700; margin-bottom:0.4rem; color:var(--cyan); font-size:0.85rem;">Guided Tips</div>
+            <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
+              ${nodeCount === 0 ? "Start by adding network nodes, or click '🛡️ Load Protected Demo' for a ready-made protection demo." :
+                linkCount === 0 ? "Connect your nodes using '+ Connect Nodes' to form communication links." :
+                !state.simulationActive ? "Add traffic demands below and click 'Start Simulation' to route traffic." :
+                "Simulation active. Pick an exact link (e.g. L3) in Disaster Controls or click a link on the canvas, then press Fail."}
+            </p>
+          </div>
+          <div class="info-card">
+            <div style="font-weight:700; margin-bottom:0.5rem; font-size:0.82rem;">Network Overview</div>
+            <div class="info-row"><span class="info-label">Total Nodes:</span><span class="info-val" id="stat-nodes">${nodeCount}</span></div>
+            <div class="info-row"><span class="info-label">Total Links:</span><span class="info-val" id="stat-links">${linkCount}</span></div>
+            <div class="info-row"><span class="info-label">Traffic Demands:</span><span class="info-val" id="stat-demands">${demandCount}</span></div>
+            <div class="info-row"><span class="info-label">Failed Links:</span><span class="info-val" id="stat-failed" style="color:var(--red);">${failedIds.length}${failedIds.length ? ` (${esc(failedIds.join(', '))})` : ''}</span></div>
+            ${flappingIds.length ? `<div class="info-row"><span class="info-label">Flapping (held down):</span><span class="info-val" style="color:var(--amber);">${esc(flappingIds.join(', '))}</span></div>` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      if (state.selectedItem.type === 'node') {
+        const node = nodes[state.selectedItem.id];
+        if (!node) {
+          state.selectedItem = null;
+          return renderInspector();
+        }
+        title.textContent = `Node: ${node.id}`;
+        const connectedLinks = Object.values(links).filter(l => l && (l.source === node.id || l.target === node.id));
+
+        body.innerHTML = `
+          <div class="info-card">
+            <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>${ICONS[node.node_type] || '🌐'}</span> ${esc(node.id)}
+            </div>
+            <div class="info-row"><span class="info-label">Name:</span><span class="info-val">${esc(node.name || node.id)}</span></div>
+            <div class="info-row"><span class="info-label">Type:</span><span class="info-val">${esc((node.node_type || 'router').toUpperCase())}</span></div>
+            <div class="info-row"><span class="info-label">Connected Links:</span><span class="info-val">${esc(connectedLinks.map(l => l.id).join(', ') || 'none')}</span></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <button class="btn btn-secondary" onclick="openAddNodeModal(state.nodes[${jsArg(node.id)}])">✏️ Edit Node</button>
+            <button class="btn btn-secondary" onclick="openConnectModal(${jsArg(node.id)})">🔗 Connect to Node...</button>
+            <button class="btn btn-danger" onclick="deleteNode(${jsArg(node.id)})">🗑️ Delete Node</button>
+          </div>
+        `;
+      } else if (state.selectedItem.type === 'link') {
+        const link = links[state.selectedItem.id];
+        if (!link) {
+          state.selectedItem = null;
+          return renderInspector();
+        }
+        const isFailed = link.status === "failed";
+        const isFlapping = link.status === "flapping";
+        title.textContent = `Link: ${link.id}`;
+        const util = isNum(link.utilization) ? link.utilization : null;
+
+        body.innerHTML = `
+          <div class="info-card">
+            <div style="font-size:1rem; font-weight:700; margin-bottom:0.4rem; color:var(--cyan);">
+              ${esc(link.id)}: ${esc(link.source)} ↔ ${esc(link.target)}
+            </div>
+            <div class="info-row"><span class="info-label">Status:</span>
+              <span class="info-val" style="color:${isFailed ? 'var(--red)' : (isFlapping ? 'var(--amber)' : 'var(--green)')};">
+                ${isFailed ? '✖ FAILED (down)' : (isFlapping ? '⚠ FLAPPING (held down)' : 'ACTIVE (up)')}
+              </span>
+            </div>
+            <div class="info-row"><span class="info-label">Capacity:</span><span class="info-val">${esc(link.capacity)} Mbps</span></div>
+            <div class="info-row"><span class="info-label">Latency:</span><span class="info-val">${esc(link.latency)} ms</span></div>
+            <div class="info-row"><span class="info-label">Allocated Load:</span><span class="info-val">${fmtMbps(link.allocated_load)} (${util === null ? '—' : util.toFixed(0) + '%'})</span></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            ${isFlapping ? `<div class="notice notice-warn" style="margin:0;" id="hold-down-notice">${esc(holdDownText(link))}</div>` : ''}
+            <button class="btn ${isFailed ? 'btn-success' : 'btn-danger'}" id="inspector-toggle-link" ${isFlapping ? 'disabled style="opacity:0.5;"' : ''} onclick="toggleLinkFailure(${jsArg(link.id)})">
+              ${isFailed ? `🔧 Restore ${esc(link.id)}` : `💥 Fail ${esc(link.id)}`}
+            </button>
+            <button class="btn btn-secondary" onclick="openConnectModal(null, state.links[${jsArg(link.id)}])">✏️ Edit Link</button>
+            <button class="btn btn-secondary" onclick="deleteLink(${jsArg(link.id)})">🗑️ Delete Link</button>
+          </div>
+          ${state.lastFailure ? `<div class="info-card">${failureSummaryHtml(true)}</div>` : ''}
+        `;
+      } else {
+        state.selectedItem = null;
+        return renderInspector();
+      }
+    }
+
+    async function deleteNode(id) {
+      if (!confirm(`Delete node ${id} and all its connected links?`)) return;
+      try {
+        await apiDelete(`/nodes/${encodeURIComponent(id)}`);
+        showToast(`Node ${id} deleted`, "🗑️");
+        state.selectedItem = null;
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    async function deleteLink(id) {
+      if (!confirm(`Delete link ${id}?`)) return;
+      try {
+        await apiDelete(`/links/${encodeURIComponent(id)}`);
+        showToast(`Link ${id} deleted`, "🗑️");
+        state.selectedItem = null;
+        if (state.pickedLinkId === id) state.pickedLinkId = null;
+        await reSimulateIfActive();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, "❌");
+      }
+    }
+
+    // RENDER SVG GRAPH CANVAS
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    function svgEl(tag, attrs) {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function renderCanvas() {
+      const linksLayer = document.getElementById('links-layer');
+      const flowsLayer = document.getElementById('flows-layer');
+      const nodesLayer = document.getElementById('nodes-layer');
+      const world = document.getElementById('canvas-world');
+
+      world.setAttribute('transform', `translate(${state.pan.x}, ${state.pan.y}) scale(${state.zoom})`);
+
+      linksLayer.innerHTML = "";
+      flowsLayer.innerHTML = "";
+      nodesLayer.innerHTML = "";
+
+      const labels = [];
+
+      // 1. Draw Links
+      Object.values(state.links).forEach(link => {
+        const src = state.nodes[link.source];
+        const dst = state.nodes[link.target];
+        if (!src || !dst) return;
+
+        const isSelected = state.selectedItem && state.selectedItem.type === 'link' && state.selectedItem.id === link.id;
+        const isFailed = link.status === "failed";
+        const isFlapping = link.status === "flapping";
+        const util = isNum(link.utilization) ? link.utilization : 0;
+
+        // Congestion (link up) uses green/amber/red; a FAILED link is grey + dashed + ✖.
+        let strokeColor = "#10b981";
+        if (util >= 80) strokeColor = "#ef4444";
+        else if (util >= 50) strokeColor = "#f59e0b";
+        if (isFailed) strokeColor = "#64748b";
+        if (isFlapping) strokeColor = "#b45309";
+
+        const g = svgEl("g", { "data-link-id": link.id });
+        g.style.cursor = "pointer";
+        g.onmousedown = (e) => e.stopPropagation();
+        g.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
+
+        if (isSelected) {
+          g.appendChild(svgEl("line", { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y, stroke: "#00f0ff", "stroke-width": 11, "stroke-opacity": 0.35 }));
+        }
+        const line = svgEl("line", {
+          x1: src.x, y1: src.y, x2: dst.x, y2: dst.y,
+          stroke: strokeColor,
+          "stroke-width": isFailed ? 3 : Math.max(3, Math.min(link.capacity / 25, 8))
+        });
+        if (isFailed) line.setAttribute("stroke-dasharray", "8,6");
+        if (isFlapping) line.setAttribute("stroke-dasharray", "2,5");
+        g.appendChild(line);
+        // Wide transparent hit target so thin links are easy to click.
+        g.appendChild(svgEl("line", { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y, stroke: "transparent", "stroke-width": 18 }));
+        linksLayer.appendChild(g);
+
+        const mx = (src.x + dst.x) / 2;
+        const my = (src.y + dst.y) / 2;
+        if (isFailed) {
+          const mark = svgEl("g", { transform: `translate(${mx}, ${my})` });
+          mark.appendChild(svgEl("circle", { r: 9, fill: "#1f0a12", stroke: "#ff3b5c", "stroke-width": 2 }));
+          const x = svgEl("text", { "text-anchor": "middle", y: 4, fill: "#ff3b5c", "font-size": "12px", "font-weight": "800" });
+          x.textContent = "✖";
+          mark.appendChild(x);
+          mark.style.pointerEvents = "none";
+          linksLayer.appendChild(mark);
+        }
+        labels.push({ link, src, dst, mx, my, isFailed, isFlapping, isSelected, util });
+
+        if (!isFailed && !isFlapping && (link.allocated_load || 0) > 0 && state.simulationActive) {
+          const flowLine = svgEl("line", {
+            x1: src.x, y1: src.y, x2: dst.x, y2: dst.y,
+            stroke: "#00f0ff", "stroke-width": 2, "stroke-dasharray": "4,12", class: "flow-active"
+          });
+          flowLine.style.pointerEvents = "none";
+          flowsLayer.appendChild(flowLine);
+        }
+      });
+
+      // Link labels drawn above lines: "L3 · 40/200M" or "L3 FAILED".
+      // Labels slide along their link to avoid overlapping labels already placed.
+      // Node circles and their ID labels are obstacles too.
+      const placed = Object.values(state.nodes).map(n => ({ x1: n.x - 24, x2: n.x + 24, y1: n.y - 24, y2: n.y + 40 }));
+      const overlaps = (b) => placed.some(o => b.x1 < o.x2 && b.x2 > o.x1 && b.y1 < o.y2 && b.y2 > o.y1);
+      labels.forEach(({ link, src, dst, mx, my, isFailed, isFlapping, isSelected, util }) => {
+        const load = isNum(link.allocated_load) ? link.allocated_load.toFixed(0) : '—';
+        const content = isFailed ? `${link.id} FAILED` : (isFlapping ? `${link.id} FLAPPING (held down)` : `${link.id} · ${load}/${link.capacity}M (${util.toFixed(0)}%)`);
+        const w = content.length * 6.8, h = 13;
+        let lx = mx, ly = my - (isFailed ? 14 : 8);
+        for (const t of [0.5, 0.32, 0.68, 0.22, 0.78]) {
+          const cx = src.x + (dst.x - src.x) * t;
+          const cy = src.y + (dst.y - src.y) * t - (isFailed && t === 0.5 ? 14 : 8);
+          const box = { x1: cx - w / 2, x2: cx + w / 2, y1: cy - h, y2: cy + 2 };
+          if (!overlaps(box) || t === 0.78) {
+            lx = cx; ly = cy;
+            placed.push(box);
+            break;
+          }
+        }
+        const txt = svgEl("text", {
+          x: lx, y: ly,
+          "text-anchor": "middle",
+          fill: isFailed ? "#ff7a90" : (isFlapping ? "#fbbf24" : (isSelected ? "#00f0ff" : "rgba(255,255,255,0.88)")),
+          "font-size": "11px",
+          "font-family": "Fira Code, monospace",
+          "font-weight": "700",
+          stroke: "#060911", "stroke-width": 3, "paint-order": "stroke"
+        });
+        txt.textContent = content;
+        txt.style.cursor = "pointer";
+        txt.onmousedown = (e) => e.stopPropagation();
+        txt.onclick = (e) => { e.stopPropagation(); selectItem('link', link.id); };
+        linksLayer.appendChild(txt);
+      });
+
+      // 2. Draw Nodes
+      Object.values(state.nodes).forEach(node => {
+        const isSelected = state.selectedItem && state.selectedItem.type === 'node' && state.selectedItem.id === node.id;
+        const g = svgEl("g", { transform: `translate(${node.x}, ${node.y})`, "data-node-id": node.id });
+        g.style.cursor = "move";
+
+        const circle = svgEl("circle", {
+          r: 20, fill: "#0f172a",
+          stroke: isSelected ? "#00f0ff" : "rgba(56, 189, 248, 0.6)",
+          "stroke-width": isSelected ? 3.5 : 2
+        });
+        if (isSelected) circle.setAttribute("filter", "url(#glow-cyan)");
+
+        const icon = svgEl("text", { "text-anchor": "middle", y: 5, "font-size": "14px" });
+        icon.textContent = ICONS[node.node_type] || "🌐";
+
+        const label = svgEl("text", {
+          "text-anchor": "middle", y: 34, fill: "#ffffff", "font-size": "11px", "font-weight": "700",
+          "font-family": "Inter, sans-serif", stroke: "#060911", "stroke-width": 3, "paint-order": "stroke"
+        });
+        label.textContent = node.id;
+
+        g.appendChild(circle);
+        g.appendChild(icon);
+        g.appendChild(label);
+
+        g.onmousedown = (e) => {
+          e.stopPropagation();
+          const p = clientToWorld(e.clientX, e.clientY);
+          state.isDraggingNode = node.id;
+          state.dragMoved = false;
+          state.dragOffset = { x: p.x - node.x, y: p.y - node.y };
+          selectItem('node', node.id);
+        };
+
+        nodesLayer.appendChild(g);
+      });
+    }
+
+    function clientToWorld(clientX, clientY) {
+      const rect = document.getElementById('network-canvas').getBoundingClientRect();
+      return {
+        x: (clientX - rect.left - state.pan.x) / state.zoom,
+        y: (clientY - rect.top - state.pan.y) / state.zoom
+      };
+    }
+
+    // MOUSE PAN & DRAG HANDLERS
+    const canvasViewport = document.getElementById('canvas-viewport');
+    canvasViewport.onmousedown = (e) => {
+      if (e.target.id === 'network-canvas' || e.target.id === 'canvas-world') {
+        state.isPanning = true;
+        state.panStart = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
+        clearSelection();
+      }
+    };
+    window.onmousemove = (e) => {
+      if (state.isDraggingNode) {
+        const node = state.nodes[state.isDraggingNode];
+        if (node) {
+          const p = clientToWorld(e.clientX, e.clientY);
+          const nx = Math.round(p.x - state.dragOffset.x);
+          const ny = Math.round(p.y - state.dragOffset.y);
+          if (nx !== node.x || ny !== node.y) state.dragMoved = true;
+          node.x = nx;
+          node.y = ny;
+          renderCanvas();
+        }
+      } else if (state.isPanning) {
+        state.pan.x = e.clientX - state.panStart.x;
+        state.pan.y = e.clientY - state.panStart.y;
+        renderCanvas();
+      }
+    };
+    window.onmouseup = async () => {
+      if (state.isDraggingNode) {
+        const nid = state.isDraggingNode;
+        const moved = state.dragMoved;
+        state.isDraggingNode = null;
+        state.dragMoved = false;
+        // A plain click must not touch the backend: any node update invalidates the
+        // protection plan, which would silently disable Reflex for the next failure.
+        if (moved) {
+          const n = state.nodes[nid];
+          const hadPlan = !!(state.lastPlan && state.lastPlan.active);
+          try {
+            if (n) await apiPut(`/nodes/${encodeURIComponent(nid)}`, { x: n.x, y: n.y });
+            if (hadPlan) {
+              await apiPost('/protection/replan');
+              showToast(`Moved ${nid}; protection plan re-verified so Reflex stays armed.`, "🛡️");
+            }
+          } catch (e) {
+            showToast(`Could not save node position: ${e.message}`, "⚠️");
+          }
+          await loadProtectionPlan();
+        }
+      }
+      state.isPanning = false;
+    };
+    canvasViewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      zoomAt(state.zoom * zoomFactor, e.clientX, e.clientY);
+    }, { passive: false });
+
+    function zoomAt(newZoom, clientX, clientY) {
+      newZoom = Math.max(0.3, Math.min(newZoom, 3.0));
+      const rect = document.getElementById('network-canvas').getBoundingClientRect();
+      const cx = clientX ?? rect.left + rect.width / 2;
+      const cy = clientY ?? rect.top + rect.height / 2;
+      const before = clientToWorld(cx, cy);
+      state.zoom = newZoom;
+      state.pan.x = cx - rect.left - before.x * newZoom;
+      state.pan.y = cy - rect.top - before.y * newZoom;
+      renderCanvas();
+    }
+    function zoomIn() { zoomAt(state.zoom * 1.2); }
+    function zoomOut() { zoomAt(state.zoom / 1.2); }
+    function resetView() { state.zoom = 1; state.pan = { x: 0, y: 0 }; renderCanvas(); }
+    function fitView() {
+      const nodes = Object.values(state.nodes);
+      const svg = document.getElementById('network-canvas');
+      const rect = svg.getBoundingClientRect();
+      if (!nodes.length || rect.width === 0 || rect.height === 0) return resetView();
+      const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+      const pad = 70;
+      // Keep the network clear of the legend and zoom controls along the top edge.
+      const legend = document.getElementById('canvas-legend');
+      const topReserve = legend && legend.style.display !== 'none' ? legend.offsetHeight + 24 : 50;
+      const availH = Math.max(rect.height - topReserve, 100);
+      const w = Math.max(maxX - minX, 1) + pad * 2;
+      const h = Math.max(maxY - minY, 1) + pad * 2;
+      const zoom = Math.max(0.3, Math.min(rect.width / w, availH / h, 1.6));
+      state.zoom = zoom;
+      state.pan.x = rect.width / 2 - ((minX + maxX) / 2) * zoom;
+      state.pan.y = topReserve + availH / 2 - ((minY + maxY) / 2) * zoom;
+      renderCanvas();
+    }
+
+    // RENDER DEMANDS TABLE
+    function renderDemandsTable() {
+      const tbody = document.getElementById('demands-table-body');
+      const demands = Object.values(state.demands).sort((a, b) => (priorityOf(a) ?? 9) - (priorityOf(b) ?? 9) || a.id.localeCompare(b.id, undefined, { numeric: true }));
+      document.getElementById('badge-demands-count').textContent = `(${demands.length})`;
+
+      if (!demands.length) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:1rem;">No traffic demands created yet. Click "+ Add Demand" to inject flows.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = demands.map(d => {
+        const pending = !d.status || d.status === 'pending';
+        let statusClass = "status-ready";
+        let statusLabel = "Not simulated yet";
+        if (d.status === "fully_served") { statusClass = "status-served"; statusLabel = "Fully Served"; }
+        else if (d.status === "partially_served") { statusClass = "status-partial"; statusLabel = "Partially Served"; }
+        else if (d.status === "unreachable") { statusClass = "status-unserved"; statusLabel = "Unreachable"; }
+        else if (d.status === "unserved_congestion") { statusClass = "status-unserved"; statusLabel = "Dropped (congestion)"; }
+        else if (!pending) { statusLabel = d.status; }
+
+        const tunnels = Array.isArray(d.tunnels) ? d.tunnels.filter(t => t && Array.isArray(t.node_path) && (t.bandwidth || 0) > 0) : [];
+        let routeStr = "—";
+        if (tunnels.length > 1) routeStr = tunnels.map(t => `${t.node_path.join("→")} (${t.bandwidth.toFixed(0)})`).join(" + ");
+        else if (d.route && d.route.length > 1) routeStr = d.route.join(" → ");
+        const p = priorityOf(d);
+
+        return `
+          <tr>
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${esc(d.id)}</td>
+            <td style="font-weight:600;">${esc(d.source)} → ${esc(d.destination)}</td>
+            <td><span class="pill pill-${esc(d.category)}">${p ? 'P' + p + ' ' : ''}${esc(String(d.category).toUpperCase())}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbps(d.bandwidth, 0)}</td>
+            <td style="font-family:'Fira Code'; color:var(--green);">${pending ? '—' : fmtMbps(d.allocated_bandwidth)}</td>
+            <td style="font-family:'Fira Code'; color:var(--text-muted);">${pending ? '—' : fmtMbps(d.unserved_bandwidth)}</td>
+            <td class="${statusClass}">${esc(statusLabel)}</td>
+            <td style="font-family:'Fira Code'; font-size:0.75rem; color:var(--cyan);">${esc(routeStr)}</td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button class="btn btn-secondary" title="Edit ${esc(d.id)}" style="padding:0.2rem 0.45rem; font-size:0.7rem;" onclick="openAddDemandModal(state.demands[${jsArg(d.id)}])">✏️</button>
+              <button class="btn btn-secondary" title="Delete ${esc(d.id)}" style="padding:0.2rem 0.45rem; font-size:0.7rem; color:var(--red);" onclick="deleteDemand(${jsArg(d.id)})">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // RENDER METRICS
+    function renderMetrics() {
+      const m = state.lastMetrics;
+      const set = (id, v) => { document.getElementById(id).textContent = v; };
+      if (!m) {
+        ['metric-deliv-rate', 'metric-crit-rate', 'metric-congested', 'metric-latency', 'metric-failed-count'].forEach(id => set(id, '—'));
+        document.getElementById('metric-per-priority').textContent = 'Metrics unavailable.';
+        return;
+      }
+      const req = m.total_requested, del = m.total_delivered;
+      set('metric-deliv-rate', isNum(req) && req > 0 && isNum(del) ? `${(del / req * 100).toFixed(1)}%` : '—');
+      set('metric-deliv-bw', isNum(req) && isNum(del) ? `${del.toFixed(0)} / ${req.toFixed(0)} Mbps` : 'no demands');
+      const creq = m.critical_requested, cdel = m.critical_delivered;
+      set('metric-crit-rate', isNum(creq) && creq > 0 && isNum(cdel) ? `${(cdel / creq * 100).toFixed(1)}%` : '—');
+      set('metric-crit-bw', isNum(creq) && creq > 0 && isNum(cdel) ? `${cdel.toFixed(0)} / ${creq.toFixed(0)} Mbps now (not a guarantee)` : 'No P1/P2 demands');
+      const lu = Array.isArray(m.link_utilizations) ? m.link_utilizations : null;
+      set('metric-congested', lu ? String(lu.filter(l => l.status !== 'failed' && (l.utilization || 0) >= 80).length) : '—');
+      set('metric-latency', isNum(m.avg_latency) && (m.active_demands || 0) > 0 ? `${m.avg_latency.toFixed(1)} ms` : '—');
+      set('metric-failed-count', isNum(m.failed_links) ? String(m.failed_links) : '—');
+      const failedIds = lu ? lu.filter(l => l.status === 'failed').map(l => l.id) : [];
+      const flapIds = lu ? lu.filter(l => l.status === 'flapping').map(l => l.id) : [];
+      set('metric-failed-ids', failedIds.length || flapIds.length ? `Down: ${failedIds.join(', ') || 'none'}${flapIds.length ? ` · held down: ${flapIds.join(', ')}` : ''}` : 'Physical outages');
+
+      const pp = m.per_priority || {};
+      const keys = Object.keys(pp).sort();
+      document.getElementById('metric-per-priority').innerHTML = keys.length ? `
+        <table class="data-table"><thead><tr><th>Class</th><th>Requested</th><th>Delivered</th><th>Unserved</th></tr></thead>
+        <tbody>${keys.map(k => `<tr>
+          <td><span class="pill pill-${esc(k.toLowerCase())}">${esc(k)}</span> ${esc(pp[k].label || '')}</td>
+          <td style="font-family:'Fira Code';">${fmtMbps(pp[k].requested, 0)}</td>
+          <td style="font-family:'Fira Code'; color:var(--green);">${fmtMbps(pp[k].delivered, 0)}</td>
+          <td style="font-family:'Fira Code'; color:${(pp[k].unserved || 0) > 0 ? 'var(--red)' : 'var(--text-muted)'};">${fmtMbps(pp[k].unserved, 0)}</td>
+        </tr>`).join('')}</tbody></table>` : 'No demands.';
+    }
+
+    // TRAY TABS
+    function isTabActive(tabId) {
+      const el = document.getElementById(tabId);
+      return !!(el && el.classList.contains('active'));
+    }
+    function switchTrayTab(tabId) {
+      document.querySelectorAll('.tray-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+      document.querySelectorAll('.tray-content').forEach(c => c.classList.toggle('active', c.id === tabId));
+      const ws = document.getElementById('app-workspace');
+      if (ws.classList.contains('tray-collapsed')) toggleTrayCollapse();
+
+      if (tabId === 'tray-protection') loadProtectionPlan();
+      if (tabId === 'tray-whatif') populateWhatIfLinks();
+      if (tabId === 'tray-events') loadEvents();
+    }
+
+    function toggleTrayCollapse() {
+      const ws = document.getElementById('app-workspace');
+      const btn = document.getElementById('tray-collapse-btn');
+      const tray = document.getElementById('bottom-tray');
+      if (ws.classList.contains('tray-collapsed')) {
+        ws.classList.remove('tray-collapsed');
+        tray.style.height = "";
+        btn.textContent = "Hide Tray ▼";
+      } else {
+        ws.classList.add('tray-collapsed');
+        tray.style.height = "38px";
+        btn.textContent = "Show Tray ▲";
+      }
+    }
+
+    // PROTECTION GUARANTEES LOADER
+    // `seq` is the syncState call that requested this load; a superseded load is ignored.
+    async function loadProtectionPlan(seq) {
+      const badge = document.getElementById('badge-protection-status');
+      const sumBox = document.getElementById('protection-plan-summary-box');
+      const tbody = document.getElementById('protection-table-body');
+      let data;
+      try {
+        data = await apiGet('/protection/plan');
+      } catch (err) {
+        if (seq !== undefined && seq !== syncSeq) return;
+        state.lastPlan = null;
+        badge.textContent = "(error)";
+        badge.style.color = "var(--red)";
+        sumBox.innerHTML = `<div class="notice notice-err">Could not load the protection plan: ${esc(err.message)}</div>`;
+        return;
+      }
+      if (seq !== undefined && seq !== syncSeq) return;
+      state.lastPlan = data;
+
+      if (!data.active) {
+        badge.textContent = "(None)";
+        badge.style.color = "var(--text-muted)";
+        const hasCritical = Object.values(state.demands).some(d => (priorityOf(d) ?? 9) <= 2);
+        sumBox.innerHTML = `<div class="notice notice-info">${esc(data.message || 'No active protection plan.')}</div>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">${hasCritical ? 'No plan computed for the current topology/demands yet.' : 'Add P1 Emergency or P2 Essential traffic demands to compute protection guarantees.'}</td></tr>`;
+        return;
+      }
+
+      const flows = (data.critical_flows || []).slice().sort((a, b) => (a.priority - b.priority) || String(a.flow_id).localeCompare(String(b.flow_id), undefined, { numeric: true }));
+      const isPlanned = f => (typeof f.planned === 'boolean' ? f.planned : f.priority <= 2);
+      const crit = flows.filter(isPlanned);
+      const others = flows.filter(f => !isPlanned(f));
+      const totalG = crit.reduce((s, f) => s + (isNum(f.guaranteed_mbps) ? f.guaranteed_mbps : 0), 0);
+      const totalR = crit.reduce((s, f) => s + (isNum(f.requested_mbps) ? f.requested_mbps : 0), 0);
+      const positive = crit.filter(f => isNum(f.guaranteed_mbps) && f.guaranteed_mbps > 0).length;
+      const full = crit.filter(f => f.status === 'Full').length;
+      const isVerif = data.verified === true;
+      const n = data.covered_scenarios_count;
+      const failures = Array.isArray(data.verification_failures) ? data.verification_failures : [];
+      const base = Array.isArray(data.base_unavailable_links) ? data.base_unavailable_links : [];
+      const live = Array.isArray(data.live_unavailable_links) ? data.live_unavailable_links : [];
+      // Older backends do not report in_force; treat a verified plan as in force for the baseline.
+      const inForce = typeof data.in_force === 'boolean' ? data.in_force : isVerif;
+      const scenario = data.current_scenario ?? (inForce ? 'no_failure' : null);
+      const furtherCovered = typeof data.further_failures_covered === 'boolean' ? data.further_failures_covered : inForce;
+      const scenarioLink = scenario && scenario.startsWith('fail_') ? scenario.slice(5) : null;
+      const gText = fmtMbpsAuto(totalG).replace(' Mbps', '');
+
+      if (!isVerif) {
+        badge.textContent = "(Unverified)";
+        badge.style.color = "var(--red)";
+      } else if (!inForce && data.not_in_force_reason === 'pending_traffic') {
+        badge.textContent = "(Verified · not simulated yet)";
+        badge.style.color = "var(--amber)";
+      } else if (!inForce) {
+        badge.textContent = "(Verified · not in force)";
+        badge.style.color = "var(--red)";
+      } else if (crit.length && positive === 0) {
+        badge.textContent = "(Verified · 0 Mbps)";
+        badge.style.color = "var(--amber)";
+      } else {
+        badge.textContent = `(Verified · ${gText} Mbps${scenarioLink ? ` · ${scenarioLink} down` : ''})`;
+        badge.style.color = "var(--green)";
+      }
+
+      const baseNote = base.length
+        ? ` Planned for the current network, in which <strong>${esc(base.join(', '))}</strong> ${base.length === 1 ? 'was' : 'were'} already unavailable.`
+        : '';
+      let notice = '';
+      if (!isVerif) {
+        notice = `<div class="notice notice-err"><strong>Guarantee Checker FAILED.</strong> The stated guarantees could not be verified for every covered scenario.${failures.length ? ' Failures: ' + esc(failures.map(f => typeof f === 'string' ? f : JSON.stringify(f)).join('; ')) : ''}</div>`;
+      } else if (!inForce && data.not_in_force_reason === 'pending_traffic') {
+        notice = `<div class="notice notice-warn"><strong>Plan computed, not yet in force:</strong> ${esc((data.pending_flows || []).join(', '))} ${(data.pending_flows || []).length === 1 ? 'is' : 'are'} not routed yet, so nothing is delivered or guaranteed for ${(data.pending_flows || []).length === 1 ? 'it' : 'them'} now. Press <strong>Start Simulation</strong> to route traffic under these guarantees.</div>`;
+      } else if (!inForce && data.not_in_force_reason === 'guarantee_not_met') {
+        notice = `<div class="notice notice-err"><strong>Guarantee not met right now:</strong> ${esc((data.unmet_flows || []).join(', '))} ${(data.unmet_flows || []).length === 1 ? 'receives' : 'receive'} less than the verified guarantee in the current state. See the Event Log; running the simulation re-applies the plan.</div>`;
+      } else if (!inForce) {
+        notice = `<div class="notice notice-err"><strong>Plan not in force.</strong> Unavailable links now: <strong>${esc(live.join(', ') || 'none')}</strong> — more than the single extra failure this plan covers${base.length ? ` (planned with ${esc(base.join(', '))} down)` : ''}. No guarantee is promised right now; traffic is handled by fallback re-optimization. Restore a link or run the simulation to plan for the current network.</div>`;
+      } else if (scenarioLink) {
+        notice = `<div class="notice notice-info"><strong>Covered failure in progress: ${esc(scenarioLink)} is down.</strong> The verified guarantees (${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps) are being honoured now. This single-failure plan does <em>not</em> cover a further failure — restore ${esc(scenarioLink)}, or run the simulation to plan protection for the degraded network.</div>`;
+      } else if (crit.length && positive === 0) {
+        notice = `<div class="notice notice-warn"><strong>Verified, but 0 Mbps is guaranteed for every P1/P2 flow.</strong>
+          "OPTIMAL" means 0 is the best achievable worst case and "PASS" means the checker confirmed those zero guarantees — it does <em>not</em> mean the critical traffic is protected.
+          Each critical flow here can be disconnected by at least one single-link failure (e.g. a single-homed server or endpoint), so no positive bandwidth can be promised.
+          The bandwidth they receive right now is shown under "Currently Delivered" and is not guaranteed.${baseNote}
+          For a positive-protection example, click <strong>🛡️ Load Protected Demo</strong>.</div>`;
+      } else if (crit.length && full === crit.length) {
+        notice = `<div class="notice notice-ok"><strong>All ${crit.length} P1/P2 flow${crit.length === 1 ? ' is' : 's are'} fully protected:</strong> ${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps is guaranteed and independently verified across the baseline and every single-link failure (${isNum(n) ? n : '—'} scenarios).${baseNote}</div>`;
+      } else if (crit.length) {
+        notice = `<div class="notice notice-info"><strong>Partial protection:</strong> ${positive} of ${crit.length} P1/P2 flows have a positive guarantee (${gText} of ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps). Flows with 0 Mbps can be disconnected or starved by some single-link failure.${baseNote}</div>`;
+      }
+
+      sumBox.innerHTML = `
+        ${notice}
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem; font-size:0.8rem;">
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guaranteed (P1+P2)</div>
+            <div style="font-size:1.1rem; font-weight:700; color:${totalG > 0 && inForce ? 'var(--green)' : 'var(--amber)'};" id="protection-total-guaranteed">${gText} / ${fmtMbpsAuto(totalR).replace(' Mbps', '')} Mbps</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);" id="protection-in-force">${!isVerif ? 'Not verified' : (!inForce ? (data.not_in_force_reason === 'pending_traffic' ? 'Not in force until traffic is routed' : 'NOT in force (failures exceed coverage)') : (scenarioLink ? `In force (${esc(scenarioLink)} down; no further failure covered)` : `In force · ${positive} of ${crit.length} flows positive`))}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Covered Scenarios</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--cyan);" id="protection-scenarios">${isNum(n) ? n : '—'}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">${isNum(n) && n > 0 ? `Baseline + ${n - 1} single-link failures` : 'Baseline + single-link failures'}${base.length ? ` (${esc(base.join(', '))} already down)` : ''}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">LP Solver Status</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--text);">${esc(String(data.solver_status || '—').toUpperCase())}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">Best achievable worst case${isNum(data.runtime_ms) ? ` · ${data.runtime_ms} ms` : ''}</div>
+          </div>
+          <div class="info-card">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Guarantee Checker</div>
+            <div style="font-size:1.1rem; font-weight:700; color:${isVerif ? 'var(--green)' : 'var(--red)'};" id="protection-checker">${isVerif ? 'PASS' : 'FAILED'}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim);">${isVerif ? 'Stated guarantees hold in every covered scenario' : `${failures.length} verification failure(s)`}</div>
+          </div>
+        </div>
+      `;
+
+      if (!flows.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">No flows in the plan.</td></tr>`;
+        return;
+      }
+
+      const row = (f) => {
+        const planned = isPlanned(f);
+        let statusHtml;
+        if (!planned) statusHtml = `<span style="color:var(--text-muted);">Not planned (P3–P5 policy)</span>`;
+        else if (f.status === 'Full') statusHtml = `<span style="color:var(--green); font-weight:700;">🛡️ FULL</span>`;
+        else if (f.status === 'Partial') statusHtml = `<span style="color:var(--amber); font-weight:700;">⚠️ PARTIAL</span>`;
+        else statusHtml = `<span style="color:var(--amber); font-weight:700;">0 Mbps guaranteed</span>`;
+        const gColor = !planned ? 'var(--text-muted)' : (f.guaranteed_mbps > 0 ? 'var(--green)' : 'var(--amber)');
+        return `
+          <tr data-flow-id="${esc(f.flow_id)}" style="${planned ? '' : 'opacity:0.7;'}">
+            <td style="font-family:'Fira Code'; font-weight:600; color:var(--cyan);">${esc(f.flow_id)}</td>
+            <td><span class="pill pill-p${esc(f.priority)}">${esc(PRIORITY_LABELS[f.priority] || 'P' + f.priority)}</span></td>
+            <td style="font-family:'Fira Code';">${fmtMbpsAuto(f.requested_mbps)}</td>
+            <td class="guaranteed-cell" style="font-family:'Fira Code'; font-weight:700; color:${gColor};">${planned ? fmtMbpsAuto(f.guaranteed_mbps) : '—'}</td>
+            <td style="font-family:'Fira Code'; color:var(--text);">${fmtMbpsAuto(f.delivered_mbps)}</td>
+            <td style="font-family:'Fira Code'; font-weight:600;">${planned ? fmtPct(f.protection_pct, 0) : '—'}</td>
+            <td>${statusHtml}</td>
+          </tr>
+        `;
+      };
+      tbody.innerHTML = crit.map(row).join('') + others.map(row).join('');
+    }
+
+    async function recomputeProtectionPlanImpl() {
+      try {
+        showToast("Recomputing protection plan...", "🛡️");
+        const data = await apiPost('/protection/replan');
+        await loadProtectionPlan();
+        if (data && data.active) {
+          showToast(`Plan recomputed: ${String(data.solver_status).toUpperCase()}, checker ${data.verified ? 'PASS' : 'FAILED'}.`, data.verified ? "✅" : "⚠️");
+        } else {
+          showToast(data && data.message ? data.message : "No protection plan could be computed.", "ℹ️");
+        }
+      } catch (err) {
+        showToast(`Replan failed: ${err.message}`, "❌");
+      }
+    }
+
+    // ALGORITHM COMPARISON
+    async function runComparison() {
+      const box = document.getElementById('compare-results-box');
+      box.innerHTML = `<span style="color:var(--text-muted);">Running 3-algorithm comparison (PACAR vs Reactive LP vs Baseline Dijkstra)...</span>`;
+      try {
+        const data = await apiPost('/compare');
+        const card = (title, color, m) => {
+          if (!m || typeof m !== 'object') {
+            return `<div class="info-card"><h4 style="color:${color}; margin-bottom:0.4rem;">${title}</h4><div style="color:var(--text-muted);">No result returned.</div></div>`;
+          }
+          const rate = isNum(m.total_requested) && m.total_requested > 0 && isNum(m.total_delivered) ? m.total_delivered / m.total_requested * 100 : null;
+          const crit = isNum(m.critical_requested) && m.critical_requested > 0 && isNum(m.critical_delivered) ? `${m.critical_delivered.toFixed(0)} / ${m.critical_requested.toFixed(0)} Mbps` : '—';
+          return `
+            <div class="info-card" style="border-color:${color};">
+              <h4 style="color:${color}; margin-bottom:0.4rem;">${title}</h4>
+              <div class="info-row"><span class="info-label">Delivery Rate:</span><span class="info-val">${fmtPct(rate)}</span></div>
+              <div class="info-row"><span class="info-label">Delivered:</span><span class="info-val">${fmtMbps(m.total_delivered, 0)}</span></div>
+              <div class="info-row"><span class="info-label">Critical (P1–P2) delivered:</span><span class="info-val">${crit}</span></div>
+              <div class="info-row"><span class="info-label">Max Link Load:</span><span class="info-val">${fmtPct(m.max_link_utilization, 0)}</span></div>
+              <div class="info-row"><span class="info-label">Compute Time:</span><span class="info-val">${isNum(m.computation_time_ms) ? m.computation_time_ms + ' ms' : '—'}</span></div>
+              ${m.optimality ? `<div style="font-size:0.68rem; color:${m.fallback_used ? 'var(--amber)' : 'var(--text-dim)'}; margin-top:0.3rem;">${esc(m.optimality)}</div>` : ''}
+            </div>`;
+        };
+        const failed = Object.values(state.links).filter(l => l.status === 'failed').map(l => l.id);
+        box.innerHTML = `
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.3rem;">Evaluated on the current network state${failed.length ? ` with failed link(s): <strong style="color:#fca5a5;">${esc(failed.join(', '))}</strong>` : ' (no failed links)'}. Each algorithm routes the same demands on a copy; live routes are unchanged.</div>
+          <div id="compare-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-top:0.4rem;">
+            ${card('🚀 PACAR Heuristic', 'var(--cyan)', data.pacar)}
+            ${card('⚡ Reactive Multicommodity LP', 'var(--green)', data.reactive_lp)}
+            ${card('🌐 Baseline Dijkstra', 'var(--text-muted)', data.baseline)}
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = `<span style="color:var(--red);">Comparison failed: ${esc(err.message)}</span>`;
+      }
+    }
+
+    // WHAT-IF ANALYSIS
+    function populateWhatIfLinks() {
+      const container = document.getElementById('whatif-link-selectors');
+      const links = Object.values(state.links).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+      const checked = new Set(Array.from(document.querySelectorAll('.whatif-checkbox:checked')).map(c => c.value));
+      if (!links.length) {
+        container.innerHTML = `<span style="color:var(--text-muted);">No links in network.</span>`;
+        return;
+      }
+      container.innerHTML = links.map(l => `
+        <label style="background:var(--bg-card); border:1px solid ${l.status === 'failed' ? 'rgba(239,68,68,0.5)' : 'var(--border)'}; padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
+          <input type="checkbox" value="${esc(l.id)}" class="whatif-checkbox" ${checked.has(l.id) ? 'checked' : ''}>
+          <span><strong>${esc(l.id)}</strong> (${esc(l.source)}↔${esc(l.target)})${l.status === 'failed' ? ' <span style="color:#fca5a5;">already failed</span>' : ''}</span>
+        </label>
+      `).join('');
+    }
+
+    function clearWhatIfSelection() {
+      document.querySelectorAll('.whatif-checkbox').forEach(c => { c.checked = false; });
+      const box = document.getElementById('whatif-results-box');
+      box.style.color = '';
+      box.textContent = 'Select links above and click "Evaluate Impact".';
+    }
+
+    async function executeWhatIf() {
+      const checked = Array.from(document.querySelectorAll('.whatif-checkbox:checked')).map(c => c.value);
+      if (!checked.length) return showToast("Select at least one link to simulate failure", "⚠️");
+      const box = document.getElementById('whatif-results-box');
+      box.style.color = '';
+      box.innerHTML = `<span style="color:var(--text-muted);">Simulating snapshot disaster...</span>`;
+      // Local helpers keep this handler self-contained (it is also exercised in isolation by
+      // backend/tests/what_if_dashboard_harness.cjs).
+      const h = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const fin = v => typeof v === 'number' && Number.isFinite(v);
+      const liveFailed = () => {
+        try { return Object.values(state.links).filter(l => l.status === 'failed').map(l => l.id).sort().join(','); }
+        catch (_) { return null; }
+      };
+      const liveFailedBefore = liveFailed();
+      try {
+        const res = await apiPost('/analyze/what-if', { link_ids: checked });
+        if (!res || typeof res !== 'object' || Array.isArray(res)) {
+          throw new Error('Invalid What-If response: expected an assessment object');
+        }
+        if (typeof res.detail === 'string' || typeof res.error === 'string') {
+          throw new Error(res.detail || res.error);
+        }
+        for (const field of ['total_delivered_before', 'total_delivered_after']) {
+          if (typeof res[field] !== 'number' || !Number.isFinite(res[field]) || res[field] < 0) {
+            throw new Error(`Invalid What-If response: missing or invalid ${field}`);
+          }
+        }
+        for (const field of ['unreachable_demands', 'congested_demands']) {
+          if (!Array.isArray(res[field]) || !res[field].every(id => typeof id === 'string')) {
+            throw new Error(`Invalid What-If response: missing or invalid ${field}`);
+          }
+        }
+        // These are throughput rates (Mbps), not integrated traffic loss (megabits).
+        const bandwidthLost = res.total_delivered_before - res.total_delivered_after;
+        const changeLabel = bandwidthLost < 0 ? 'Bandwidth Gained:' : 'Bandwidth Lost:';
+        const disruptedCount = new Set([...res.unreachable_demands, ...res.congested_demands]).size;
+        const hasCrit = fin(res.critical_delivered_before) && fin(res.critical_delivered_after);
+        const rerouted = Object.entries(res.alternative_routes || {})
+          .filter(([, r]) => r && Array.isArray(r.new_route))
+          .map(([id, r]) => `${id}: ${r.new_route.join('→')}`);
+        const evaluated = Array.isArray(res.failed_links) ? res.failed_links : checked;
+        const ignored = checked.filter(id => !evaluated.includes(id));
+        const alreadyDown = Array.isArray(res.already_unavailable) ? res.already_unavailable : [];
+        const recovery = res.recovery_mode === 'single_failure'
+          ? (res.reflex_used ? 'Reflex (verified plan) + Reactive LP' : 'PACAR fallback + Reactive LP (not covered by a verified plan)')
+          : res.recovery_mode === 'batch_failure' ? 'Multi-link failure: PACAR re-simulation'
+          : res.recovery_mode === 'none' ? 'No new failure (links already unavailable)' : null;
+
+        // Confirm the live network was not modified by the analysis (dashboard only).
+        let liveNote = '';
+        if (liveFailedBefore !== null && typeof syncState === 'function') {
+          await syncState();
+          const untouched = liveFailedBefore === liveFailed();
+          liveNote = `<div style="font-size:0.72rem; margin-top:0.4rem; color:${untouched ? 'var(--green)' : 'var(--amber)'};">${untouched ? '✓ Live network unchanged (snapshot analysis).' : '⚠ Live link states changed during the analysis — refresh and re-check.'}</div>`;
+        }
+
+        box.innerHTML = `
+          <div class="info-card" style="margin-top:0.5rem;" id="whatif-assessment">
+            <div style="font-weight:700; color:var(--amber); margin-bottom:0.35rem;">What-If Disaster Assessment (${h(checked.join(', '))})</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 1.5rem;">
+              <div>
+                <div class="info-row"><span class="info-label">Delivered Before:</span><span class="info-val">${res.total_delivered_before.toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">Delivered After:</span><span class="info-val">${res.total_delivered_after.toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">${changeLabel}</span><span class="info-val" style="color:${bandwidthLost > 0 ? 'var(--red)' : 'var(--green)'};">${Math.abs(bandwidthLost).toFixed(2)} Mbps</span></div>
+                <div class="info-row"><span class="info-label">Critical (P1–P2) Before → After:</span><span class="info-val">${hasCrit ? `${res.critical_delivered_before.toFixed(1)} → ${res.critical_delivered_after.toFixed(1)} Mbps` : '—'}</span></div>
+              </div>
+              <div>
+                <div class="info-row"><span class="info-label">Flows Disrupted:</span><span class="info-val">${disruptedCount}</span></div>
+                <div class="info-row"><span class="info-label">Unreachable:</span><span class="info-val" style="color:${res.unreachable_demands.length ? 'var(--red)' : 'var(--text-muted)'};">${h(res.unreachable_demands.join(', ') || 'none')}</span></div>
+                <div class="info-row"><span class="info-label">Congested:</span><span class="info-val">${h(res.congested_demands.join(', ') || 'none')}</span></div>
+                <div class="info-row"><span class="info-label">Rerouted:</span><span class="info-val" style="font-size:0.7rem;">${h(rerouted.join('; ') || 'none')}</span></div>
+              </div>
+            </div>
+            ${recovery ? `<div style="font-size:0.72rem; margin-top:0.4rem; color:var(--text-muted);">Controller response replayed on a private copy: <strong>${h(recovery)}</strong>.</div>` : ''}
+            ${alreadyDown.length ? `<div class="notice notice-info" style="margin-top:0.4rem;">Already unavailable now (no additional effect): ${h(alreadyDown.join(', '))}</div>` : ''}
+            ${ignored.length ? `<div class="notice notice-warn" style="margin-top:0.4rem;">Backend did not evaluate: ${h(ignored.join(', '))}</div>` : ''}
+            ${liveNote}
+          </div>
+        `;
+      } catch (err) {
+        box.style.color = 'var(--red)';
+        box.textContent = `What-if simulation failed: ${err.message}`;
+      }
+    }
+
+    // EVENT LOG
+    const EVENT_COLORS = {
+      link_failure: '#ef4444', link_restore: '#10b981', reflex_recovery: '#10b981',
+      reactive_lp_optimization: '#a855f7', reactive_lp_not_installed: '#64748b', scenario_loaded: '#3b82f6',
+      simulation_step: '#00f0ff', link_flapping: '#f59e0b', flap_hold_down_ended: '#10b981',
+      uncovered_failure_fallback: '#f59e0b', guarantee_enforcement: '#a855f7', guarantee_enforcement_failed: '#ef4444',
+      lp_fallback: '#f59e0b', emergency_demand: '#ff0055'
+    };
+    async function loadEvents() {
+      const container = document.getElementById('event-log-list');
+      try {
+        const data = await apiGet('/events?limit=50');
+        const events = Array.isArray(data) ? data : (data.events || []);
+        if (!events.length) {
+          container.innerHTML = `<div style="color:var(--text-muted);">No events recorded yet.</div>`;
+          return;
+        }
+        // The API returns newest first.
+        container.innerHTML = events.map(e => `
+          <div class="event-row" style="padding:0.3rem 0.5rem; background:var(--bg-card); border-left:3px solid ${EVENT_COLORS[e.event_type] || 'var(--cyan)'}; border-radius:0 4px 4px 0;">
+            <span style="font-family:'Fira Code'; color:var(--text-dim);">[Step ${esc(e.step)}]</span>
+            <strong>${esc(e.event_type)}:</strong> ${esc(e.description)}
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = `<div style="color:var(--red);">Could not load events: ${esc(e.message)}</div>`;
+      }
+    }
+
+    // Refit the network when the window size changes (e.g. projector / full screen).
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fitView, 350);
+    });
+
+    // INITIALIZATION
+    // Start as soon as the document is parsed. Do not wait for the window "load" event:
+    // it also waits for every subresource, including the third-party web-font files,
+    // which on a hard refresh (cache bypassed) or a slow network delays the first real
+    // render while the static placeholder is on screen.
+    async function initDashboard() {
+      await syncState();
+      fitView();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboard, { once: true });
+    } else {
+      initDashboard();
+    }
+  </script>
+</body>
+</html>

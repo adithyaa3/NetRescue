@@ -1,0 +1,26 @@
+{
+  "nodes": 25,
+  "links": 50,
+  "demands": 30,
+  "critical": 10,
+  "plan_verified": true,
+  "covered_scenarios": 51,
+  "timings_ms": {
+    "simulate_pacar": 52.1,
+    "simulate_lp": 49.2,
+    "simulate_baseline": 41.8,
+    "get_plan": 0.8,
+    "replan": 39.7,
+    "fail_L1": 42.8,
+    "fail_L2": 59.3,
+    "fail_L10": 51.7,
+    "what_if_single": 86.5,
+    "what_if_double": 67.8,
+    "compare": 121.0,
+    "restore_L10": 57.0,
+    "restore_L2": 58.1,
+    "restore_L1": 48.0,
+    "vulnerabilities": 966.4
+  },
+  "max_ms": 966.4
+}

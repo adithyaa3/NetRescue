@@ -1,0 +1,27 @@
+................................FFF..                                    [100%]
+=================================== FAILURES ===================================
+__________________ test_emergency_endpoint_really_injects_p1 ___________________
+backend/tests/test_backend_release.py:176: in test_emergency_endpoint_really_injects_p1
+    assert s.demands['urgent'].category.value == 'emergency'
+E   AssertionError: assert 'general' == 'emergency'
+E     - emergency
+E     + general
+___________________ test_empty_ids_rejected[/links-payload0] ___________________
+backend/tests/test_backend_release.py:186: in test_empty_ids_rejected
+    assert client.post(endpoint,json=payload).status_code in (400,422)
+E   AssertionError: assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10d922fc0>>('/links', json={'capacity': 10, 'id': ' ', 'latency': 1, 'source': 'A', ...})
+E    +      where <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10d922fc0>> = <starlette.testclient.TestClient object at 0x10d922fc0>.post
+__________________ test_empty_ids_rejected[/demands-payload1] __________________
+backend/tests/test_backend_release.py:186: in test_empty_ids_rejected
+    assert client.post(endpoint,json=payload).status_code in (400,422)
+E   AssertionError: assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10d8fe450>>('/demands', json={'bandwidth': 10, 'destination': 'E', 'id': ' ', 'source': 'A'})
+E    +      where <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10d8fe450>> = <starlette.testclient.TestClient object at 0x10d8fe450>.post
+=========================== short test summary info ============================
+FAILED backend/tests/test_backend_release.py::test_emergency_endpoint_really_injects_p1
+FAILED backend/tests/test_backend_release.py::test_empty_ids_rejected[/links-payload0]
+FAILED backend/tests/test_backend_release.py::test_empty_ids_rejected[/demands-payload1]
+3 failed, 34 passed in 1.07s

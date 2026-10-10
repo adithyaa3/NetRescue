@@ -1,0 +1,1117 @@
+F..................................................................F.... [ 61%]
+.FFFFF...FFFFFFF...FFFF.FFFFFFFFFF...........                            [100%]
+=================================== FAILURES ===================================
+________________________ test_full_acceptance_workflow _________________________
+
+self = <urllib.request.HTTPHandler object at 0x10dbe7b90>
+http_class = <class 'http.client.HTTPConnection'>
+req = <urllib.request.Request object at 0x10eef2ff0>, http_conn_args = {}
+host = '127.0.0.1:8000', h = <http.client.HTTPConnection object at 0x10ef2ec00>
+headers = {'Connection': 'close', 'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '127.0.0.1:8000', ...}
+
+    def do_open(self, http_class, req, **http_conn_args):
+        """Return an HTTPResponse object for the request, using http_class.
+    
+        http_class must implement the HTTPConnection API from http.client.
+        """
+        host = req.host
+        if not host:
+            raise URLError('no host given')
+    
+        # will parse host:port
+        h = http_class(host, timeout=req.timeout, **http_conn_args)
+        h.set_debuglevel(self._debuglevel)
+    
+        headers = dict(req.unredirected_hdrs)
+        headers.update({k: v for k, v in req.headers.items()
+                        if k not in headers})
+    
+        # TODO(jhylton): Should this be redesigned to handle
+        # persistent connections?
+    
+        # We want to make an HTTP/1.1 request, but the addinfourl
+        # class isn't prepared to deal with a persistent connection.
+        # It will try to read all remaining data from the socket,
+        # which will block while the server waits for the next request.
+        # So make sure the connection gets closed after the (only)
+        # request.
+        headers["Connection"] = "close"
+        headers = {name.title(): val for name, val in headers.items()}
+    
+        if req._tunnel_host:
+            tunnel_headers = {}
+            proxy_auth_hdr = "Proxy-Authorization"
+            if proxy_auth_hdr in headers:
+                tunnel_headers[proxy_auth_hdr] = headers[proxy_auth_hdr]
+                # Proxy-Authorization should not be sent to origin
+                # server.
+                del headers[proxy_auth_hdr]
+            h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
+    
+        try:
+            try:
+>               h.request(req.get_method(), req.selector, req.data, headers,
+                          encode_chunked=req.has_header('Transfer-encoding'))
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:1344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>, method = 'POST'
+url = '/simulation/reset', body = b''
+headers = {'Connection': 'close', 'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '127.0.0.1:8000', ...}
+
+    def request(self, method, url, body=None, headers={}, *,
+                encode_chunked=False):
+        """Send a complete request to the server."""
+>       self._send_request(method, url, body, headers, encode_chunked)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1336: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>, method = 'POST'
+url = '/simulation/reset', body = b''
+headers = {'Connection': 'close', 'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '127.0.0.1:8000', ...}
+encode_chunked = False
+
+    def _send_request(self, method, url, body, headers, encode_chunked):
+        # Honor explicitly requested Host: and Accept-Encoding: headers.
+        header_names = frozenset(k.lower() for k in headers)
+        skips = {}
+        if 'host' in header_names:
+            skips['skip_host'] = 1
+        if 'accept-encoding' in header_names:
+            skips['skip_accept_encoding'] = 1
+    
+        self.putrequest(method, url, **skips)
+    
+        # chunked encoding will happen if HTTP/1.1 is used and either
+        # the caller passes encode_chunked=True or the following
+        # conditions hold:
+        # 1. content-length has not been explicitly set
+        # 2. the body is a file or iterable, but not a str or bytes-like
+        # 3. Transfer-Encoding has NOT been explicitly set by the caller
+    
+        if 'content-length' not in header_names:
+            # only chunk body if not explicitly set for backwards
+            # compatibility, assuming the client code is already handling the
+            # chunking
+            if 'transfer-encoding' not in header_names:
+                # if content-length cannot be automatically determined, fall
+                # back to chunked encoding
+                encode_chunked = False
+                content_length = self._get_content_length(body, method)
+                if content_length is None:
+                    if body is not None:
+                        if self.debuglevel > 0:
+                            print('Unable to determine size of %r' % body)
+                        encode_chunked = True
+                        self.putheader('Transfer-Encoding', 'chunked')
+                else:
+                    self.putheader('Content-Length', str(content_length))
+        else:
+            encode_chunked = False
+    
+        for hdr, value in headers.items():
+            self.putheader(hdr, value)
+        if isinstance(body, str):
+            # RFC 2616 Section 3.7.1 says that text default has a
+            # default charset of iso-8859-1.
+            body = _encode(body, 'body')
+>       self.endheaders(body, encode_chunked=encode_chunked)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1382: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>, message_body = b''
+
+    def endheaders(self, message_body=None, *, encode_chunked=False):
+        """Indicate that the last header line has been sent to the server.
+    
+        This method sends the request to the server.  The optional message_body
+        argument can be used to pass a message body associated with the
+        request.
+        """
+        if self.__state == _CS_REQ_STARTED:
+            self.__state = _CS_REQ_SENT
+        else:
+            raise CannotSendHeader()
+>       self._send_output(message_body, encode_chunked=encode_chunked)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1331: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>, message_body = b''
+encode_chunked = False
+
+    def _send_output(self, message_body=None, encode_chunked=False):
+        """Send the currently buffered request and clear the buffer.
+    
+        Appends an extra \\r\\n to the buffer.
+        A message_body may be specified, to be appended to the request.
+        """
+        self._buffer.extend((b"", b""))
+        msg = b"\r\n".join(self._buffer)
+        del self._buffer[:]
+>       self.send(msg)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1091: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>
+data = b'POST /simulation/reset HTTP/1.1\r\nAccept-Encoding: identity\r\nContent-Length: 0\r\nHost: 127.0.0.1:8000\r\nUser-Agent: Python-urllib/3.12\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n'
+
+    def send(self, data):
+        """Send `data' to the server.
+        ``data`` can be a string object, a bytes object, an array object, a
+        file-like object that supports a .read() method, or an iterable object.
+        """
+    
+        if self.sock is None:
+            if self.auto_open:
+>               self.connect()
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1035: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.client.HTTPConnection object at 0x10ef2ec00>
+
+    def connect(self):
+        """Connect to the host and port specified in __init__."""
+        sys.audit("http.client.connect", self, self.host, self.port)
+>       self.sock = self._create_connection(
+            (self.host,self.port), self.timeout, self.source_address)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py:1001: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+address = ('127.0.0.1', 8000), timeout = <object object at 0x104dd8a50>
+source_address = None
+
+    def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,
+                          source_address=None, *, all_errors=False):
+        """Connect to *address* and return the socket object.
+    
+        Convenience function.  Connect to *address* (a 2-tuple ``(host,
+        port)``) and return the socket object.  Passing the optional
+        *timeout* parameter will set the timeout on the socket instance
+        before attempting to connect.  If no *timeout* is supplied, the
+        global default timeout setting returned by :func:`getdefaulttimeout`
+        is used.  If *source_address* is set it must be a tuple of (host, port)
+        for the socket to bind as a source address before making the connection.
+        A host of '' or port 0 tells the OS to use the default. When a connection
+        cannot be created, raises the last error if *all_errors* is False,
+        and an ExceptionGroup of all errors if *all_errors* is True.
+        """
+    
+        host, port = address
+        exceptions = []
+        for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            sock = None
+            try:
+                sock = socket(af, socktype, proto)
+                if timeout is not _GLOBAL_DEFAULT_TIMEOUT:
+                    sock.settimeout(timeout)
+                if source_address:
+                    sock.bind(source_address)
+                sock.connect(sa)
+                # Break explicitly a reference cycle
+                exceptions.clear()
+                return sock
+    
+            except error as exc:
+                if not all_errors:
+                    exceptions.clear()  # raise only the last error
+                exceptions.append(exc)
+                if sock is not None:
+                    sock.close()
+    
+        if len(exceptions):
+            try:
+                if not all_errors:
+>                   raise exceptions[0]
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socket.py:853: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+address = ('127.0.0.1', 8000), timeout = <object object at 0x104dd8a50>
+source_address = None
+
+    def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,
+                          source_address=None, *, all_errors=False):
+        """Connect to *address* and return the socket object.
+    
+        Convenience function.  Connect to *address* (a 2-tuple ``(host,
+        port)``) and return the socket object.  Passing the optional
+        *timeout* parameter will set the timeout on the socket instance
+        before attempting to connect.  If no *timeout* is supplied, the
+        global default timeout setting returned by :func:`getdefaulttimeout`
+        is used.  If *source_address* is set it must be a tuple of (host, port)
+        for the socket to bind as a source address before making the connection.
+        A host of '' or port 0 tells the OS to use the default. When a connection
+        cannot be created, raises the last error if *all_errors* is False,
+        and an ExceptionGroup of all errors if *all_errors* is True.
+        """
+    
+        host, port = address
+        exceptions = []
+        for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            sock = None
+            try:
+                sock = socket(af, socktype, proto)
+                if timeout is not _GLOBAL_DEFAULT_TIMEOUT:
+                    sock.settimeout(timeout)
+                if source_address:
+                    sock.bind(source_address)
+>               sock.connect(sa)
+E               PermissionError: [Errno 1] Operation not permitted
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socket.py:838: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_full_acceptance_workflow():
+        print("\n--- Executing 25-step Acceptance Workflow ---")
+    
+        # 1-2. Reset & verify empty canvas
+>       post(f"{API}/simulation/reset")
+
+backend/tests/test_acceptance_25steps.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+url = 'http://127.0.0.1:8000/simulation/reset', payload = None
+
+    def post(url, payload=None):
+        data = json.dumps(payload).encode() if payload is not None else b''
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method='POST')
+>       with urllib.request.urlopen(req) as resp:
+
+backend/tests/test_acceptance_25steps.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+url = <urllib.request.Request object at 0x10eef2ff0>, data = None
+timeout = <object object at 0x104dd8a50>
+
+    def urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                *, cafile=None, capath=None, cadefault=False, context=None):
+        '''Open the URL url, which can be either a string or a Request object.
+    
+        *data* must be an object specifying additional data to be sent to
+        the server, or None if no such data is needed.  See Request for
+        details.
+    
+        urllib.request module uses HTTP/1.1 and includes a "Connection:close"
+        header in its HTTP requests.
+    
+        The optional *timeout* parameter specifies a timeout in seconds for
+        blocking operations like the connection attempt (if not specified, the
+        global default timeout setting will be used). This only works for HTTP,
+        HTTPS and FTP connections.
+    
+        If *context* is specified, it must be a ssl.SSLContext instance describing
+        the various SSL options. See HTTPSConnection for more details.
+    
+        The optional *cafile* and *capath* parameters specify a set of trusted CA
+        certificates for HTTPS requests. cafile should point to a single file
+        containing a bundle of CA certificates, whereas capath should point to a
+        directory of hashed certificate files. More information can be found in
+        ssl.SSLContext.load_verify_locations().
+    
+        The *cadefault* parameter is ignored.
+    
+    
+        This function always returns an object which can work as a
+        context manager and has the properties url, headers, and status.
+        See urllib.response.addinfourl for more detail on these properties.
+    
+        For HTTP and HTTPS URLs, this function returns a http.client.HTTPResponse
+        object slightly modified. In addition to the three new methods above, the
+        msg attribute contains the same information as the reason attribute ---
+        the reason phrase returned by the server --- instead of the response
+        headers as it is specified in the documentation for HTTPResponse.
+    
+        For FTP, file, and data URLs and requests explicitly handled by legacy
+        URLopener and FancyURLopener classes, this function returns a
+        urllib.response.addinfourl object.
+    
+        Note that None may be returned if no handler handles the request (though
+        the default installed global OpenerDirector uses UnknownHandler to ensure
+        this never happens).
+    
+        In addition, if proxy settings are detected (for example, when a *_proxy
+        environment variable like http_proxy is set), ProxyHandler is default
+        installed and makes sure the requests are handled through the proxy.
+    
+        '''
+        global _opener
+        if cafile or capath or cadefault:
+            import warnings
+            warnings.warn("cafile, capath and cadefault are deprecated, use a "
+                          "custom context instead.", DeprecationWarning, 2)
+            if context is not None:
+                raise ValueError(
+                    "You can't pass both context and any of cafile, capath, and "
+                    "cadefault"
+                )
+            if not _have_ssl:
+                raise ValueError('SSL support not available')
+            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH,
+                                                 cafile=cafile,
+                                                 capath=capath)
+            # send ALPN extension to indicate HTTP/1.1 protocol
+            context.set_alpn_protocols(['http/1.1'])
+            https_handler = HTTPSHandler(context=context)
+            opener = build_opener(https_handler)
+        elif context:
+            https_handler = HTTPSHandler(context=context)
+            opener = build_opener(https_handler)
+        elif _opener is None:
+            _opener = opener = build_opener()
+        else:
+            opener = _opener
+>       return opener.open(url, data, timeout)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.OpenerDirector object at 0x10eef2ba0>
+fullurl = <urllib.request.Request object at 0x10eef2ff0>, data = None
+timeout = <object object at 0x104dd8a50>
+
+    def open(self, fullurl, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+        # accept a URL or a Request object
+        if isinstance(fullurl, str):
+            req = Request(fullurl, data)
+        else:
+            req = fullurl
+            if data is not None:
+                req.data = data
+    
+        req.timeout = timeout
+        protocol = req.type
+    
+        # pre-process request
+        meth_name = protocol+"_request"
+        for processor in self.process_request.get(protocol, []):
+            meth = getattr(processor, meth_name)
+            req = meth(req)
+    
+        sys.audit('urllib.Request', req.full_url, req.data, req.headers, req.get_method())
+>       response = self._open(req, data)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:515: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.OpenerDirector object at 0x10eef2ba0>
+req = <urllib.request.Request object at 0x10eef2ff0>, data = None
+
+    def _open(self, req, data=None):
+        result = self._call_chain(self.handle_open, 'default',
+                                  'default_open', req)
+        if result:
+            return result
+    
+        protocol = req.type
+>       result = self._call_chain(self.handle_open, protocol, protocol +
+                                  '_open', req)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:532: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.OpenerDirector object at 0x10eef2ba0>
+chain = {'data': [<urllib.request.DataHandler object at 0x10ef2eb10>], 'file': [<urllib.request.FileHandler object at 0x10ef2e...[<urllib.request.FTPHandler object at 0x10ef2e7e0>], 'http': [<urllib.request.HTTPHandler object at 0x10dbe7b90>], ...}
+kind = 'http', meth_name = 'http_open'
+args = (<urllib.request.Request object at 0x10eef2ff0>,)
+handlers = [<urllib.request.HTTPHandler object at 0x10dbe7b90>]
+handler = <urllib.request.HTTPHandler object at 0x10dbe7b90>
+func = <bound method HTTPHandler.http_open of <urllib.request.HTTPHandler object at 0x10dbe7b90>>
+
+    def _call_chain(self, chain, kind, meth_name, *args):
+        # Handlers raise an exception if no one else should try to handle
+        # the request, or return None if they can't but another handler
+        # could.  Otherwise, they return the response.
+        handlers = chain.get(kind, ())
+        for handler in handlers:
+            func = getattr(handler, meth_name)
+>           result = func(*args)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:492: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.HTTPHandler object at 0x10dbe7b90>
+req = <urllib.request.Request object at 0x10eef2ff0>
+
+    def http_open(self, req):
+>       return self.do_open(http.client.HTTPConnection, req)
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:1373: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.HTTPHandler object at 0x10dbe7b90>
+http_class = <class 'http.client.HTTPConnection'>
+req = <urllib.request.Request object at 0x10eef2ff0>, http_conn_args = {}
+host = '127.0.0.1:8000', h = <http.client.HTTPConnection object at 0x10ef2ec00>
+headers = {'Connection': 'close', 'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '127.0.0.1:8000', ...}
+
+    def do_open(self, http_class, req, **http_conn_args):
+        """Return an HTTPResponse object for the request, using http_class.
+    
+        http_class must implement the HTTPConnection API from http.client.
+        """
+        host = req.host
+        if not host:
+            raise URLError('no host given')
+    
+        # will parse host:port
+        h = http_class(host, timeout=req.timeout, **http_conn_args)
+        h.set_debuglevel(self._debuglevel)
+    
+        headers = dict(req.unredirected_hdrs)
+        headers.update({k: v for k, v in req.headers.items()
+                        if k not in headers})
+    
+        # TODO(jhylton): Should this be redesigned to handle
+        # persistent connections?
+    
+        # We want to make an HTTP/1.1 request, but the addinfourl
+        # class isn't prepared to deal with a persistent connection.
+        # It will try to read all remaining data from the socket,
+        # which will block while the server waits for the next request.
+        # So make sure the connection gets closed after the (only)
+        # request.
+        headers["Connection"] = "close"
+        headers = {name.title(): val for name, val in headers.items()}
+    
+        if req._tunnel_host:
+            tunnel_headers = {}
+            proxy_auth_hdr = "Proxy-Authorization"
+            if proxy_auth_hdr in headers:
+                tunnel_headers[proxy_auth_hdr] = headers[proxy_auth_hdr]
+                # Proxy-Authorization should not be sent to origin
+                # server.
+                del headers[proxy_auth_hdr]
+            h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
+    
+        try:
+            try:
+                h.request(req.get_method(), req.selector, req.data, headers,
+                          encode_chunked=req.has_header('Transfer-encoding'))
+            except OSError as err: # timeout error
+>               raise URLError(err)
+E               urllib.error.URLError: <urlopen error [Errno 1] Operation not permitted>
+
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/urllib/request.py:1347: URLError
+----------------------------- Captured stdout call -----------------------------
+
+--- Executing 25-step Acceptance Workflow ---
+____________________________ test_canonical_example ____________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10f2cadb0>
+
+    def test_canonical_example(monkeypatch):
+        s = diamond()
+        p = verified_plan(s)
+>       assert p.per_flow_guaranteed['F1'] == pytest.approx(6, abs=1e-8)
+E       assert 5.99999 == 6 ± 1.0e-08
+E         comparison failed
+E         Obtained: 5.99999
+E         Expected: 6 ± 1.0e-08
+
+backend/tests/test_verification.py:54: AssertionError
+___________________ test_validator_reconstructs_path[source] ___________________
+
+corruption = 'source'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f2f8650>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+________________ test_validator_reconstructs_path[destination] _________________
+
+corruption = 'destination'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f2f8620>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+________________ test_validator_reconstructs_path[disconnected] ________________
+
+corruption = 'disconnected'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f2fb590>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+__________________ test_validator_reconstructs_path[mapping] ___________________
+
+corruption = 'mapping'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 0.0, 'BD': 0.0, 'AC': 1.0, 'CD': 1.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 0.0, 'BD': 0.0, 'AC': 1.0, 'CD': 1.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f2f94f0>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+__________________ test_validator_reconstructs_path[latency] ___________________
+
+corruption = 'latency'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 1.0, 'BD': 1.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f339d60>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+___________________ test_validator_reconstructs_path[empty] ____________________
+
+corruption = 'empty'
+
+    @pytest.mark.parametrize('corruption', ['source', 'destination', 'disconnected', 'mapping', 'latency', 'ownership', 'missing_link', 'repeated', 'empty'])
+    def test_validator_reconstructs_path(corruption):
+        s = diamond()
+        t = s.candidate_tunnels['F1'][0]
+        if corruption == 'source': t.node_path[0] = 'C'
+        if corruption == 'destination': t.node_path[-1] = 'C'
+        if corruption == 'disconnected': t.node_path = ['A', 'D']
+        if corruption == 'mapping': t.link_ids = ['AC', 'CD']
+        if corruption == 'latency':
+            s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+            t.latency = 0
+        if corruption == 'ownership': t.flow_id = 'F2'
+        if corruption == 'missing_link': t.link_ids[0] = 'missing'
+        if corruption == 'repeated': t.node_path = ['A', 'B', 'A', 'D']
+        if corruption == 'empty': t.node_path = []; t.link_ids = []
+>       assert not validate(s, {'F1': {t.id: 1}}).is_valid
+E       AssertionError: assert not True
+E        +  where True = ValidationResult(is_valid=True, violations=[], link_loads={'AB': 0.0, 'BD': 0.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0).is_valid
+E        +    where ValidationResult(is_valid=True, violations=[], link_loads={'AB': 0.0, 'BD': 0.0, 'AC': 0.0, 'CD': 0.0}, total_delivered=1.0, total_unserved=17.0) = validate(<app.state.SimulationState object at 0x10f2cbe90>, {'F1': {'T_F1_1': 1}})
+
+backend/tests/test_verification.py:95: AssertionError
+______________ test_checker_rejects_invalid_plan[empty_scenarios] ______________
+
+corruption = 'empty_scenarios'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=0, scenarios_passed=0, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=0, scenarios_passed=0, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=[], per_flow_gu...: {}}, solver_status='optimal', runtime_ms=1.6199999954551458, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f2fac30>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f2fac30>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f2fac30>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+_____________ test_checker_rejects_invalid_plan[unknown_scenario] ______________
+
+corruption = 'unknown_scenario'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=1, scenarios_passed=1, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=1, scenarios_passed=1, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=['fail_unknown'...: {}}, solver_status='optimal', runtime_ms=1.4110420015640557, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f2fa570>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f2fa570>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f2fa570>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+_______________ test_checker_rejects_invalid_plan[nan_guarantee] _______________
+
+corruption = 'nan_guarantee'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=['no_failure', ...: {}}, solver_status='optimal', runtime_ms=1.8572919943835586, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f2f8590>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f2f8590>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f2f8590>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+____________ test_checker_rejects_invalid_plan[negative_guarantee] _____________
+
+corruption = 'negative_guarantee'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=['no_failure', ...: {}}, solver_status='optimal', runtime_ms=1.5545419955742545, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f339a90>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f339a90>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f339a90>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+______________ test_checker_rejects_invalid_plan[overreservation] ______________
+
+corruption = 'overreservation'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=['no_failure', ...: {}}, solver_status='optimal', runtime_ms=1.4902080001775175, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f3382c0>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f3382c0>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f3382c0>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+______________ test_checker_rejects_invalid_plan[unknown_tunnel] _______________
+
+corruption = 'unknown_tunnel'
+
+    @pytest.mark.parametrize('corruption', ['empty_scenarios', 'unknown_scenario', 'nan_guarantee', 'negative_guarantee', 'overreservation', 'unknown_tunnel', 'negative_reservation', 'nan_reservation', 'excess_guarantee'])
+    def test_checker_rejects_invalid_plan(corruption):
+        s = diamond()
+        p = verified_plan(s)
+        if corruption == 'empty_scenarios': p.covered_scenarios = []
+        if corruption == 'unknown_scenario': p.covered_scenarios = ['fail_unknown']
+        if corruption == 'nan_guarantee': p.per_flow_guaranteed['F1'] = float('nan')
+        if corruption == 'negative_guarantee': p.per_flow_guaranteed['F1'] = -1
+        if corruption == 'overreservation': p.per_tunnel_reservations['F1']['T_F1_1'] = 20
+        if corruption == 'unknown_tunnel': p.per_tunnel_reservations['F1']['fake'] = 1
+        if corruption == 'negative_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = -1
+        if corruption == 'nan_reservation': p.per_tunnel_reservations['F1']['T_F1_1'] = float('nan')
+        if corruption == 'excess_guarantee': p.per_flow_guaranteed['F1'] = 7
+>       assert not verify_protection_guarantees(p, s.demands, s.links, s.candidate_tunnels).is_verified
+E       AssertionError: assert not True
+E        +  where True = GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]).is_verified
+E        +    where GuaranteeVerificationResult(is_verified=True, scenarios_tested=5, scenarios_passed=5, failures=[]) = verify_protection_guarantees(ProtectionPlan(plan_id='plan_v1_1_1791585700', topology_version=1, demand_version=1, covered_scenarios=['no_failure', ...: {}}, solver_status='optimal', runtime_ms=1.4119580009719357, verified=True, verification_failures=[], is_active=True), {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])}, {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}, {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]})
+E        +      where {'F1': Demand(id='F1', source='A', destination='D', bandwidth=6.0, category=<TrafficCategory.EMERGENCY: 'emergency'>, ...ved_bandwidth=0.0, route=None, status=<DemandStatus.PENDING: 'pending'>, explanation='', max_latency=None, tunnels=[])} = <app.state.SimulationState object at 0x10f33a300>.demands
+E        +      and   {'AB': Link(id='AB', source='A', target='B', capacity=10.0, latency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocat...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)} = <app.state.SimulationState object at 0x10f33a300>.links
+E        +      and   {'F1': [CandidateTunnel(id='T_F1_1', flow_id='F1', node_path=['A', 'B', 'D'], link_ids=['AB', 'BD'], latency=2.0, is_a...d='T_F2_2', flow_id='F2', node_path=['A', 'C', 'D'], link_ids=['AC', 'CD'], latency=2.0, is_active=True, metadata={})]} = <app.state.SimulationState object at 0x10f33a300>.candidate_tunnels
+
+backend/tests/test_verification.py:111: AssertionError
+______________________ test_solver_failure_is_not_success ______________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10f33bec0>
+
+    def test_solver_failure_is_not_success(monkeypatch):
+        s = diamond()
+        monkeypatch.setattr('app.routing.reactive_lp.linprog', lambda *a, **kw: SimpleNamespace(success=False, message='injected failure'))
+        out = solve_reactive_multicommodity_lp(s.demands, s.links, s.candidate_tunnels)
+>       assert not out['success']
+E       assert not True
+
+backend/tests/test_verification.py:119: AssertionError
+____________ test_algorithms_reject_latency_ineligible_tunnels[lp] _____________
+
+algorithm = 'lp'
+
+    @pytest.mark.parametrize('algorithm', ['lp', 'pacar', 'planner'])
+    def test_algorithms_reject_latency_ineligible_tunnels(algorithm):
+        s = diamond()
+        s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+        if algorithm == 'lp': alloc = solve_reactive_multicommodity_lp(s.demands, s.links, s.candidate_tunnels)['allocations']
+        elif algorithm == 'pacar': alloc = run_pacar_allocations(s.demands, s.links, s.candidate_tunnels)
+        else:
+            p = plan_proactive_protection(s.demands, s.links, s.candidate_tunnels)
+            assert p.per_flow_guaranteed['F1'] == 0
+            return
+>       assert sum(alloc['F1'].values()) == 0
+E       AssertionError: assert 5.99999 == 0
+E        +  where 5.99999 = sum(dict_values([5.99999]))
+E        +    where dict_values([5.99999]) = <built-in method values of dict object at 0x113a95600>()
+E        +      where <built-in method values of dict object at 0x113a95600> = {'T_F1_1': 5.99999}.values
+
+backend/tests/test_verification.py:133: AssertionError
+___________ test_algorithms_reject_latency_ineligible_tunnels[pacar] ___________
+
+algorithm = 'pacar'
+
+    @pytest.mark.parametrize('algorithm', ['lp', 'pacar', 'planner'])
+    def test_algorithms_reject_latency_ineligible_tunnels(algorithm):
+        s = diamond()
+        s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+        if algorithm == 'lp': alloc = solve_reactive_multicommodity_lp(s.demands, s.links, s.candidate_tunnels)['allocations']
+        elif algorithm == 'pacar': alloc = run_pacar_allocations(s.demands, s.links, s.candidate_tunnels)
+        else:
+            p = plan_proactive_protection(s.demands, s.links, s.candidate_tunnels)
+            assert p.per_flow_guaranteed['F1'] == 0
+            return
+>       assert sum(alloc['F1'].values()) == 0
+E       AssertionError: assert 6.0 == 0
+E        +  where 6.0 = sum(dict_values([6.0]))
+E        +    where dict_values([6.0]) = <built-in method values of dict object at 0x113a9e940>()
+E        +      where <built-in method values of dict object at 0x113a9e940> = {'T_F1_1': 6.0}.values
+
+backend/tests/test_verification.py:133: AssertionError
+__________ test_algorithms_reject_latency_ineligible_tunnels[planner] __________
+
+algorithm = 'planner'
+
+    @pytest.mark.parametrize('algorithm', ['lp', 'pacar', 'planner'])
+    def test_algorithms_reject_latency_ineligible_tunnels(algorithm):
+        s = diamond()
+        s.demands['F1'] = s.demands['F1'].model_copy(update={'max_latency': 1})
+        if algorithm == 'lp': alloc = solve_reactive_multicommodity_lp(s.demands, s.links, s.candidate_tunnels)['allocations']
+        elif algorithm == 'pacar': alloc = run_pacar_allocations(s.demands, s.links, s.candidate_tunnels)
+        else:
+            p = plan_proactive_protection(s.demands, s.links, s.candidate_tunnels)
+>           assert p.per_flow_guaranteed['F1'] == 0
+E           assert 5.99999 == 0
+
+backend/tests/test_verification.py:131: AssertionError
+__________ test_install_rejects_any_version_mismatch[-1-link_failure] __________
+
+trigger = 'link_failure', offset = -1
+
+    @pytest.mark.parametrize('trigger', ['normal', 'link_failure'])
+    @pytest.mark.parametrize('offset', [-1, 1])
+    def test_install_rejects_any_version_mismatch(trigger, offset):
+        s = diamond()
+        d = evaluate_install_policy({'F1': {'T_F1_1': 6}}, {}, s.demands, s.links, s.candidate_tunnels,
+                                    10+offset, 10, trigger_reason=trigger)
+>       assert not d.should_install
+E       AssertionError: assert not True
+E        +  where True = InstallDecision(should_install=True, reason='Installed recovery allocation (current allocation invalid under current f...elivered: 6.0 Mbps', decision_type='installed_recovery', candidate_delivered=6.0, current_delivered=0.0, violations=[]).should_install
+
+backend/tests/test_verification.py:142: AssertionError
+_____________ test_install_rejects_any_version_mismatch[1-normal] ______________
+
+trigger = 'normal', offset = 1
+
+    @pytest.mark.parametrize('trigger', ['normal', 'link_failure'])
+    @pytest.mark.parametrize('offset', [-1, 1])
+    def test_install_rejects_any_version_mismatch(trigger, offset):
+        s = diamond()
+        d = evaluate_install_policy({'F1': {'T_F1_1': 6}}, {}, s.demands, s.links, s.candidate_tunnels,
+                                    10+offset, 10, trigger_reason=trigger)
+>       assert not d.should_install
+E       AssertionError: assert not True
+E        +  where True = InstallDecision(should_install=True, reason='Candidate improves P1 delivered bandwidth (6.0 > 0.0 Mbps).', decision_type='installed_improvement', candidate_delivered=6.0, current_delivered=0.0, violations=[]).should_install
+
+backend/tests/test_verification.py:142: AssertionError
+__________ test_install_rejects_any_version_mismatch[1-link_failure] ___________
+
+trigger = 'link_failure', offset = 1
+
+    @pytest.mark.parametrize('trigger', ['normal', 'link_failure'])
+    @pytest.mark.parametrize('offset', [-1, 1])
+    def test_install_rejects_any_version_mismatch(trigger, offset):
+        s = diamond()
+        d = evaluate_install_policy({'F1': {'T_F1_1': 6}}, {}, s.demands, s.links, s.candidate_tunnels,
+                                    10+offset, 10, trigger_reason=trigger)
+>       assert not d.should_install
+E       AssertionError: assert not True
+E        +  where True = InstallDecision(should_install=True, reason='Installed recovery allocation (current allocation invalid under current f...elivered: 6.0 Mbps', decision_type='installed_recovery', candidate_delivered=6.0, current_delivered=0.0, violations=[]).should_install
+
+backend/tests/test_verification.py:142: AssertionError
+____________ test_multiple_sequential_failures_use_all_failed_links ____________
+
+    def test_multiple_sequential_failures_use_all_failed_links():
+        s = diamond()
+        simulate(s, 'lp')
+        assert handle_link_failure(s, 'BD')['reflex_used']
+        out = handle_link_failure(s, 'AC')
+>       assert not out['reflex_used']
+E       assert not True
+
+backend/tests/test_verification.py:151: AssertionError
+_____________ test_single_path_install_clears_old_multipath_state ______________
+
+    def test_single_path_install_clears_old_multipath_state():
+        s = diamond()
+        apply_allocation_dict(s, {'F1': {'T_F1_2': 6}}, s.candidate_tunnels)
+        apply_routing_results(s, run_pacar(s))
+        assert sum(s.active_allocations['F1'].values()) == s.demands['F1'].allocated_bandwidth
+>       assert s.demands['F1'].tunnels[0]['node_path'] == s.demands['F1'].route
+E       AssertionError: assert ['A', 'C', 'D'] == ['A', 'B', 'D']
+E         At index 1 diff: 'C' != 'B'
+E         Use -v to get more diff
+
+backend/tests/test_verification.py:161: AssertionError
+________________ test_failed_configured_tunnel_is_not_delivered ________________
+
+    def test_failed_configured_tunnel_is_not_delivered():
+        s = diamond()
+        apply_allocation_dict(s, {'F1': {'T_F1_1': 3, 'T_F1_2': 3}, 'F2': {}}, s.candidate_tunnels)
+        s.fail_link('BD')
+>       assert compute_metrics(s)['critical_delivered'] == 3
+E       assert 6.0 == 3
+
+backend/tests/test_verification.py:168: AssertionError
+______________ test_allocation_install_is_atomic_on_invalid_input ______________
+
+    def test_allocation_install_is_atomic_on_invalid_input():
+        s = diamond()
+        before = s.snapshot()
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+backend/tests/test_verification.py:174: Failed
+______________________ test_snapshot_copies_routing_state ______________________
+
+    def test_snapshot_copies_routing_state():
+        s = diamond()
+        s.protection_plan = verified_plan(s)
+        s.active_allocations = {'F1': {'T_F1_1': 3}}
+        snap = s.snapshot()
+>       assert snap.active_allocations == s.active_allocations
+E       AttributeError: 'SimulationState' object has no attribute 'active_allocations'
+
+backend/tests/test_verification.py:186: AttributeError
+______________________ test_zero_capacity_candidate_graph ______________________
+
+    def test_zero_capacity_candidate_graph():
+        s = diamond()
+        s.links['AB'] = s.links['AB'].model_copy(update={'capacity': 0, 'latency': 0})
+>       graph, _ = build_candidate_graph(s.nodes, s.links)
+
+backend/tests/test_verification.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nodes = {'A': Node(id='A', name='A', node_type=<NodeType.ROUTER: 'router'>, service_label=None, x=0.0, y=0.0), 'B': Node(id='B...e, x=0.0, y=0.0), 'D': Node(id='D', name='D', node_type=<NodeType.ROUTER: 'router'>, service_label=None, x=0.0, y=0.0)}
+links = {'AB': Link(id='AB', source='A', target='B', capacity=0, latency=0, status=<LinkStatus.ACTIVE: 'active'>, allocated_lo...tency=1.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)}
+include_failed = False
+
+    def build_candidate_graph(nodes: dict[str, Any], links: dict[str, Any], include_failed: bool = False) -> tuple[nx.Graph, dict[tuple[str, str], str]]:
+        """
+        Build NetworkX graph for path search.
+        Maps (u, v) and (v, u) to physical link_id.
+        """
+        G = nx.Graph()
+        edge_to_link: dict[tuple[str, str], str] = {}
+    
+        for nid in nodes:
+            G.add_node(nid)
+    
+        for lid, link in links.items():
+            status = getattr(link, "status", None) or (link.get("status") if isinstance(link, dict) else None)
+            if not include_failed and (status == LinkStatus.FAILED or status == "failed"):
+                continue
+    
+            src = getattr(link, "source", None) or link.get("source")
+            dst = getattr(link, "target", None) or link.get("target")
+>           lat = getattr(link, "latency", 1.0) or link.get("latency", 1.0)
+
+backend/app/routing/candidate_paths.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Link(id='AB', source='A', target='B', capacity=0, latency=0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=0.0, utilization=0.0, flap_count=0, last_flap_step=-1)
+item = 'get'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra is not None:
+                try:
+                    return pydantic_extra[item]
+                except KeyError as exc:
+                    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'Link' object has no attribute 'get'
+
+.venv312/lib/python3.12/site-packages/pydantic/main.py:761: AttributeError
+_______________ test_k_shortest_paths_does_not_exhaust_generator _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10f33f890>
+
+    def test_k_shortest_paths_does_not_exhaust_generator(monkeypatch):
+        calls = []
+        def paths(*a, **kw):
+            for i in range(100):
+                calls.append(i)
+                yield ['A', str(i), 'D']
+        monkeypatch.setattr(nx, 'shortest_simple_paths', paths)
+        assert len(find_k_shortest_paths(nx.Graph(), 'A', 'D', 5)) == 5
+>       assert len(calls) == 5
+E       assert 100 == 5
+E        +  where 100 = len([0, 1, 2, 3, 4, 5, ...])
+
+backend/tests/test_verification.py:208: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/test_acceptance_25steps.py::test_full_acceptance_workflow
+FAILED backend/tests/test_verification.py::test_canonical_example - assert 5....
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[source]
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[destination]
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[disconnected]
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[mapping]
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[latency]
+FAILED backend/tests/test_verification.py::test_validator_reconstructs_path[empty]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[empty_scenarios]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[unknown_scenario]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[nan_guarantee]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[negative_guarantee]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[overreservation]
+FAILED backend/tests/test_verification.py::test_checker_rejects_invalid_plan[unknown_tunnel]
+FAILED backend/tests/test_verification.py::test_solver_failure_is_not_success
+FAILED backend/tests/test_verification.py::test_algorithms_reject_latency_ineligible_tunnels[lp]
+FAILED backend/tests/test_verification.py::test_algorithms_reject_latency_ineligible_tunnels[pacar]
+FAILED backend/tests/test_verification.py::test_algorithms_reject_latency_ineligible_tunnels[planner]
+FAILED backend/tests/test_verification.py::test_install_rejects_any_version_mismatch[-1-link_failure]
+FAILED backend/tests/test_verification.py::test_install_rejects_any_version_mismatch[1-normal]
+FAILED backend/tests/test_verification.py::test_install_rejects_any_version_mismatch[1-link_failure]
+FAILED backend/tests/test_verification.py::test_multiple_sequential_failures_use_all_failed_links
+FAILED backend/tests/test_verification.py::test_single_path_install_clears_old_multipath_state
+FAILED backend/tests/test_verification.py::test_failed_configured_tunnel_is_not_delivered
+FAILED backend/tests/test_verification.py::test_allocation_install_is_atomic_on_invalid_input
+FAILED backend/tests/test_verification.py::test_snapshot_copies_routing_state
+FAILED backend/tests/test_verification.py::test_zero_capacity_candidate_graph
+FAILED backend/tests/test_verification.py::test_k_shortest_paths_does_not_exhaust_generator
+28 failed, 89 passed in 16.40s

@@ -1,0 +1,16 @@
+PASS  FB-1 position-only node update keeps plan and Reflex
+PASS  FB-2 two fail/restore cycles do not trigger 3-failure hold-down
+PASS  FB-3 empty What-If link list rejected
+PASS  FB-4 failure events carry the step returned by the action
+PASS  FB-5 plan rows distinguish unplanned P3-P5 flows
+PASS  FB-6 plan computed with a failed link is verified and claims no impossible guarantee
+PASS  FB-6 plan stays verified (not falsely failed) while a link is held down
+PASS  Repeated fail of an already-failed link does not log a second failure
+PASS  Reflex preserves unaffected critical allocations
+PASS  What-If 'after' matches what the controller actually does
+PASS  Install policy rejects a strictly worse candidate after a failure
+PASS  Existing tunnel IDs keep their path across regeneration
+PASS  Recompute Plan includes a newly added critical demand
+PASS  Simulate reports which algorithm was actually installed
+
+14/14 probes passed

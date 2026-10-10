@@ -1,0 +1,156 @@
+PASS  [initial-load] dashboard loads
+PASS  [initial-load] empty state shown for empty network
+PASS  [initial-load] metrics show — (not 100%) with no data
+PASS  [journey-1:launch] simulation started automatically
+PASS  [journey-1:launch] P1+P2 guaranteed = 50 / 50 Mbps
+PASS  [journey-1:launch] P1_DEMO guarantee 10 Mbps
+PASS  [journey-1:launch] D1 guarantee 40 Mbps
+PASS  [journey-1:launch] six covered scenarios
+PASS  [journey-1:launch] guarantee checker PASS
+PASS  [journey-1:launch] shows positive full-protection notice
+PASS  [journey-1:launch] L3 pre-selected in link picker
+PASS  [journey-1:launch] fail button names L3 exactly
+PASS  [journey-1:pre-failure] P1_DEMO delivered 10 Mbps before failure
+PASS  [journey-1:pre-failure] D1 delivered 40 Mbps before failure
+PASS  [journey-1:pre-failure:ui=api] pre-failure: every displayed value equals the API
+PASS  [journey-1:fail-L3] toast reports Reflex used
+PASS  [journey-1:fail-L3] toast reports 0 validator violations
+PASS  [journey-1:fail-L3] inspector shows Reflex YES
+PASS  [journey-1:fail-L3] canvas labels L3 as FAILED
+PASS  [journey-1:fail-L3] L1 and L2 at 50/50 Mbps (100%)
+PASS  [journey-1:post-failure] P1_DEMO still 10 Mbps after L3 failure
+PASS  [journey-1:post-failure] D1 still 40 Mbps after L3 failure
+PASS  [journey-1:post-failure] last-failure card: P1_DEMO 10→10, guarantee kept
+PASS  [journey-1:post-failure] last-failure card: D1 40→40, guarantee kept
+PASS  [journey-1:post-failure] metrics list L3 as down
+PASS  [journey-1:post-failure] critical delivered 50/50 Mbps
+PASS  [journey-1:post-failure:ui=api] post-failure: every displayed value equals the API
+PASS  [journey-1:post-failure] protection tab says the guarantee is in force for L3 down but no further failure is covered
+PASS  [journey-1:post-failure] protection badge shows L3 down
+PASS  [journey-1:events] event log shows L3 failure
+PASS  [journey-1:events] event log shows reflex_recovery
+PASS  [journey-1:what-if] What-If L1 renders without mutating
+PASS  [journey-1:what-if] What-If states it replays the real controller
+PASS  [journey-1:what-if] API confirms link states unchanged by What-If
+PASS  [journey-1:compare] comparison renders all three algorithms with L3 context
+PASS  [journey-1:compare] comparison has no NaN/undefined
+PASS  [journey-1:compare] comparison labels heuristic vs LP optimality honestly
+PASS  [journey-1:restore-L3] restore toast names L3
+PASS  [journey-1:restore-L3] traffic restored (D1 40, D2 30, D3 >= 50 Mbps)
+PASS  [journey-1:restore-L3] no links shown as failed
+PASS  [journey-1:restore-L3:ui=api] restored: every displayed value equals the API
+PASS  [reset] demo reset cleanly
+PASS  [refresh] after reload, simulation state recovered from backend
+PASS  [refresh] after reload, D1 guarantee still 40 Mbps
+PASS  [journey-2:launch] simulation started automatically
+PASS  [journey-2:launch] P1+P2 guaranteed = 50 / 50 Mbps
+PASS  [journey-2:launch] P1_DEMO guarantee 10 Mbps
+PASS  [journey-2:launch] D1 guarantee 40 Mbps
+PASS  [journey-2:launch] six covered scenarios
+PASS  [journey-2:launch] guarantee checker PASS
+PASS  [journey-2:launch] shows positive full-protection notice
+PASS  [journey-2:launch] L3 pre-selected in link picker
+PASS  [journey-2:launch] fail button names L3 exactly
+PASS  [journey-2:pre-failure] P1_DEMO delivered 10 Mbps before failure
+PASS  [journey-2:pre-failure] D1 delivered 40 Mbps before failure
+PASS  [journey-2:pre-failure:ui=api] pre-failure: every displayed value equals the API
+PASS  [journey-2:fail-L3] toast reports Reflex used
+PASS  [journey-2:fail-L3] toast reports 0 validator violations
+PASS  [journey-2:fail-L3] inspector shows Reflex YES
+PASS  [journey-2:fail-L3] canvas labels L3 as FAILED
+PASS  [journey-2:fail-L3] L1 and L2 at 50/50 Mbps (100%)
+PASS  [journey-2:post-failure] P1_DEMO still 10 Mbps after L3 failure
+PASS  [journey-2:post-failure] D1 still 40 Mbps after L3 failure
+PASS  [journey-2:post-failure] last-failure card: P1_DEMO 10→10, guarantee kept
+PASS  [journey-2:post-failure] last-failure card: D1 40→40, guarantee kept
+PASS  [journey-2:post-failure] metrics list L3 as down
+PASS  [journey-2:post-failure] critical delivered 50/50 Mbps
+PASS  [journey-2:post-failure:ui=api] post-failure: every displayed value equals the API
+PASS  [journey-2:post-failure] protection tab says the guarantee is in force for L3 down but no further failure is covered
+PASS  [journey-2:post-failure] protection badge shows L3 down
+PASS  [journey-2:events] event log shows L3 failure
+PASS  [journey-2:events] event log shows reflex_recovery
+PASS  [journey-2:what-if] What-If L1 renders without mutating
+PASS  [journey-2:what-if] What-If states it replays the real controller
+PASS  [journey-2:what-if] API confirms link states unchanged by What-If
+PASS  [journey-2:compare] comparison renders all three algorithms with L3 context
+PASS  [journey-2:compare] comparison has no NaN/undefined
+PASS  [journey-2:compare] comparison labels heuristic vs LP optimality honestly
+PASS  [journey-2:restore-L3] restore toast names L3
+PASS  [journey-2:restore-L3] traffic restored (D1 40, D2 30, D3 >= 50 Mbps)
+PASS  [journey-2:restore-L3] no links shown as failed
+PASS  [journey-2:restore-L3:ui=api] restored: every displayed value equals the API
+PASS  [node-click-keeps-plan] clicking a node keeps the protection plan active
+PASS  [node-click-keeps-plan] dragging a node re-verifies the plan (still active)
+PASS  [node-click-keeps-plan] Reflex still used after node drag
+PASS  [node-click-keeps-plan] Restore All restores L3
+PASS  [repeat-cycles] repeated fail/restore of L3 is shown as FLAPPING (held down)
+PASS  [repeat-cycles] hold-down happens on the restore after the third failure (not the second)
+PASS  [repeat-cycles] held-down link explains failure count and remaining controller steps
+PASS  [repeat-cycles:ui=api] held-down: every displayed value equals the API
+PASS  [repeat-cycles] canvas labels L3 FLAPPING
+PASS  [repeat-cycles] Fail is disabled for a held-down link
+PASS  [repeat-cycles] toast explains the link was not restored
+PASS  [repeat-cycles] after reloading the demo, failing L3 uses Reflex again
+PASS  [repeat-cycles] critical traffic 50 Mbps after re-run
+PASS  [reload-during-failure] after reload L3 is still shown as failed
+PASS  [reload-during-failure] after reload the plan shows the covered failure in progress
+PASS  [reload-during-failure] after reload the simulation is shown as active
+PASS  [reload-during-failure:ui=api] reloaded during failure: every displayed value equals the API
+PASS  [pan-zoom] dragging the empty canvas pans the view
+PASS  [pan-zoom] mouse wheel zooms the view
+PASS  [pan-zoom] panning and zooming do not touch the protection plan
+PASS  [second-failure] second failure is reported as not covered by Reflex
+PASS  [second-failure] protection tab says the plan is not in force
+PASS  [second-failure] badge says not in force
+PASS  [second-failure:ui=api] two failures: every displayed value equals the API
+PASS  [double-click] double-clicking Fail sends exactly one failure
+PASS  [double-click] double-clicking the simulation toggle never sends duplicate simulate requests
+PASS  [sample-network] sample loads in draft mode
+PASS  [sample-network] unsimulated demand shows — not 0 Mbps
+PASS  [sample-network] zero-guarantee warning shown for normal_campus
+PASS  [sample-network] tab badge says Verified · 0 Mbps
+PASS  [sample-network] total guaranteed 0 / 65 Mbps
+PASS  [sample-network] P5 flow labelled not planned (not NONE)
+PASS  [what-if-L1] What-If L1 shows numbers, no crash
+PASS  [what-if-L1+L7] What-If L1+L7: 195→180 Mbps, D6/D7 unreachable
+PASS  [what-if-L7] What-If L7 alone: D6, D7 unreachable
+PASS  [canvas-link-select] clicking L7 on canvas selects L7 in picker
+PASS  [canvas-link-select] inspector shows L7
+PASS  [canvas-link-select] exactly L7 failed (no other link)
+PASS  [canvas-link-select] L7 restored from inspector
+PASS  [crud] Clear empties the network
+PASS  [crud] created 3 nodes
+PASS  [crud] duplicate node ID rejected with message
+PASS  [crud] edit node saved
+PASS  [crud] links get short IDs L1..L3
+PASS  [crud] parallel link rejected
+PASS  [crud] negative capacity rejected client-side
+PASS  [crud] edit link saved capacity/latency
+PASS  [crud] traffic T1 added
+PASS  [crud] zero bandwidth rejected
+PASS  [crud] traffic T1 edited to 25 Mbps
+PASS  [crud] plan computed before routing is reported as not yet in force
+PASS  [crud] custom network simulated
+PASS  [crud] recompute plan: T1 guaranteed 25 Mbps on triangle
+PASS  [crud] stop simulation toggles UI
+PASS  [crud] traffic deleted
+PASS  [crud] link deleted
+PASS  [crud] node deleted
+PASS  [zoom] zoom in/out/fit/reset change the view
+PASS  [export] export downloads valid JSON
+PASS  [tray] tray collapses
+PASS  [tray] switching tab re-opens tray
+PASS  [api-errors] double failure surfaces a message
+PASS  [backend-down] unreachable backend shows clear message
+PASS  [responsive] 1280x720: Start/Stop Simulation visible without scrolling
+PASS  [responsive] 1280x720: no horizontal overflow
+PASS  [responsive] 1280x720: demo and fail controls visible
+PASS  [responsive] 1024x768: Start/Stop Simulation visible without scrolling
+PASS  [responsive] 1024x768: no horizontal overflow
+PASS  [responsive] 1024x768: demo and fail controls visible
+PASS  [summary] no requests attempted to port 8000
+PASS  [summary] no unexpected console/page errors
+PASS  [summary] no unexpected failed HTTP requests
+
+154/154 checks passed

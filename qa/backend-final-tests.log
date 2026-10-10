@@ -1,0 +1,10 @@
+........................................................................ [ 34%]
+........................................................................ [ 68%]
+.................................................................        [100%]
+============================= slowest 5 durations ==============================
+0.25s call     backend/tests/test_what_if_dashboard.py::test_what_if_actual_api_response_and_state_preservation[links0-195-0-backend/app/static/index.html]
+0.05s call     backend/tests/test_what_if_dashboard.py::test_what_if_actual_api_response_and_state_preservation[links1-180-2-frontend/index.html]
+0.04s call     backend/tests/test_what_if_dashboard.py::test_what_if_actual_api_response_and_state_preservation[links1-180-2-backend/app/static/index.html]
+0.04s call     backend/tests/test_acceptance_25steps.py::test_full_acceptance_workflow
+0.04s call     backend/tests/test_what_if_dashboard.py::test_what_if_actual_api_response_and_state_preservation[links0-195-0-frontend/index.html]
+209 passed in 2.05s

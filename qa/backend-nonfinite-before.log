@@ -1,0 +1,255 @@
+................................FFF..FFF                                 [100%]
+=================================== FAILURES ===================================
+__________________ test_emergency_endpoint_really_injects_p1 ___________________
+backend/tests/test_backend_release.py:176: in test_emergency_endpoint_really_injects_p1
+    assert s.demands['urgent'].category.value == 'emergency'
+E   AssertionError: assert 'general' == 'emergency'
+E     - emergency
+E     + general
+___________________ test_empty_ids_rejected[/links-payload0] ___________________
+backend/tests/test_backend_release.py:186: in test_empty_ids_rejected
+    assert client.post(endpoint,json=payload).status_code in (400,422)
+E   AssertionError: assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10aecbbc0>>('/links', json={'capacity': 10, 'id': ' ', 'latency': 1, 'source': 'A', ...})
+E    +      where <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10aecbbc0>> = <starlette.testclient.TestClient object at 0x10aecbbc0>.post
+__________________ test_empty_ids_rejected[/demands-payload1] __________________
+backend/tests/test_backend_release.py:186: in test_empty_ids_rejected
+    assert client.post(endpoint,json=payload).status_code in (400,422)
+E   AssertionError: assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10af16570>>('/demands', json={'bandwidth': 10, 'destination': 'E', 'id': ' ', 'source': 'A'})
+E    +      where <bound method TestClient.post of <starlette.testclient.TestClient object at 0x10af16570>> = <starlette.testclient.TestClient object at 0x10af16570>.post
+____ test_nonfinite_json_returns_validation_error_not_500[/nodes-payload0] _____
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:272: in app
+    raise RequestValidationError(_normalize_errors(errors), body=body)
+E   fastapi.exceptions.RequestValidationError: [{'type': 'finite_number', 'loc': ('body', 'x'), 'msg': 'Input should be a finite number', 'input': inf, 'url': 'https://errors.pydantic.dev/2.5/v/finite_number'}]
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_backend_release.py:231: in test_nonfinite_json_returns_validation_error_not_500
+    r = client.post(endpoint,content=json.dumps(payload),headers={'Content-Type':'application/json'})
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+.venv312/lib/python3.12/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:88: in __call__
+    response = await handler(request, exc)
+.venv312/lib/python3.12/site-packages/fastapi/exception_handlers.py:23: in request_validation_exception_handler
+    return JSONResponse(
+.venv312/lib/python3.12/site-packages/starlette/responses.py:196: in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:55: in __init__
+    self.body = self.render(content)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:199: in render
+    return json.dumps(
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+E   ValueError: Out of range float values are not JSON compliant: inf
+____ test_nonfinite_json_returns_validation_error_not_500[/links-payload1] _____
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:272: in app
+    raise RequestValidationError(_normalize_errors(errors), body=body)
+E   fastapi.exceptions.RequestValidationError: [{'type': 'finite_number', 'loc': ('body', 'capacity'), 'msg': 'Input should be a finite number', 'input': inf, 'url': 'https://errors.pydantic.dev/2.5/v/finite_number'}]
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_backend_release.py:231: in test_nonfinite_json_returns_validation_error_not_500
+    r = client.post(endpoint,content=json.dumps(payload),headers={'Content-Type':'application/json'})
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:449: in result
+    return self.__get_result()
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+.venv312/lib/python3.12/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:88: in __call__
+    response = await handler(request, exc)
+.venv312/lib/python3.12/site-packages/fastapi/exception_handlers.py:23: in request_validation_exception_handler
+    return JSONResponse(
+.venv312/lib/python3.12/site-packages/starlette/responses.py:196: in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:55: in __init__
+    self.body = self.render(content)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:199: in render
+    return json.dumps(
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+E   ValueError: Out of range float values are not JSON compliant: inf
+___ test_nonfinite_json_returns_validation_error_not_500[/demands-payload2] ____
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+.venv312/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+.venv312/lib/python3.12/site-packages/fastapi/routing.py:272: in app
+    raise RequestValidationError(_normalize_errors(errors), body=body)
+E   fastapi.exceptions.RequestValidationError: [{'type': 'finite_number', 'loc': ('body', 'bandwidth'), 'msg': 'Input should be a finite number', 'input': nan, 'url': 'https://errors.pydantic.dev/2.5/v/finite_number'}]
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_backend_release.py:231: in test_nonfinite_json_returns_validation_error_not_500
+    r = client.post(endpoint,content=json.dumps(payload),headers={'Content-Type':'application/json'})
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv312/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv312/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv312/lib/python3.12/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+.venv312/lib/python3.12/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+.venv312/lib/python3.12/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv312/lib/python3.12/site-packages/starlette/middleware/exceptions.py:88: in __call__
+    response = await handler(request, exc)
+.venv312/lib/python3.12/site-packages/fastapi/exception_handlers.py:23: in request_validation_exception_handler
+    return JSONResponse(
+.venv312/lib/python3.12/site-packages/starlette/responses.py:196: in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:55: in __init__
+    self.body = self.render(content)
+.venv312/lib/python3.12/site-packages/starlette/responses.py:199: in render
+    return json.dumps(
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/__init__.py:238: in dumps
+    **kw).encode(obj)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+E   ValueError: Out of range float values are not JSON compliant: nan
+=========================== short test summary info ============================
+FAILED backend/tests/test_backend_release.py::test_emergency_endpoint_really_injects_p1
+FAILED backend/tests/test_backend_release.py::test_empty_ids_rejected[/links-payload0]
+FAILED backend/tests/test_backend_release.py::test_empty_ids_rejected[/demands-payload1]
+FAILED backend/tests/test_backend_release.py::test_nonfinite_json_returns_validation_error_not_500[/nodes-payload0]
+FAILED backend/tests/test_backend_release.py::test_nonfinite_json_returns_validation_error_not_500[/links-payload1]
+FAILED backend/tests/test_backend_release.py::test_nonfinite_json_returns_validation_error_not_500[/demands-payload2]
+6 failed, 34 passed in 1.79s

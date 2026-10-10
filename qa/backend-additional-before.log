@@ -1,0 +1,18 @@
+.......................FF.                                               [100%]
+=================================== FAILURES ===================================
+_______________ test_analysis_reads_never_reactivate_live_links ________________
+backend/tests/test_backend_release.py:113: in test_analysis_reads_never_reactivate_live_links
+    assert fingerprint(s) == before
+E   AssertionError: assert {'_previous_r...10.0}])}, ...} == {'_previous_r...10.0}])}, ...}
+E     Omitting 13 identical items, use -vv to show
+E     Differing items:
+E     {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.ACTIVE: 'active'...0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=70.0, utilization=35.0, flap_count=0, last_flap_step=-1), ...}} != {'links': {'L1': Link(id='L1', source='A', target='B', capacity=50.0, latency=5.0, status=<LinkStatus.FLAPPING: 'flapp...0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=70.0, utilization=35.0, flap_count=0, last_flap_step=-1), ...}}
+E     Use -v to get more diff
+______ test_single_path_installation_rejects_infeasible_result_atomically ______
+backend/tests/test_backend_release.py:125: in test_single_path_installation_rejects_infeasible_result_atomically
+    with pytest.raises(ValueError):
+E   Failed: DID NOT RAISE <class 'ValueError'>
+=========================== short test summary info ============================
+FAILED backend/tests/test_backend_release.py::test_analysis_reads_never_reactivate_live_links
+FAILED backend/tests/test_backend_release.py::test_single_path_installation_rejects_infeasible_result_atomically
+2 failed, 24 passed in 1.34s

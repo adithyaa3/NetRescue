@@ -1,0 +1,4 @@
+OLD dashboard: modalOpen=true links=["L1:X1-X2"] toast="Error: Link 'L1' already exists" -> BUG
+CURRENT dashboard run 1: modalOpen=false links=["L1:X1-X2","L2:X2-X3"] toast="Created L2: X2 ↔ X3 (100 Mbps)" -> OK
+CURRENT dashboard run 2: modalOpen=false links=["L1:X1-X2","L2:X2-X3"] toast="Created L2: X2 ↔ X3 (100 Mbps)" -> OK
+CURRENT dashboard run 3: modalOpen=false links=["L1:X1-X2","L2:X2-X3"] toast="Created L2: X2 ↔ X3 (100 Mbps)" -> OK

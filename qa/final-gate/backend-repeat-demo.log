@@ -1,0 +1,608 @@
+[
+  {
+    "iteration": 1,
+    "healthy": {
+      "version": 5,
+      "step": 1,
+      "algorithm": "pacar",
+      "algorithm_used": "pacar",
+      "route_changes": 4,
+      "computation_time_ms": 3.44,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    },
+    "plan": {
+      "active": true,
+      "plan_id": "plan_v3_3_1791595458",
+      "topology_version": 3,
+      "demand_version": 3,
+      "verified": true,
+      "covered_scenarios_count": 6,
+      "solver_status": "optimal",
+      "runtime_ms": 2.28,
+      "critical_flows": [
+        {
+          "flow_id": "D1",
+          "priority": 2,
+          "planned": true,
+          "requested_mbps": 40.0,
+          "guaranteed_mbps": 40.0,
+          "delivered_mbps": 40.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "P1_DEMO",
+          "priority": 1,
+          "planned": true,
+          "requested_mbps": 10.0,
+          "guaranteed_mbps": 10.0,
+          "delivered_mbps": 10.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "D2",
+          "priority": 3,
+          "planned": false,
+          "requested_mbps": 30.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 30.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        },
+        {
+          "flow_id": "D3",
+          "priority": 4,
+          "planned": false,
+          "requested_mbps": 80.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 50.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        }
+      ],
+      "verification_failures": [],
+      "base_unavailable_links": [],
+      "live_unavailable_links": [],
+      "current_scenario": "no_failure",
+      "in_force": true,
+      "not_in_force_reason": null,
+      "pending_flows": [],
+      "unmet_flows": [],
+      "further_failures_covered": true
+    },
+    "reservations": {
+      "D1": {
+        "T_D1_1": 40.0,
+        "T_D1_2": 40.0
+      },
+      "D2": {},
+      "D3": {},
+      "P1_DEMO": {
+        "T_P1_DEMO_1": 10.0,
+        "T_P1_DEMO_2": 10.0
+      }
+    },
+    "failure": {
+      "version": 8,
+      "step": 2,
+      "event": "link_failure",
+      "changed": true,
+      "link_id": "L3",
+      "reflex_used": true,
+      "reflex_time_ms": 0.05,
+      "protection_scenario": "fail_L3",
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        }
+      ]
+    },
+    "delivered_mbps": {
+      "D1": 40.0,
+      "D2": 0.0,
+      "D3": 0.0,
+      "P1_DEMO": 10.0
+    },
+    "link_loads_mbps": {
+      "L1": 50.0,
+      "L2": 50.0,
+      "L3": 0.0,
+      "L4": 0.0,
+      "L5": 0.0
+    },
+    "independent_validator_violations": [],
+    "restore": {
+      "version": 11,
+      "step": 3,
+      "event": "link_restore",
+      "changed": true,
+      "link_id": "L3",
+      "status": "active",
+      "cooldown_remaining": 0,
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    }
+  },
+  {
+    "iteration": 2,
+    "healthy": {
+      "version": 5,
+      "step": 1,
+      "algorithm": "pacar",
+      "algorithm_used": "pacar",
+      "route_changes": 4,
+      "computation_time_ms": 3.69,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    },
+    "plan": {
+      "active": true,
+      "plan_id": "plan_v3_3_1791595458",
+      "topology_version": 3,
+      "demand_version": 3,
+      "verified": true,
+      "covered_scenarios_count": 6,
+      "solver_status": "optimal",
+      "runtime_ms": 2.21,
+      "critical_flows": [
+        {
+          "flow_id": "D1",
+          "priority": 2,
+          "planned": true,
+          "requested_mbps": 40.0,
+          "guaranteed_mbps": 40.0,
+          "delivered_mbps": 40.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "P1_DEMO",
+          "priority": 1,
+          "planned": true,
+          "requested_mbps": 10.0,
+          "guaranteed_mbps": 10.0,
+          "delivered_mbps": 10.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "D2",
+          "priority": 3,
+          "planned": false,
+          "requested_mbps": 30.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 30.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        },
+        {
+          "flow_id": "D3",
+          "priority": 4,
+          "planned": false,
+          "requested_mbps": 80.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 50.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        }
+      ],
+      "verification_failures": [],
+      "base_unavailable_links": [],
+      "live_unavailable_links": [],
+      "current_scenario": "no_failure",
+      "in_force": true,
+      "not_in_force_reason": null,
+      "pending_flows": [],
+      "unmet_flows": [],
+      "further_failures_covered": true
+    },
+    "reservations": {
+      "D1": {
+        "T_D1_1": 40.0,
+        "T_D1_2": 40.0
+      },
+      "D2": {},
+      "D3": {},
+      "P1_DEMO": {
+        "T_P1_DEMO_1": 10.0,
+        "T_P1_DEMO_2": 10.0
+      }
+    },
+    "failure": {
+      "version": 8,
+      "step": 2,
+      "event": "link_failure",
+      "changed": true,
+      "link_id": "L3",
+      "reflex_used": true,
+      "reflex_time_ms": 0.05,
+      "protection_scenario": "fail_L3",
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        }
+      ]
+    },
+    "delivered_mbps": {
+      "D1": 40.0,
+      "D2": 0.0,
+      "D3": 0.0,
+      "P1_DEMO": 10.0
+    },
+    "link_loads_mbps": {
+      "L1": 50.0,
+      "L2": 50.0,
+      "L3": 0.0,
+      "L4": 0.0,
+      "L5": 0.0
+    },
+    "independent_validator_violations": [],
+    "restore": {
+      "version": 11,
+      "step": 3,
+      "event": "link_restore",
+      "changed": true,
+      "link_id": "L3",
+      "status": "active",
+      "cooldown_remaining": 0,
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    }
+  },
+  {
+    "iteration": 3,
+    "healthy": {
+      "version": 5,
+      "step": 1,
+      "algorithm": "pacar",
+      "algorithm_used": "pacar",
+      "route_changes": 4,
+      "computation_time_ms": 2.42,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    },
+    "plan": {
+      "active": true,
+      "plan_id": "plan_v3_3_1791595458",
+      "topology_version": 3,
+      "demand_version": 3,
+      "verified": true,
+      "covered_scenarios_count": 6,
+      "solver_status": "optimal",
+      "runtime_ms": 1.52,
+      "critical_flows": [
+        {
+          "flow_id": "D1",
+          "priority": 2,
+          "planned": true,
+          "requested_mbps": 40.0,
+          "guaranteed_mbps": 40.0,
+          "delivered_mbps": 40.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "P1_DEMO",
+          "priority": 1,
+          "planned": true,
+          "requested_mbps": 10.0,
+          "guaranteed_mbps": 10.0,
+          "delivered_mbps": 10.0,
+          "protection_pct": 100.0,
+          "status": "Full"
+        },
+        {
+          "flow_id": "D2",
+          "priority": 3,
+          "planned": false,
+          "requested_mbps": 30.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 30.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        },
+        {
+          "flow_id": "D3",
+          "priority": 4,
+          "planned": false,
+          "requested_mbps": 80.0,
+          "guaranteed_mbps": 0.0,
+          "delivered_mbps": 50.0,
+          "protection_pct": null,
+          "status": "Not planned"
+        }
+      ],
+      "verification_failures": [],
+      "base_unavailable_links": [],
+      "live_unavailable_links": [],
+      "current_scenario": "no_failure",
+      "in_force": true,
+      "not_in_force_reason": null,
+      "pending_flows": [],
+      "unmet_flows": [],
+      "further_failures_covered": true
+    },
+    "reservations": {
+      "D1": {
+        "T_D1_1": 40.0,
+        "T_D1_2": 40.0
+      },
+      "D2": {},
+      "D3": {},
+      "P1_DEMO": {
+        "T_P1_DEMO_1": 10.0,
+        "T_P1_DEMO_2": 10.0
+      }
+    },
+    "failure": {
+      "version": 8,
+      "step": 2,
+      "event": "link_failure",
+      "changed": true,
+      "link_id": "L3",
+      "reflex_used": true,
+      "reflex_time_ms": 0.04,
+      "protection_scenario": "fail_L3",
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D1",
+            "P1_DEMO"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D1, P1_DEMO."
+        }
+      ]
+    },
+    "delivered_mbps": {
+      "D1": 40.0,
+      "D2": 0.0,
+      "D3": 0.0,
+      "P1_DEMO": 10.0
+    },
+    "link_loads_mbps": {
+      "L1": 50.0,
+      "L2": 50.0,
+      "L3": 0.0,
+      "L4": 0.0,
+      "L5": 0.0
+    },
+    "independent_validator_violations": [],
+    "restore": {
+      "version": 11,
+      "step": 3,
+      "event": "link_restore",
+      "changed": true,
+      "link_id": "L3",
+      "status": "active",
+      "cooldown_remaining": 0,
+      "route_changes": 4,
+      "violations": [],
+      "congestion_warnings": [
+        {
+          "link_id": "L1",
+          "source": "A",
+          "target": "B",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link A\u2194B at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        },
+        {
+          "link_id": "L2",
+          "source": "B",
+          "target": "E",
+          "utilization": 100.0,
+          "capacity": 50.0,
+          "load": 50.0,
+          "contributing_demands": [
+            "D3"
+          ],
+          "explanation": "Link B\u2194E at 100.0% utilization (50.0/50.0 Mbps). Contributing flows: D3."
+        }
+      ]
+    }
+  }
+]

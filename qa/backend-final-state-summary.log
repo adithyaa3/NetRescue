@@ -1,0 +1,30 @@
+Initial evidence keys: ['branch', 'sha', 'git_status', 'backend_file_sha256']
+{
+  "branch": "dev",
+  "commit": "ecca49a75a0c7383a42a4be136a65d6ca2cbdb83",
+  "backend_files_changed_during_audit": [
+    "backend/app/models.py",
+    "backend/app/main.py",
+    "backend/app/state.py",
+    "backend/tests/test_acceptance_25steps.py",
+    "backend/app/analysis/vulnerability.py",
+    "backend/app/analysis/what_if.py",
+    "backend/app/simulation/engine.py",
+    "backend/app/static/index.html",
+    "backend/app/routing/allocation.py"
+  ],
+  "mission_added_backend_files": [
+    "backend/tests/test_backend_release.py"
+  ],
+  "codex_modified_backend_files": [
+    "backend/app/models.py",
+    "backend/app/main.py",
+    "backend/app/state.py",
+    "backend/tests/test_acceptance_25steps.py",
+    "backend/app/analysis/vulnerability.py",
+    "backend/app/analysis/what_if.py",
+    "backend/app/simulation/engine.py",
+    "backend/app/routing/allocation.py"
+  ],
+  "concurrent_dashboard_change": true
+}

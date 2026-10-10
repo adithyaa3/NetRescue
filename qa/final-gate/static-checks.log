@@ -1,0 +1,21 @@
+== compileall
+OK
+== import
+OK
+== pip check
+No broken requirements found.
+== python version
+Python 3.12.4
+== js syntax (embedded dashboard script)
+OK
+qa/frontend-e2e/run-e2e.mjs OK
+qa/frontend-e2e/connect-race.mjs OK
+== dashboard copies
+IDENTICAL
+== frontend build
+computing gzip size...
+dist/index.html  128.16 kB │ gzip: 31.81 kB
+
+✓ built in 157ms
+== git diff --check
+OK

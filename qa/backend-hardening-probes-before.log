@@ -1,0 +1,16 @@
+FAIL  FB-1 position-only node update keeps plan and Reflex  -> plan.active=False reflex_used=False
+FAIL  FB-2 two fail/restore cycles do not trigger 3-failure hold-down  -> events=['link_failure', 'link_restore', 'link_failure', 'link_flapping'] status=flapping flap_count=3
+FAIL  FB-3 empty What-If link list rejected  -> status=200
+FAIL  FB-4 failure events carry the step returned by the action  -> response step=2 event steps=[1]
+FAIL  FB-5 plan rows distinguish unplanned P3-P5 flows  -> [{"flow_id": "D1", "priority": 2, "status": "Full", "planned": null}, {"flow_id": "P1_DEMO", "priority": 1, "status": "Full", "planned": null}, {"flow_id": "D2", "priority": 3, "status": "None", "planned": null}, {"flow_id": "D3", "priority": 4, "status": "None", "planned": null}]
+FAIL  FB-6 plan computed with a failed link is verified and claims no impossible guarantee  -> verified=False guarantees={'D1': 40.0, 'P1_DEMO': 10.0, 'D2': 0.0, 'D3': 0.0} failures=["Tunnel 'T_D1_2' traverses failed link 'L3'", "Tunnel 'T_P1_DEMO_2' traverses failed link 'L3'"]
+FAIL  FB-6 plan stays verified (not falsely failed) while a link is held down  -> L3=flapping verified=False failures=["Tunnel 'T_D1_2' traverses failed link 'L3'", "Tunnel 'T_P1_DEMO_2' traverses failed link 'L3'"]
+FAIL  Repeated fail of an already-failed link does not log a second failure  -> status=200 events 5->8
+FAIL  Reflex preserves unaffected critical allocations  -> before D1=30.0 D6=10.0 reflex D1=0 D6=0
+PASS  What-If 'after' matches what the controller actually does
+FAIL  Install policy rejects a strictly worse candidate after a failure  -> decision=installed_recovery: Installed recovery allocation (current allocation invalid under current failures). Delivered: 0.0 Mbps
+FAIL  Existing tunnel IDs keep their path across regeneration  -> remapped IDs: ['T_D1_1', 'T_D1_2', 'T_D2_1', 'T_D2_2', 'T_D3_1']
+FAIL  Recompute Plan includes a newly added critical demand  -> P1_NEW row={'flow_id': 'P1_NEW', 'priority': 1, 'requested_mbps': 5.0, 'guaranteed_mbps': 0.0, 'delivered_mbps': 0.0, 'protection_pct': 0.0, 'status': 'None'}
+FAIL  Simulate reports which algorithm was actually installed  -> response keys=['algorithm', 'computation_time_ms', 'congestion_warnings', 'route_changes', 'step', 'version', 'violations']
+
+1/14 probes passed

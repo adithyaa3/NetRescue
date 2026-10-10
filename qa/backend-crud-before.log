@@ -1,0 +1,41 @@
+..........................FFFFFF                                         [100%]
+=================================== FAILURES ===================================
+_ test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_demand] __
+backend/tests/test_backend_release.py:144: in test_input_edits_do_not_leave_phantom_load_or_stale_delivery
+    assert 'D1' not in s.active_allocations
+E   AssertionError: assert 'D1' not in {'D1': {'T_D1_2': 40.0}, 'D2': {'T_D2_2': 30.0}, 'D3': {'T_D3_1': 50.0, 'T_D3_2': 30.0}}
+E    +  where {'D1': {'T_D1_2': 40.0}, 'D2': {'T_D2_2': 30.0}, 'D3': {'T_D3_1': 50.0, 'T_D3_2': 30.0}} = <app.state.SimulationState object at 0x10b8f6ea0>.active_allocations
+__ test_input_edits_do_not_leave_phantom_load_or_stale_delivery[edit_demand] ___
+backend/tests/test_backend_release.py:147: in test_input_edits_do_not_leave_phantom_load_or_stale_delivery
+    assert client.get('/metrics').json()['demand_details'][0]['allocated'] == 0
+E   assert 40.0 == 0
+__ test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_link] ___
+backend/tests/test_backend_release.py:158: in test_input_edits_do_not_leave_phantom_load_or_stale_delivery
+    assert checked.is_valid, checked.violations
+E   AssertionError: ["Tunnel 'T_D3_1' references unknown physical link 'L1'", "Tunnel 'T_D3_1' latency metadata does not match physical path"]
+E   assert False
+E    +  where False = ValidationResult(is_valid=False, violations=["Tunnel 'T_D3_1' references unknown physical link 'L1'", "Tunnel 'T_D3_1'...ical path"], link_loads={'L2': 50.0, 'L3': 100.0, 'L4': 100.0, 'L5': 100.0}, total_delivered=150.0, total_unserved=0.0).is_valid
+___ test_input_edits_do_not_leave_phantom_load_or_stale_delivery[edit_link] ____
+backend/tests/test_backend_release.py:152: in test_input_edits_do_not_leave_phantom_load_or_stale_delivery
+    assert s.links['L1'].allocated_load <= 1
+E   AssertionError: assert 50.0 <= 1
+E    +  where 50.0 = Link(id='L1', source='A', target='B', capacity=1.0, latency=5.0, status=<LinkStatus.ACTIVE: 'active'>, allocated_load=50.0, utilization=100.0, flap_count=0, last_flap_step=-1).allocated_load
+__ test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_node] ___
+backend/tests/test_backend_release.py:158: in test_input_edits_do_not_leave_phantom_load_or_stale_delivery
+    assert checked.is_valid, checked.violations
+E   AssertionError: ["Tunnel 'T_D3_1' references unknown physical link 'L1'", "Tunnel 'T_D3_1' references unknown physical link 'L2'", "Tunnel 'T_D3_1' latency metadata does not match physical path"]
+E   assert False
+E    +  where False = ValidationResult(is_valid=False, violations=["Tunnel 'T_D3_1' references unknown physical link 'L1'", "Tunnel 'T_D3_1'...t match physical path"], link_loads={'L3': 100.0, 'L4': 100.0, 'L5': 100.0}, total_delivered=150.0, total_unserved=0.0).is_valid
+___________ test_export_import_discards_computed_routing_and_replans ___________
+backend/tests/test_backend_release.py:168: in test_export_import_discards_computed_routing_and_replans
+    assert all(l.allocated_load == 0 for l in s.links.values())
+E   assert False
+E    +  where False = all(<generator object test_export_import_discards_computed_routing_and_replans.<locals>.<genexpr> at 0x10ba16b50>)
+=========================== short test summary info ============================
+FAILED backend/tests/test_backend_release.py::test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_demand]
+FAILED backend/tests/test_backend_release.py::test_input_edits_do_not_leave_phantom_load_or_stale_delivery[edit_demand]
+FAILED backend/tests/test_backend_release.py::test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_link]
+FAILED backend/tests/test_backend_release.py::test_input_edits_do_not_leave_phantom_load_or_stale_delivery[edit_link]
+FAILED backend/tests/test_backend_release.py::test_input_edits_do_not_leave_phantom_load_or_stale_delivery[delete_node]
+FAILED backend/tests/test_backend_release.py::test_export_import_discards_computed_routing_and_replans
+6 failed, 26 passed in 1.09s

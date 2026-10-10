@@ -1,0 +1,5 @@
+
+stateful sequences=300 ops=6000 failures=0
+LP optimality: 300 instances, 242 exact, failures=0
+Planner optimality: 286 instances, 252 exact, failures=0
+elapsed 464.8s
