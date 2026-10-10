@@ -14,7 +14,7 @@
 | **Mikhul JSR** | 24PT15 |
 | **Adarsh S** | 24PW01 |
 | **Adithya B** | 24PW02 |
-| **Vishwanath** | 24PW39 |
+| **Vishwajith** | 24PW39 |
 
 ---
 
