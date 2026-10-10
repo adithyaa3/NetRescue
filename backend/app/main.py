@@ -35,6 +35,8 @@ from app.analysis.metrics import compute_metrics, delivered_bandwidth
 from app.analysis.vulnerability import rank_vulnerabilities
 from app.analysis.what_if import run_what_if
 from app.scenarios.presets import get_scenario_list, load_scenario, SCENARIOS
+from app.explorer import service as explorer_service
+from app.explorer.api import router as explorer_router
 
 app = FastAPI(
     title="NetRescue API",
@@ -56,6 +58,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(explorer_router)
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(STATIC_DIR):
@@ -242,10 +246,16 @@ def update_link(link_id: str, update: LinkUpdate):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# Live controller actions keep a pre-action snapshot so the Algorithm Explorer can
+# replay exactly what happened (capture/record never raise and never alter results).
+
 @app.post("/links/{link_id}/fail", tags=["Failures"])
 def fail_link(link_id: str):
     try:
-        result = handle_link_failure(state, link_id)
+        with state.lock():
+            pre = explorer_service.capture_before(state)
+            result = handle_link_failure(state, link_id)
+            explorer_service.record_after(state, pre, "link_failure", {"link_id": link_id}, result)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -254,7 +264,10 @@ def fail_link(link_id: str):
 @app.post("/links/{link_id}/restore", tags=["Failures"])
 def restore_link(link_id: str):
     try:
-        result = handle_link_restore(state, link_id)
+        with state.lock():
+            pre = explorer_service.capture_before(state)
+            result = handle_link_restore(state, link_id)
+            explorer_service.record_after(state, pre, "link_restore", {"link_id": link_id}, result)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -425,13 +438,19 @@ def trigger_protection_replan():
 
 @app.post("/simulate", tags=["Simulation"])
 def run_simulation(algorithm: Literal["pacar", "baseline", "reactive_lp", "lp"] = Query("pacar")):
-    result = simulate(state, algorithm=algorithm)
+    with state.lock():
+        pre = explorer_service.capture_before(state)
+        result = simulate(state, algorithm=algorithm)
+        explorer_service.record_after(state, pre, "simulate", {"algorithm": algorithm}, result)
     return result
 
 
 @app.post("/simulation/step", tags=["Simulation"])
 def simulation_step():
-    result = simulate(state)
+    with state.lock():
+        pre = explorer_service.capture_before(state)
+        result = simulate(state)
+        explorer_service.record_after(state, pre, "simulate", {"algorithm": "pacar"}, result)
     return result
 
 
@@ -445,7 +464,11 @@ def simulation_reset():
 @app.post("/failures/batch", tags=["Failures"])
 def batch_failures(req: FailureRequest):
     try:
-        return handle_batch_failures(state, req.link_ids)
+        with state.lock():
+            pre = explorer_service.capture_before(state)
+            result = handle_batch_failures(state, req.link_ids)
+            explorer_service.record_after(state, pre, "batch_failure", {"link_ids": list(req.link_ids)}, result)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -462,7 +485,11 @@ def get_failures():
 def inject_emergency(demand: DemandCreate):
     """Add an emergency demand and trigger preemption via re-simulation."""
     try:
-        return add_emergency_demand(state, demand)
+        with state.lock():
+            pre = explorer_service.capture_before(state)
+            result = add_emergency_demand(state, demand)
+            explorer_service.record_after(state, pre, "emergency_demand", {"demand": demand.model_dump()}, result)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

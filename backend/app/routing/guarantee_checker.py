@@ -33,11 +33,13 @@ def verify_protection_guarantees(
     links: dict[str, Any],
     candidate_tunnels: dict[str, list[CandidateTunnel]],
     tolerance: float = 1e-4,
+    trace=None,
 ) -> GuaranteeVerificationResult:
     """
     Independently verifies that the candidate ProtectionPlan delivers its stated
     guaranteed Mbps for each critical flow across EVERY covered scenario.
     Never mutates live simulation state.
+    ``trace`` (optional TraceRecorder) receives a passive per-scenario record.
     """
     result = GuaranteeVerificationResult(
         is_verified=True,
@@ -83,10 +85,18 @@ def verify_protection_guarantees(
     reservation_check = validate_allocation_independently(
         plan.per_tunnel_reservations, reservation_demands, links, tunnel_lookup)
     result.failures.extend(reservation_check.violations)
+    if trace is not None:
+        trace.emit("check.prevalidation", failures=list(result.failures),
+                   reservation_link_loads=reservation_check.link_loads,
+                   capacity={lid: float(value(link, "capacity", 0.0)) for lid, link in links.items()},
+                   scenarios=list(plan.covered_scenarios))
     if result.failures:
         result.is_verified = False
         plan.verified = False
         plan.verification_failures = result.failures
+        if trace is not None:
+            trace.emit("check.result", verified=False, tested=result.scenarios_tested,
+                       passed=result.scenarios_passed, failures=list(result.failures))
         return result
 
     for scenario in plan.covered_scenarios:
@@ -112,6 +122,11 @@ def verify_protection_guarantees(
         if not reflex_out["success"]:
             result.is_verified = False
             result.failures.append(f"Scenario '{scenario}': Reflex failed: {reflex_out.get('message')}")
+            if trace is not None:
+                trace.emit("check.scenario", scenario=scenario, failed_links=sorted(failed_links),
+                           reflex_success=False, reflex_message=reflex_out.get("message"),
+                           allocations={}, delivered={}, guarantees=dict(plan.per_flow_guaranteed),
+                           violations=[], passed=False)
             continue
 
         allocations = reflex_out["allocations"]
@@ -129,6 +144,12 @@ def verify_protection_guarantees(
             result.is_verified = False
             for v in val.violations:
                 result.failures.append(f"Scenario '{scenario}' validation violation: {v}")
+            if trace is not None:
+                trace.emit("check.scenario", scenario=scenario, failed_links=sorted(failed_links),
+                           reflex_success=True, allocations=allocations,
+                           delivered={fid: sum(a.values()) for fid, a in allocations.items()},
+                           guarantees=dict(plan.per_flow_guaranteed), violations=list(val.violations),
+                           link_loads=val.link_loads, passed=False)
             continue
 
         # 3. Check guaranteed bandwidth for each critical flow
@@ -148,7 +169,16 @@ def verify_protection_guarantees(
 
         if scenario_ok:
             result.scenarios_passed += 1
+        if trace is not None:
+            trace.emit("check.scenario", scenario=scenario, failed_links=sorted(failed_links),
+                       reflex_success=True, allocations=allocations,
+                       delivered={fid: sum(a.values()) for fid, a in allocations.items()},
+                       guarantees=dict(plan.per_flow_guaranteed), violations=[],
+                       link_loads=val.link_loads, passed=scenario_ok, tolerance=tolerance)
 
     plan.verified = result.is_verified
     plan.verification_failures = result.failures
+    if trace is not None:
+        trace.emit("check.result", verified=result.is_verified, tested=result.scenarios_tested,
+                   passed=result.scenarios_passed, failures=list(result.failures))
     return result
