@@ -30,6 +30,14 @@ def _solve_lp(*args, **kwargs):
         return SimpleNamespace(success=False, message=str(exc))
 
 
+def _solver_info(res) -> dict:
+    """Solver outcome fields reported by SciPy/HiGHS (for the Algorithm Explorer)."""
+    return {"success": bool(getattr(res, "success", False)),
+            "status": getattr(res, "status", None),
+            "message": str(getattr(res, "message", "")),
+            "iterations": getattr(res, "nit", None)}
+
+
 @dataclass
 class ProtectionPlan:
     plan_id: str
@@ -88,9 +96,12 @@ def plan_proactive_protection(
     candidate_tunnels: dict[str, list[CandidateTunnel]],
     topology_version: int = 1,
     demand_version: int = 1,
+    trace=None,
 ) -> ProtectionPlan:
     """
     Computes proactive protection guarantees for critical flows using SciPy HiGHS LP.
+    ``trace`` (optional TraceRecorder) receives a passive record of the model and of
+    each lexicographic stage; it is never read, so it cannot change the plan.
     """
     start_time = time.perf_counter()
     plan_id = f"plan_v{topology_version}_{demand_version}_{int(time.time())}"
@@ -108,7 +119,20 @@ def plan_proactive_protection(
         if pval in (Priority.P1_EMERGENCY.value, Priority.P2_ESSENTIAL.value, 1, 2):
             filtered_flows[fid] = d
 
+    if trace is not None:
+        def _pv(d):
+            p = value(d, "priority")
+            return getattr(p, "value", p) if p is not None else 4
+        trace.emit("plan.inputs",
+                   critical=[{"id": fid, "priority": _pv(d), "bandwidth": float(value(d, "bandwidth", 0.0)),
+                              "source": value(d, "source"), "destination": value(d, "destination")}
+                             for fid, d in filtered_flows.items()],
+                   not_planned=[{"id": fid, "priority": _pv(d)} for fid, d in critical_demands.items()
+                                if fid not in filtered_flows])
+
     if not filtered_flows:
+        if trace is not None:
+            trace.emit("plan.trivial", reason="no_critical_flows")
         elapsed = (time.perf_counter() - start_time) * 1000
         return ProtectionPlan(
             plan_id=plan_id,
@@ -130,6 +154,9 @@ def plan_proactive_protection(
 
     # Scenarios: "no_failure" (current network) + fail(lid) for each usable link lid
     scenarios = ["no_failure"] + [f"fail_{lid}" for lid in usable_links.keys()]
+    if trace is not None:
+        trace.emit("plan.scenarios", unavailable=unavailable, usable=list(usable_links.keys()),
+                   scenarios=scenarios)
 
     # Index variables
     # For each critical flow f and tunnel t: a[f,t] >= 0
@@ -150,8 +177,21 @@ def plan_proactive_protection(
         col += 1
 
     num_vars = col
+    if trace is not None:
+        variables_rec = {}
+        for fid, d in filtered_flows.items():
+            kept = {t.id for t in flow_tunnels[fid]}
+            variables_rec[fid] = {
+                "tunnels": [t.to_dict() for t in flow_tunnels[fid]],
+                "excluded": [{"tunnel": t.to_dict(),
+                              "reasons": tunnel_errors(t, fid, d, links, failed_links=set(unavailable))}
+                             for t in candidate_tunnels.get(fid, []) if t.id not in kept],
+            }
+        trace.emit("plan.variables", flows=variables_rec, num_vars=num_vars)
     if num_vars == 0:
         elapsed = (time.perf_counter() - start_time) * 1000
+        if trace is not None:
+            trace.emit("plan.no_tunnels")
         return ProtectionPlan(
             plan_id=plan_id,
             topology_version=topology_version,
@@ -195,9 +235,17 @@ def plan_proactive_protection(
         A_rows.append(row)
         b_rows.append(float(cap))
 
+    if trace is not None:
+        trace.emit("plan.capacity_rows", rows=[
+            {"link": lid, "capacity": float(value(link, "capacity", 0.0)),
+             "variables": [[fid, tid] for (fid, tid) in var_map_a
+                           if lid in next(t for t in flow_tunnels[fid] if t.id == tid).link_ids]}
+            for lid, link in usable_links.items()])
+
     # 2. Survival: for each critical flow f and scenario q:
     # sum_{t surviving q} a[f,t] >= b[f]
     # => b[f] - sum_{t surviving q} a[f,t] <= 0
+    survival_rec = {} if trace is not None else None
     for fid in filtered_flows:
         b_idx = var_map_b[fid]
         t_list = flow_tunnels[fid]
@@ -207,13 +255,19 @@ def plan_proactive_protection(
             failed_in_sc = set()
             if sc.startswith("fail_"):
                 failed_in_sc.add(sc[len("fail_"):])
+            if survival_rec is not None:
+                survival_rec.setdefault(fid, {})[sc] = []
 
             for t in t_list:
                 if t.survives_failure(failed_in_sc):
                     a_idx = var_map_a[(fid, t.id)]
                     row[a_idx] = -1.0
+                    if survival_rec is not None:
+                        survival_rec[fid][sc].append(t.id)
             A_rows.append(row)
             b_rows.append(0.0)
+    if trace is not None:
+        trace.emit("plan.survival", matrix=survival_rec, scenarios=scenarios)
 
     A_ub = np.array(A_rows)
     b_ub = np.array(b_rows)
@@ -227,6 +281,10 @@ def plan_proactive_protection(
             c_stage1[var_map_b[fid]] = -1.0  # minimize -b[f] = maximize b[f]
 
     res1 = _solve_lp(c_stage1, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
+    if trace is not None:
+        trace.emit("plan.stage", stage="B1", objective="maximize the total guarantee of P1 flows",
+                   flows=[fid for fid in filtered_flows if c_stage1[var_map_b[fid]] != 0],
+                   optimum=(-res1.fun) if res1.success else None, solver=_solver_info(res1))
     if not res1.success:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ProtectionPlan(
@@ -265,6 +323,12 @@ def plan_proactive_protection(
             c_stage2[var_map_b[fid]] = -1.0
 
     res2 = _solve_lp(c_stage2, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method="highs")
+    if trace is not None:
+        trace.emit("plan.stage", stage="B2",
+                   objective="maximize the total guarantee of P2 flows while keeping the P1 optimum",
+                   flows=[fid for fid in filtered_flows if c_stage2[var_map_b[fid]] != 0],
+                   optimum=(-res2.fun) if res2.success else None, solver=_solver_info(res2),
+                   p1_locked=opt_p1)
     if res2.success:
         opt_p2 = -res2.fun
         p2_lock_row = np.zeros(num_vars)
@@ -284,6 +348,8 @@ def plan_proactive_protection(
     for fid in filtered_flows:
         val = current_x[var_map_b[fid]]
         final_b[fid] = max(0.0, float(val))
+    if trace is not None:
+        trace.emit("plan.guarantees_chosen", guarantees=final_b, from_stage="B2" if res2.success else "B1")
 
     # ── Stage B4: CRITICAL REQUIREMENT ────────────────────────────────
     # Lock EACH individual b[f] to its chosen value before minimizing reservations:
@@ -318,6 +384,12 @@ def plan_proactive_protection(
     else:
         sol_x = current_x
         solver_status = "suboptimal_stage2"
+    if trace is not None:
+        trace.emit("plan.stage", stage="B4",
+                   objective="minimize total reserved bandwidth with every guarantee locked",
+                   flows=list(filtered_flows),
+                   optimum=float(res4.fun) if res4.success else None, solver=_solver_info(res4),
+                   locked=final_b)
 
     # Assemble per-tunnel reservations and per-flow guarantees
     per_flow_guaranteed: dict[str, float] = {}
@@ -342,6 +414,10 @@ def plan_proactive_protection(
             per_flow_guaranteed[fid] = 0.0
 
     elapsed = (time.perf_counter() - start_time) * 1000
+    if trace is not None:
+        trace.emit("plan.result", guarantees=per_flow_guaranteed, reservations=per_tunnel_reservations,
+                   solver_status=solver_status, scenarios=scenarios, base_unavailable=unavailable,
+                   tunnels={f"{fid}|{t.id}": t.to_dict() for fid, ts in flow_tunnels.items() for t in ts})
 
     return ProtectionPlan(
         plan_id=plan_id,

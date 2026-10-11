@@ -80,7 +80,13 @@ def allocate_on_path(
         residual[link_id] -= bandwidth
 
 
-def run_baseline(state: SimulationState) -> list[Demand]:
+def _trace_order(sorted_demands) -> list[dict]:
+    return [{"id": d.id, "priority": d.priority.value, "source": d.source,
+             "destination": d.destination, "bandwidth": d.bandwidth,
+             "max_latency": d.max_latency} for d in sorted_demands]
+
+
+def run_baseline(state: SimulationState, trace=None) -> list[Demand]:
     """
     Capacity-constrained Dijkstra baseline.
     
@@ -92,6 +98,9 @@ def run_baseline(state: SimulationState) -> list[Demand]:
     2. Check bottleneck capacity.
     3. Allocate full bandwidth if possible, partial if not.
     4. If no path exists, mark unreachable.
+
+    ``trace`` (optional TraceRecorder) receives a passive record of every step;
+    it is never read, so it cannot change the result.
     """
     G = build_graph(state)
     
@@ -110,6 +119,11 @@ def run_baseline(state: SimulationState) -> list[Demand]:
     )
 
     results = []
+    if trace is not None:
+        trace.emit("baseline.init", residual=residual,
+                   capacity={l.id: l.capacity for l in state.links.values()},
+                   unusable=[l.id for l in state.links.values() if not state.is_link_usable(l.id)],
+                   order=_trace_order(sorted_demands))
 
     for demand in sorted_demands:
         # Handle local demands
@@ -121,6 +135,8 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 "route": [demand.source],
                 "explanation": "Local traffic: source equals destination.",
             }))
+            if trace is not None:
+                trace.emit("baseline.local", demand=demand.id)
             continue
 
         # Check connectivity
@@ -132,6 +148,8 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 "route": None,
                 "explanation": f"Node not in active network.",
             }))
+            if trace is not None:
+                trace.emit("baseline.unreachable", demand=demand.id, reason="node_not_in_active_network")
             continue
 
         if not nx.has_path(G, demand.source, demand.destination):
@@ -142,6 +160,8 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 "route": None,
                 "explanation": f"No path exists between {demand.source} and {demand.destination}.",
             }))
+            if trace is not None:
+                trace.emit("baseline.unreachable", demand=demand.id, reason="no_path")
             continue
 
         # Find shortest path by latency
@@ -158,8 +178,10 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 not nx.has_path(feasible_G, demand.source, demand.destination)):
                 # Try original graph for partial allocation
                 path = nx.shortest_path(G, demand.source, demand.destination, weight="weight")
+                used_feasible_graph = False
             else:
                 path = nx.shortest_path(feasible_G, demand.source, demand.destination, weight="weight")
+                used_feasible_graph = True
         except nx.NetworkXNoPath:
             results.append(demand.model_copy(update={
                 "status": DemandStatus.UNREACHABLE,
@@ -168,10 +190,21 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 "route": None,
                 "explanation": f"No path exists between {demand.source} and {demand.destination}.",
             }))
+            if trace is not None:
+                trace.emit("baseline.unreachable", demand=demand.id, reason="no_path")
             continue
 
         bottleneck = path_bottleneck(state, path, G, residual)
         latency = path_latency(path, G)
+        if trace is not None:
+            path_links = [G.edges[u, v]["link_id"] for u, v in zip(path, path[1:])]
+            trace.emit("baseline.path", demand=demand.id, path=path, links=path_links,
+                       hop_residual=[[lid, residual.get(lid, 0.0)] for lid in path_links],
+                       used_feasible_graph=used_feasible_graph,
+                       saturated=sorted(lid for lid, r in residual.items()
+                                        if state.is_link_usable(lid) and r <= 0),
+                       latency=latency, bottleneck=bottleneck,
+                       bandwidth=demand.bandwidth, max_latency=demand.max_latency)
         if demand.max_latency is not None and demand.max_latency > 0 and latency > demand.max_latency:
             results.append(demand.model_copy(update={
                 "status": DemandStatus.UNSERVED_CONGESTION,
@@ -180,6 +213,9 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                 "route": None,
                 "explanation": "No residual-capacity path satisfies the latency limit.",
             }))
+            if trace is not None:
+                trace.emit("baseline.decision", demand=demand.id, outcome="latency_limit",
+                           allocated=0.0, residual=residual)
             continue
 
         if bottleneck >= demand.bandwidth:
@@ -195,6 +231,9 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                     f"(latency {latency:.1f}ms) with sufficient capacity."
                 ),
             }))
+            if trace is not None:
+                trace.emit("baseline.decision", demand=demand.id, outcome="full",
+                           allocated=demand.bandwidth, residual=residual)
         elif bottleneck > 0:
             # Partial allocation
             allocate_on_path(state, path, bottleneck, G, residual)
@@ -208,6 +247,9 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                     f"(requested {demand.bandwidth:.1f} Mbps). Partially served."
                 ),
             }))
+            if trace is not None:
+                trace.emit("baseline.decision", demand=demand.id, outcome="partial",
+                           allocated=bottleneck, residual=residual)
         else:
             # No capacity
             results.append(demand.model_copy(update={
@@ -220,5 +262,12 @@ def run_baseline(state: SimulationState) -> list[Demand]:
                     f"{' → '.join(path)}. All links are fully utilized."
                 ),
             }))
+            if trace is not None:
+                trace.emit("baseline.decision", demand=demand.id, outcome="no_capacity",
+                           allocated=0.0, residual=residual)
 
+    if trace is not None:
+        trace.emit("baseline.done", results=[
+            {"id": r.id, "status": r.status.value, "allocated": r.allocated_bandwidth,
+             "requested": r.bandwidth, "route": r.route} for r in results])
     return results

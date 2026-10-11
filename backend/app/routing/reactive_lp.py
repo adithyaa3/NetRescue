@@ -27,6 +27,30 @@ def _solve_lp(*args, **kwargs):
         return SimpleNamespace(success=False, message=str(exc))
 
 
+def _solver_info(res) -> dict:
+    """Solver outcome fields reported by SciPy/HiGHS (for the Algorithm Explorer)."""
+    return {"success": bool(getattr(res, "success", False)),
+            "status": getattr(res, "status", None),
+            "message": str(getattr(res, "message", "")),
+            "iterations": getattr(res, "nit", None)}
+
+
+def _excluded_tunnels(fid, demand, req_bw, candidate_tunnels, surviving, links, failed_links) -> list[dict]:
+    kept = {t.id for t in surviving}
+    excluded = []
+    for t in candidate_tunnels.get(fid, []):
+        if t.id in kept:
+            continue
+        if req_bw <= 0:
+            reasons = ["flow has no positive demand"]
+        elif not t.survives_failure(failed_links):
+            reasons = [f"crosses unavailable link {lid}" for lid in t.link_ids if lid in failed_links]
+        else:
+            reasons = tunnel_errors(t, fid, demand, links, failed_links)
+        excluded.append({"tunnel": t.to_dict(), "reasons": reasons})
+    return excluded
+
+
 def solve_reactive_multicommodity_lp(
     demands: dict[str, Any],
     links: dict[str, Any],
@@ -34,6 +58,7 @@ def solve_reactive_multicommodity_lp(
     previous_allocations: Optional[dict[str, dict[str, float]]] = None,
     beta_churn: float = 0.05,
     protection_floors: Optional[dict[str, float]] = None,
+    trace=None,
 ) -> dict:
     """
     Executes lexicographic multicommodity flow LP.
@@ -47,6 +72,10 @@ def solve_reactive_multicommodity_lp(
         "total_delivered": float,
         "total_unserved": float,
     }
+    ``previous_allocations`` and ``beta_churn`` are accepted for interface
+    compatibility; the objective does not use them.
+    ``trace`` (optional TraceRecorder) receives a passive record of the model and of
+    each lexicographic stage (objective, optimum, solver status); it is never read.
     """
     start_time = time.perf_counter()
 
@@ -78,9 +107,29 @@ def solve_reactive_multicommodity_lp(
             col += 1
 
     num_vars = col
+    if trace is not None:
+        flows_rec = []
+        for fid, demand in demands.items():
+            req_bw = float(getattr(demand, "bandwidth", 0.0) if not isinstance(demand, dict) else demand.get("bandwidth", 0.0))
+            p = value(demand, "priority")
+            flows_rec.append({
+                "id": fid,
+                "priority": getattr(p, "value", p) if p is not None else 4,
+                "source": value(demand, "source"), "destination": value(demand, "destination"),
+                "bandwidth": req_bw,
+                "variables": [t.to_dict() for t in flow_tunnels.get(fid, [])],
+                "excluded": _excluded_tunnels(fid, demand, req_bw, candidate_tunnels,
+                                              flow_tunnels.get(fid, []), links, failed_links),
+            })
+        trace.emit("lp.inputs", failed_links=sorted(failed_links), flows=flows_rec,
+                   num_vars=num_vars, floors=dict(protection_floors or {}))
     if num_vars == 0:
         elapsed = (time.perf_counter() - start_time) * 1000
         total_req = sum(float(getattr(d, "bandwidth", 0.0) if not isinstance(d, dict) else d.get("bandwidth", 0.0)) for d in demands.values())
+        if trace is not None:
+            trace.emit("lp.no_variables",
+                       success=not any(floor > 0 for floor in (protection_floors or {}).values()),
+                       floors=dict(protection_floors or {}))
         return {
             "success": not any(floor > 0 for floor in (protection_floors or {}).values()),
             "allocations": {fid: {} for fid in demands},
@@ -136,6 +185,19 @@ def solve_reactive_multicommodity_lp(
 
     A_ub = np.array(A_rows)
     b_ub = np.array(b_rows)
+    if trace is not None:
+        trace.emit("lp.model",
+                   demand_rows=[{"flow": fid, "bound": float(getattr(demands[fid], "bandwidth", 0.0) if not isinstance(demands[fid], dict) else demands[fid].get("bandwidth", 0.0)),
+                                 "variables": [t.id for t in t_list]}
+                                for fid, t_list in flow_tunnels.items() if t_list],
+                   capacity_rows=[{"link": lid,
+                                   "capacity": float(getattr(link, "capacity", 0.0) if not isinstance(link, dict) else link.get("capacity", 0.0)),
+                                   "variables": [tid for (fid, tid) in var_map_x
+                                                 if lid in next(t for t in flow_tunnels[fid] if t.id == tid).link_ids]}
+                                  for lid, link in usable_links.items()],
+                   floor_rows=[{"flow": fid, "floor": float(floor)}
+                               for fid, floor in (protection_floors or {}).items() if floor > 0],
+                   num_vars=num_vars, num_rows=int(A_ub.shape[0]))
 
     # Priority groupings (P1 through P5)
     priority_groups: dict[int, list[str]] = {p: [] for p in range(1, 6)}
@@ -156,6 +218,8 @@ def solve_reactive_multicommodity_lp(
         flows = priority_groups[pval]
         if not flows:
             delivered_by_pri[f"P{pval}"] = 0.0
+            if trace is not None:
+                trace.emit("lp.stage", priority=pval, flows=[], skipped=True)
             continue
 
         c_stage = np.zeros(num_vars)
@@ -177,7 +241,15 @@ def solve_reactive_multicommodity_lp(
                     lock_row[var_map_x[(fid, t.id)]] = -1.0
             A_ub = np.vstack([A_ub, lock_row])
             b_ub = np.append(b_ub, -opt_val)
+            if trace is not None:
+                trace.emit("lp.stage", priority=pval, flows=list(flows), skipped=False,
+                           optimum=opt_val, solver=_solver_info(res),
+                           requested=sum(float(value(demands[f], "bandwidth", 0.0)) for f in flows))
         else:
+            if trace is not None:
+                trace.emit("lp.stage", priority=pval, flows=list(flows), skipped=False,
+                           optimum=None, solver=_solver_info(res),
+                           requested=sum(float(value(demands[f], "bandwidth", 0.0)) for f in flows))
             return {"success": False, "allocations": {},
                     "runtime_ms": (time.perf_counter()-start_time)*1000,
                     "solver_status": f"failed_P{pval}: {res.message}",
@@ -198,6 +270,11 @@ def solve_reactive_multicommodity_lp(
     else:
         sol_x = current_x
         solver_status = "suboptimal_priorities_only"
+    if trace is not None:
+        trace.emit("lp.latency_stage", solver=_solver_info(res_final),
+                   objective=getattr(res_final, "fun", None) if res_final.success else None,
+                   weights={f"{fid}|{tid}": float(c_lat[idx]) for (fid, tid), idx in var_map_x.items()},
+                   solver_status=solver_status)
 
     # Assemble allocation output
     allocations: dict[str, dict[str, float]] = {fid: {} for fid in demands}
@@ -212,6 +289,11 @@ def solve_reactive_multicommodity_lp(
     total_req = sum(float(getattr(d, "bandwidth", 0.0) if not isinstance(d, dict) else d.get("bandwidth", 0.0)) for d in demands.values())
     total_unserved = max(0.0, total_req - total_delivered)
     elapsed = (time.perf_counter() - start_time) * 1000
+    if trace is not None:
+        trace.emit("lp.result", allocations=allocations, delivered_by_priority=delivered_by_pri,
+                   total_delivered=total_delivered, total_unserved=total_unserved,
+                   solver_status=solver_status,
+                   tunnels={f"{fid}|{t.id}": t.to_dict() for fid, ts in flow_tunnels.items() for t in ts})
 
     return {
         "success": True,

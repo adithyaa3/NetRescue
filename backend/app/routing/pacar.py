@@ -73,7 +73,7 @@ W_CAPACITY = 0.25
 K_PATHS = 5  # Number of candidate paths from Yen's algorithm
 
 
-def compute_path_score(
+def path_score_breakdown(
     path: list[str],
     G: nx.Graph,
     residual: dict[str, float],
@@ -81,18 +81,14 @@ def compute_path_score(
     max_latency: float = 100.0,
     max_hops: int = 10,
     max_capacity: float = 1000.0,
-) -> float:
+) -> dict:
     """
-    Score a candidate path. Lower = better.
-    
-    Components:
-    - Normalized latency (0-1)
-    - Max utilization on any link in the path (0-1)
-    - Normalized hop count (0-1)
-    - Normalized bottleneck capacity (0-1), subtracted (higher capacity = lower score)
+    Score a candidate path and return the score together with its terms.
+    ``compute_path_score`` returns ``["score"]`` of this dictionary; the
+    Algorithm Explorer displays the individual terms.
     """
     if len(path) < 2:
-        return float("inf")
+        return {"score": float("inf")}
 
     total_latency = path_latency(path, G)
     hop_count = len(path) - 1
@@ -103,12 +99,12 @@ def compute_path_score(
     for i in range(len(path) - 1):
         u, v = path[i], path[i + 1]
         if not G.has_edge(u, v):
-            return float("inf")
+            return {"score": float("inf")}
         edge_data = G.edges[u, v]
         link_id = edge_data["link_id"]
         link = state.links.get(link_id)
         if link is None:
-            return float("inf")
+            return {"score": float("inf")}
         
         res = residual.get(link_id, 0.0)
         cap = link.capacity
@@ -130,7 +126,42 @@ def compute_path_score(
         + W_HOP * norm_hops
         - W_CAPACITY * norm_capacity
     )
-    return score
+    return {
+        "score": score,
+        "latency": total_latency,
+        "hops": hop_count,
+        "max_util": max_util,
+        "min_residual": min_residual,
+        "norm_latency": norm_latency,
+        "norm_hops": norm_hops,
+        "norm_capacity": norm_capacity,
+    }
+
+
+def compute_path_score(
+    path: list[str],
+    G: nx.Graph,
+    residual: dict[str, float],
+    state: SimulationState,
+    max_latency: float = 100.0,
+    max_hops: int = 10,
+    max_capacity: float = 1000.0,
+) -> float:
+    """
+    Score a candidate path. Lower = better.
+    
+    Components:
+    - Normalized latency (0-1)
+    - Max utilization on any link in the path (0-1)
+    - Normalized hop count (0-1)
+    - Normalized bottleneck capacity (0-1), subtracted (higher capacity = lower score)
+    """
+    return path_score_breakdown(path, G, residual, state, max_latency=max_latency,
+                                max_hops=max_hops, max_capacity=max_capacity)["score"]
+
+
+def _path_links(G: nx.Graph, path: list[str]) -> list[str]:
+    return [G.edges[u, v]["link_id"] for u, v in zip(path, path[1:]) if G.has_edge(u, v)]
 
 
 def find_k_shortest_paths(
@@ -156,28 +187,47 @@ def find_capacity_feasible_path(
     state: SimulationState,
     max_paths: int = 20,
     max_latency: Optional[float] = None,
+    trace=None,
 ) -> Optional[list[str]]:
     """
     Fallback: search beyond K paths for one with enough capacity.
     Uses simple paths generator with capacity check.
     """
+    examined = [] if trace is not None else None
+    limit_reached = False
     try:
         for i, path in enumerate(
             nx.shortest_simple_paths(G, source, target, weight="weight")
         ):
             if i >= max_paths:
+                limit_reached = True
                 break
             if max_latency is not None and max_latency > 0 and path_latency(path, G) > max_latency:
+                if examined is not None:
+                    examined.append({"path": path, "latency": path_latency(path, G),
+                                     "verdict": "exceeds_latency_limit"})
                 continue
             bottleneck = path_bottleneck(state, path, G, residual)
             if bottleneck >= required_bw:
+                if examined is not None:
+                    examined.append({"path": path, "latency": path_latency(path, G),
+                                     "bottleneck": bottleneck, "verdict": "accepted"})
+                    trace.emit("pacar.fallback_search", source=source, target=target,
+                               required=required_bw, max_paths=max_paths, examined=examined,
+                               limit_reached=False, found=path)
                 return path
+            if examined is not None:
+                examined.append({"path": path, "latency": path_latency(path, G),
+                                 "bottleneck": bottleneck, "verdict": "insufficient_capacity"})
     except (nx.NetworkXNoPath, nx.NodeNotFound):
         pass
+    if trace is not None:
+        trace.emit("pacar.fallback_search", source=source, target=target, required=required_bw,
+                   max_paths=max_paths, examined=examined, limit_reached=limit_reached, found=None)
     return None
 
 
-def run_pacar(state: SimulationState) -> list[Demand]:
+def run_pacar(state: SimulationState, trace=None) -> list[Demand]:
     """
     PACAR routing algorithm.
     
@@ -196,6 +246,9 @@ def run_pacar(state: SimulationState) -> list[Demand]:
        e. Allocate bandwidth (full or partial).
        f. Generate explanation.
     6. Return all demand results.
+
+    ``trace`` (optional TraceRecorder) receives a passive record of every step;
+    it is never read, so it cannot change the result.
     """
     G = build_graph(state)
 
@@ -229,8 +282,24 @@ def run_pacar(state: SimulationState) -> list[Demand]:
             priority_groups[pv] = []
         priority_groups[pv].append(d)
 
+    if trace is not None:
+        trace.emit("pacar.init", residual=residual,
+                   capacity={l.id: l.capacity for l in state.links.values()},
+                   unusable=[l.id for l in state.links.values() if not state.is_link_usable(l.id)],
+                   weights={"latency": W_LATENCY, "congestion": W_CONGESTION,
+                            "hop": W_HOP, "capacity": W_CAPACITY},
+                   k_paths=K_PATHS,
+                   norm={"max_latency": max_latency, "max_capacity": max_capacity, "max_hops": max_hops},
+                   groups={str(p): [d.id for d in g] for p, g in priority_groups.items()},
+                   order=[{"id": d.id, "priority": d.priority.value, "source": d.source,
+                           "destination": d.destination, "bandwidth": d.bandwidth,
+                           "max_latency": d.max_latency} for d in sorted_demands])
+
     for priority_val in sorted(priority_groups.keys()):
         group = priority_groups[priority_val]
+        if trace is not None:
+            trace.emit("pacar.group_start", priority=priority_val,
+                       demands=[d.id for d in group], residual=residual)
         
         # Phase 1: Find best paths for all demands in this priority group
         demand_paths: dict[str, tuple[list[str], float, float]] = {}  # demand_id -> (path, bottleneck, score)
@@ -244,6 +313,8 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                     "route": [demand.source],
                     "explanation": "Local traffic: source equals destination.",
                 }))
+                if trace is not None:
+                    trace.emit("pacar.local", demand=demand.id)
                 continue
 
             if demand.source not in G or demand.destination not in G:
@@ -254,6 +325,8 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                     "route": None,
                     "explanation": f"Node not in active network.",
                 }))
+                if trace is not None:
+                    trace.emit("pacar.unreachable", demand=demand.id, reason="node_not_in_active_network")
                 continue
 
             if not nx.has_path(G, demand.source, demand.destination):
@@ -267,10 +340,13 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                         f"{demand.destination} — network may be partitioned."
                     ),
                 }))
+                if trace is not None:
+                    trace.emit("pacar.unreachable", demand=demand.id, reason="no_path")
                 continue
 
             # Find K candidate paths
-            candidates = [path for path in find_k_shortest_paths(G, demand.source, demand.destination, K_PATHS)
+            k_paths = find_k_shortest_paths(G, demand.source, demand.destination, K_PATHS)
+            candidates = [path for path in k_paths
                           if demand.max_latency is None or demand.max_latency <= 0
                           or path_latency(path, G) <= demand.max_latency]
             
@@ -295,12 +371,28 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                     best_path = path
                     best_bottleneck = bottleneck
 
+            if trace is not None:
+                trace.emit("pacar.candidates", demand=demand.id, priority=priority_val,
+                           bandwidth=demand.bandwidth, max_latency=demand.max_latency,
+                           candidates=[{"path": path, "links": _path_links(G, path),
+                                        "bottleneck": bottleneck, "score": score,
+                                        "terms": path_score_breakdown(
+                                            path, G, residual, state, max_latency=max_latency,
+                                            max_hops=max_hops, max_capacity=max_capacity)}
+                                       for path, bottleneck, score in all_candidates_info],
+                           dropped_by_latency=[{"path": path, "latency": path_latency(path, G)}
+                                               for path in k_paths if path not in candidates],
+                           best_path=best_path, best_score=best_score,
+                           best_bottleneck=best_bottleneck, residual=residual)
+
             # If no K-path has capacity, try fallback search
             if best_path is None or best_bottleneck <= 0:
                 fallback = find_capacity_feasible_path(
                     G, demand.source, demand.destination,
                     demand.bandwidth, residual, state, max_latency=demand.max_latency,
+                    trace=trace,
                 )
+                fallback_outcome = None
                 if fallback:
                     best_path = fallback
                     best_bottleneck = path_bottleneck(state, fallback, G, residual)
@@ -310,6 +402,7 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                         max_hops=max_hops,
                         max_capacity=max_capacity,
                     )
+                    fallback_outcome = "capacity_feasible_path"
                 elif candidates:
                     # Use best candidate even with partial capacity
                     for path, bottleneck, score in sorted(all_candidates_info, key=lambda x: x[2]):
@@ -317,11 +410,19 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                             best_path = path
                             best_bottleneck = bottleneck
                             best_score = score
+                            fallback_outcome = "partial_candidate"
                             break
                     if best_path is None and candidates:
                         # All paths have zero capacity
                         best_path = candidates[0]
                         best_bottleneck = 0.0
+                        fallback_outcome = "zero_capacity_candidate"
+                else:
+                    fallback_outcome = "no_candidates"
+                if trace is not None:
+                    trace.emit("pacar.fallback", demand=demand.id, outcome=fallback_outcome,
+                               path=best_path, bottleneck=best_bottleneck, score=best_score,
+                               links=_path_links(G, best_path) if best_path else [])
 
             if best_path is None:
                 results.append(demand.model_copy(update={
@@ -331,6 +432,8 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                     "route": None,
                     "explanation": "No feasible path found after exhaustive search.",
                 }))
+                if trace is not None:
+                    trace.emit("pacar.unserved", demand=demand.id)
                 continue
 
             demand_paths[demand.id] = (best_path, best_bottleneck, best_score)
@@ -339,6 +442,8 @@ def run_pacar(state: SimulationState) -> list[Demand]:
         pending = {did: demand_paths[did] for did in demand_paths}
         
         if not pending:
+            if trace is not None:
+                trace.emit("pacar.group_empty", priority=priority_val)
             continue
 
         demand_by_id = {d.id: d for d in group}
@@ -353,6 +458,14 @@ def run_pacar(state: SimulationState) -> list[Demand]:
 
         demand_allocation: dict[str, float] = {did: 0.0 for did in pending}
         active_demands = set(pending.keys())
+        if trace is not None:
+            trace.emit("pacar.fill_start", priority=priority_val,
+                       paths={did: {"path": pending[did][0], "links": demand_links[did],
+                                    "score": pending[did][2], "bottleneck": pending[did][1]}
+                              for did in pending},
+                       requested={did: demand_by_id[did].bandwidth for did in pending},
+                       residual=residual)
+        fill_round = 0
 
         while active_demands:
             eligible = set()
@@ -367,6 +480,14 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                     eligible.add(did)
 
             if not eligible:
+                if trace is not None:
+                    trace.emit("pacar.fill_stop", priority=priority_val, reason="no_eligible_demand",
+                               allocation=demand_allocation,
+                               needs={did: demand_by_id[did].bandwidth - demand_allocation[did]
+                                      for did in pending},
+                               saturated=sorted({lid for did in pending for lid in demand_links[did]
+                                                 if residual.get(lid, 0.0) <= 1e-9}),
+                               residual=residual)
                 break
 
             link_counts: dict[str, int] = {}
@@ -385,12 +506,28 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                 min_delta = min(min_delta, needed)
 
             if min_delta <= 1e-9 or min_delta == float("inf"):
+                if trace is not None:
+                    trace.emit("pacar.fill_stop", priority=priority_val, reason="no_progress",
+                               delta=min_delta, allocation=demand_allocation,
+                               needs={did: demand_by_id[did].bandwidth - demand_allocation[did]
+                                      for did in pending},
+                               saturated=[], residual=residual)
                 break
 
+            if trace is not None:
+                round_shares = {lid: [residual.get(lid, 0.0), count, residual.get(lid, 0.0) / count]
+                                for lid, count in link_counts.items() if count > 0}
+                round_needs = {did: demand_by_id[did].bandwidth - demand_allocation[did]
+                               for did in eligible}
             for did in eligible:
                 demand_allocation[did] += min_delta
                 for lid in demand_links[did]:
                     residual[lid] = max(0.0, residual.get(lid, 0.0) - min_delta)
+            if trace is not None:
+                fill_round += 1
+                trace.emit("pacar.fill_round", priority=priority_val, round=fill_round,
+                           eligible=sorted(eligible), shares=round_shares, needs=round_needs,
+                           delta=min_delta, allocation=demand_allocation, residual=residual)
 
         # Phase 3: Build results for demands in this group
         for demand in group:
@@ -435,6 +572,20 @@ def run_pacar(state: SimulationState) -> list[Demand]:
                 "explanation": explanation,
             }))
 
+        if trace is not None:
+            trace.emit("pacar.group_result", priority=priority_val, results=[
+                {"id": r.id, "status": r.status.value, "allocated": r.allocated_bandwidth,
+                 "requested": r.bandwidth, "route": r.route,
+                 "path": pending[r.id][0] if r.id in pending else None,
+                 "score": pending[r.id][2] if r.id in pending else None}
+                for r in results if r.id in demand_by_id and r.id in pending],
+                residual=residual)
+
+    if trace is not None:
+        trace.emit("pacar.done", results=[
+            {"id": r.id, "status": r.status.value, "allocated": r.allocated_bandwidth,
+             "requested": r.bandwidth, "route": r.route, "priority": r.priority.value}
+            for r in results])
     return results
 
 

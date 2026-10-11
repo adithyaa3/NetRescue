@@ -43,10 +43,22 @@ def evaluate_install_policy(
     current_version: int,
     trigger_reason: str = "normal",  # "link_failure", "link_restore", "demand_change", "normal"
     churn_threshold_ratio: float = 0.01,  # 1% threshold to avoid unnecessary churn
+    trace=None,
 ) -> InstallDecision:
     """
     Evaluates whether candidate_allocation should be installed into the active state.
+    ``trace`` (optional TraceRecorder) receives a passive record of the rule that decided.
     """
+    def _decided(decision: InstallDecision, rule: str, **facts) -> InstallDecision:
+        if trace is not None:
+            trace.emit("policy.decision", rule=rule, install=decision.should_install,
+                       decision_type=decision.decision_type, reason=decision.reason,
+                       candidate_delivered=decision.candidate_delivered,
+                       current_delivered=decision.current_delivered,
+                       violations=list(decision.violations), trigger=trigger_reason,
+                       expected_version=expected_version, current_version=current_version, **facts)
+        return decision
+
     # Flatten candidate tunnels for validator lookup
     tunnel_lookup: dict[str, CandidateTunnel] = {}
     for fid, t_list in candidate_tunnels.items():
@@ -61,13 +73,13 @@ def evaluate_install_policy(
 
     # 1. Reject stale versions (unless recovery from failure)
     if expected_version != current_version:
-        return InstallDecision(
+        return _decided(InstallDecision(
             should_install=False,
             reason=f"Stale state version: candidate computed for v{expected_version}, current is v{current_version}",
             decision_type="rejected_stale",
             candidate_delivered=0.0,
             current_delivered=0.0,
-        )
+        ), "stale_version")
 
     # 2. Independent validation check
     val = validate_allocation_independently(
@@ -79,14 +91,14 @@ def evaluate_install_policy(
     )
 
     if not val.is_valid:
-        return InstallDecision(
+        return _decided(InstallDecision(
             should_install=False,
             reason=f"Candidate allocation failed validation: {'; '.join(val.violations[:3])}",
             decision_type="rejected_invalid",
             candidate_delivered=val.total_delivered,
             current_delivered=0.0,
             violations=val.violations,
-        )
+        ), "candidate_invalid")
 
     cand_delivered = val.total_delivered
 
@@ -105,13 +117,13 @@ def evaluate_install_policy(
     # trigger alone never justifies installing a candidate that delivers less:
     # the lexicographic comparison below decides.
     if not curr_val.is_valid:
-        return InstallDecision(
+        return _decided(InstallDecision(
             should_install=True,
             reason=f"Installed recovery allocation (current allocation invalid under current failures). Delivered: {cand_delivered:.1f} Mbps",
             decision_type="installed_recovery",
             candidate_delivered=cand_delivered,
             current_delivered=curr_val.total_delivered if curr_val.is_valid else 0.0,
-        )
+        ), "current_invalid", current_violations=list(curr_val.violations))
 
     curr_delivered = curr_val.total_delivered
 
@@ -136,41 +148,45 @@ def evaluate_install_policy(
     # Check P1 to P5 lexicographically
     for p in range(1, 6):
         if cand_pri[p] < curr_pri[p] - 1e-4:
-            return InstallDecision(
+            return _decided(InstallDecision(
                 should_install=False,
                 reason=f"Candidate reduces P{p} traffic ({cand_pri[p]:.1f} < {curr_pri[p]:.1f} Mbps); rejected by priority policy.",
                 decision_type="rejected_priority",
                 candidate_delivered=cand_delivered,
                 current_delivered=curr_delivered,
-            )
+            ), "priority_reduced", deciding_priority=p, candidate_by_priority=cand_pri,
+                current_by_priority=curr_pri)
         elif cand_pri[p] > curr_pri[p] + 1e-4:
             # Candidate strictly improves higher priority! Install immediately.
-            return InstallDecision(
+            return _decided(InstallDecision(
                 should_install=True,
                 reason=f"Candidate improves P{p} delivered bandwidth ({cand_pri[p]:.1f} > {curr_pri[p]:.1f} Mbps).",
                 decision_type="installed_improvement",
                 candidate_delivered=cand_delivered,
                 current_delivered=curr_delivered,
-            )
+            ), "priority_improved", deciding_priority=p, candidate_by_priority=cand_pri,
+                current_by_priority=curr_pri)
 
     # If priority delivery is identical, check total throughput with churn threshold
     total_demand = sum(float(getattr(d, "bandwidth", 0.0) if not isinstance(d, dict) else d.get("bandwidth", 0.0)) for d in demands.values())
     threshold = total_demand * churn_threshold_ratio
 
     if cand_delivered > curr_delivered + threshold:
-        return InstallDecision(
+        return _decided(InstallDecision(
             should_install=True,
             reason=f"Candidate delivers more total bandwidth ({cand_delivered:.1f} > {curr_delivered:.1f} Mbps).",
             decision_type="installed_improvement",
             candidate_delivered=cand_delivered,
             current_delivered=curr_delivered,
-        )
+        ), "throughput_improved", candidate_by_priority=cand_pri, current_by_priority=curr_pri,
+            threshold=threshold)
 
     # Identical or minor difference: avoid unnecessary route churn
-    return InstallDecision(
+    return _decided(InstallDecision(
         should_install=False,
         reason=f"Candidate does not significantly improve delivery ({cand_delivered:.1f} vs {curr_delivered:.1f} Mbps); avoided route churn.",
         decision_type="rejected_churn",
         candidate_delivered=cand_delivered,
         current_delivered=curr_delivered,
-    )
+    ), "churn_avoided", candidate_by_priority=cand_pri, current_by_priority=curr_pri,
+        threshold=threshold)

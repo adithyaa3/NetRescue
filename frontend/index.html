@@ -696,6 +696,231 @@
       .app-workspace { grid-template-columns: 180px 1fr 260px; }
       .header-actions .btn { padding: 0.4rem 0.55rem; font-size: 0.75rem; }
     }
+
+    /* ═════════════ ALGORITHM EXPLORER (all selectors prefixed ax-) ═════════════ */
+    .ax-root {
+      position: fixed;
+      top: 56px; left: 0; right: 0; bottom: 0;
+      z-index: 60;
+      background: radial-gradient(circle at 50% 0%, #0b1324 0%, #05070d 100%);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      color: var(--text);
+    }
+    .ax-root[hidden] { display: none; }
+    /* Class rules below set display; the hidden attribute must still win inside the explorer. */
+    .ax-root [hidden] { display: none !important; }
+    .ax-topbar {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 14, 24, 0.96);
+      min-height: 48px;
+      flex-wrap: wrap;
+    }
+    .ax-title { font-weight: 800; font-size: 0.98rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.45rem; }
+    .ax-title small { font-weight: 500; color: var(--text-muted); font-size: 0.72rem; }
+    .ax-scenario-line { font-size: 0.74rem; color: var(--text-muted); font-family: 'Fira Code', monospace; }
+    .ax-topbar .ax-spacer { flex: 1; }
+    .ax-stale {
+      font-size: 0.74rem; color: #fcd34d; background: rgba(245, 158, 11, 0.10);
+      border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 7px; padding: 0.25rem 0.55rem;
+      display: inline-flex; align-items: center; gap: 0.45rem;
+    }
+    .ax-btn {
+      font-family: inherit; font-size: 0.76rem; font-weight: 600;
+      padding: 0.34rem 0.7rem; border-radius: 7px; cursor: pointer;
+      border: 1px solid var(--border); background: rgba(22, 33, 54, 0.85); color: var(--text);
+      display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;
+    }
+    .ax-btn:hover:not(:disabled) { border-color: var(--border-focus); background: rgba(33, 49, 78, 0.95); }
+    .ax-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ax-btn-primary { background: linear-gradient(135deg, #00f0ff, #0284c7); color: #031019; border: none; }
+    .ax-btn-primary:hover:not(:disabled) { box-shadow: 0 0 14px rgba(0, 240, 255, 0.45); }
+    .ax-btn:focus-visible, .ax-icon-btn:focus-visible, .ax-alg:focus-visible, .ax-tab:focus-visible,
+    .ax-select:focus-visible, .ax-timeline input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    .ax-main {
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr) 420px;
+      min-height: 0;
+    }
+    .ax-side {
+      border-right: 1px solid var(--border);
+      background: var(--bg-panel);
+      overflow-y: auto;
+      padding: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.7rem;
+    }
+    .ax-side h4 {
+      font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim); margin: 0.1rem 0 0.35rem;
+    }
+    .ax-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 9px; padding: 0.6rem; font-size: 0.74rem; }
+    .ax-card .ax-kv { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.12rem 0; color: var(--text-muted); }
+    .ax-card .ax-kv b { color: var(--text); font-family: 'Fira Code', monospace; font-weight: 600; }
+    .ax-alg {
+      width: 100%; text-align: left; cursor: pointer;
+      background: rgba(18, 26, 43, 0.75); border: 1px solid var(--border); border-radius: 9px;
+      color: var(--text); padding: 0.5rem 0.6rem; margin-bottom: 0.4rem; font-family: inherit;
+      display: block;
+    }
+    .ax-alg:hover { border-color: rgba(0, 240, 255, 0.55); }
+    .ax-alg.active { border-color: var(--cyan); background: rgba(0, 240, 255, 0.08); box-shadow: inset 3px 0 0 var(--cyan); }
+    .ax-alg-name { font-weight: 700; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; }
+    .ax-alg-desc { color: var(--text-muted); font-size: 0.68rem; line-height: 1.35; margin-top: 0.2rem; }
+    .ax-level { font-size: 0.6rem; font-weight: 700; padding: 0.08rem 0.35rem; border-radius: 4px; white-space: nowrap; }
+    .ax-level-full { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.45); }
+    .ax-level-stage { background: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.45); }
+    .ax-level-mixed { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.45); }
+    .ax-select {
+      width: 100%; background: rgba(19, 28, 48, 0.9); border: 1px solid var(--border); border-radius: 7px;
+      color: var(--text); font-family: 'Fira Code', monospace; font-size: 0.72rem; padding: 0.4rem 0.45rem;
+    }
+    .ax-hint { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.3rem; }
+
+    .ax-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+    #ax-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+    #ax-svg.ax-dragging { cursor: grabbing; }
+    .ax-stage-tools {
+      position: absolute; top: 0.6rem; left: 0.6rem; z-index: 3;
+      display: flex; gap: 0.3rem; background: rgba(10, 15, 26, 0.85);
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.25rem;
+    }
+    .ax-icon-btn {
+      background: transparent; border: none; color: var(--text-muted); width: 28px; height: 26px;
+      border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: inherit;
+    }
+    .ax-icon-btn:hover { color: var(--cyan); background: rgba(255, 255, 255, 0.07); }
+    .ax-icon-btn[aria-pressed="true"] { color: var(--cyan); }
+    .ax-legend {
+      position: absolute; right: 0.6rem; bottom: 0.6rem; z-index: 3; max-width: calc(100% - 1.2rem);
+      background: rgba(10, 15, 26, 0.88); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.35rem 0.55rem; font-size: 0.64rem; color: var(--text-muted);
+      display: flex; flex-wrap: wrap; gap: 0.25rem 0.7rem;
+    }
+    .ax-legend span { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+    .ax-sw { width: 18px; height: 0; border-top: 3px solid; display: inline-block; }
+    .ax-caption {
+      position: absolute; left: 50%; top: 0.6rem; transform: translateX(-50%); z-index: 2;
+      max-width: min(70%, 640px); text-align: center;
+      background: rgba(10, 15, 26, 0.86); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.3rem 0.7rem; font-size: 0.74rem; color: var(--text); pointer-events: none;
+    }
+    .ax-overlay-msg {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      z-index: 4; pointer-events: none;
+    }
+    .ax-overlay-msg > div {
+      background: rgba(14, 21, 37, 0.95); border: 1px solid var(--border-focus); border-radius: 12px;
+      padding: 1rem 1.3rem; font-size: 0.82rem; color: var(--text-muted); max-width: 420px; text-align: center;
+      pointer-events: auto;
+    }
+    .ax-overlay-msg.ax-error > div { border-color: rgba(239, 68, 68, 0.6); color: #fca5a5; }
+
+    .ax-panel {
+      border-left: 1px solid var(--border); background: var(--bg-panel);
+      display: flex; flex-direction: column; min-height: 0;
+    }
+    .ax-tabs { display: flex; border-bottom: 1px solid var(--border); background: rgba(10, 15, 26, 0.98); }
+    .ax-tab {
+      flex: 1; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted);
+      font-family: inherit; font-size: 0.74rem; font-weight: 600; padding: 0.55rem 0.3rem; cursor: pointer;
+    }
+    .ax-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); background: rgba(0, 240, 255, 0.04); }
+    .ax-panel-body { flex: 1; overflow-y: auto; padding: 0.8rem 0.9rem 1.2rem; font-size: 0.78rem; line-height: 1.5; }
+    .ax-step-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+    .ax-phase {
+      font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 0.12rem 0.45rem; border-radius: 5px; color: var(--c, #94a3b8);
+      background: color-mix(in srgb, var(--c, #94a3b8) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c, #94a3b8) 45%, transparent);
+    }
+    .ax-fid { font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 5px; cursor: help; }
+    .ax-fid-exact { color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+    .ax-fid-stage { color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.5); }
+    .ax-fid-summary { color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.45); }
+    .ax-fid-verification { color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.5); }
+    .ax-step-no { margin-left: auto; font-family: 'Fira Code', monospace; font-size: 0.68rem; color: var(--text-dim); }
+    .ax-step-title { font-size: 1rem; margin: 0.15rem 0 0.35rem; line-height: 1.3; }
+    .ax-step-summary {
+      font-size: 0.82rem; color: #e2e8f0; background: rgba(0, 240, 255, 0.05);
+      border-left: 3px solid var(--cyan); padding: 0.4rem 0.55rem; border-radius: 0 6px 6px 0; margin-bottom: 0.6rem;
+    }
+    .ax-sections { margin: 0 0 0.6rem; }
+    .ax-sections > div { padding: 0.32rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .ax-sections dt { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+    .ax-sections dd { margin: 0.1rem 0 0; color: var(--text); }
+    .ax-table-wrap { margin: 0.5rem 0 0.7rem; overflow-x: auto; max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 7px; }
+    .ax-table-title { font-size: 0.66rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.4rem; }
+    .ax-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+    .ax-table th { position: sticky; top: 0; background: #0f1729; text-align: left; padding: 0.3rem 0.45rem; color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+    .ax-table td { padding: 0.28rem 0.45rem; border-top: 1px solid rgba(255, 255, 255, 0.04); font-family: 'Fira Code', monospace; vertical-align: top; white-space: nowrap; }
+    .ax-table tr.ax-hl td { background: rgba(0, 240, 255, 0.08); color: #e0fbff; }
+    .ax-evidence { margin-top: 0.6rem; font-size: 0.7rem; color: var(--text-muted); }
+    .ax-evidence summary { cursor: pointer; }
+    .ax-evidence pre {
+      max-height: 220px; overflow: auto; background: #070b14; border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.45rem; font-size: 0.64rem; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
+    }
+    .ax-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; margin-bottom: 0.6rem; }
+    .ax-metric { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.55rem; }
+    .ax-metric .k { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .ax-metric .v { font-size: 1rem; font-weight: 700; font-family: 'Fira Code', monospace; }
+    .ax-checks { list-style: none; margin: 0.3rem 0 0.7rem; padding: 0; }
+    .ax-checks li { padding: 0.2rem 0; font-size: 0.74rem; }
+    .ax-ok { color: #6ee7b7; } .ax-bad { color: #fca5a5; } .ax-na { color: var(--text-muted); }
+    .ax-note { font-size: 0.7rem; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 7px; padding: 0.4rem 0.55rem; margin: 0.4rem 0; }
+    .ax-bar { height: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.07); overflow: hidden; margin-top: 0.15rem; }
+    .ax-bar > i { display: block; height: 100%; background: var(--c, var(--cyan)); }
+
+    .ax-controls {
+      border-top: 1px solid var(--border); background: rgba(10, 14, 24, 0.97);
+      display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 1rem; flex-wrap: wrap;
+    }
+    .ax-controls .ax-group { display: flex; align-items: center; gap: 0.25rem; }
+    .ax-play { min-width: 74px; justify-content: center; }
+    .ax-counter { font-family: 'Fira Code', monospace; font-size: 0.74rem; color: var(--text-muted); min-width: 92px; }
+    .ax-timeline { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.2rem; }
+    .ax-strip { display: flex; height: 7px; border-radius: 4px; overflow: hidden; gap: 1px; }
+    .ax-strip > button { flex: 1; border: none; padding: 0; background: var(--c); opacity: 0.45; cursor: pointer; min-width: 2px; }
+    .ax-strip > button.ax-done { opacity: 0.8; }
+    .ax-strip > button.ax-cur { opacity: 1; box-shadow: 0 0 0 1px #fff inset; }
+    .ax-timeline input[type=range] { width: 100%; accent-color: var(--cyan); }
+    .ax-speed { width: auto; font-family: inherit; }
+
+    .ax-link-line { transition: stroke 0.35s ease, stroke-width 0.35s ease, opacity 0.35s ease; }
+    .ax-overlay { animation: ax-fade 0.35s ease both; }
+    @keyframes ax-fade { from { opacity: 0; } to { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      .ax-link-line { transition: none; }
+      .ax-overlay { animation: none; }
+    }
+    body.ax-open .bottom-tray, body.ax-open .app-workspace { visibility: hidden; }
+    @media (max-width: 1360px) { .ax-btn-long { display: none; } }
+    /* Narrow windows: header actions scroll inside the header instead of widening the page. */
+    @media (max-width: 900px) {
+      header { gap: 0.5rem; }
+      .brand-wrap { flex-shrink: 0; }
+      .header-actions { min-width: 0; overflow-x: auto; scrollbar-width: thin; padding: 4px 0; }
+      .header-actions .btn { flex-shrink: 0; }
+    }
+
+    @media (max-width: 1280px) {
+      .ax-main { grid-template-columns: 220px minmax(0, 1fr) 360px; }
+      .ax-caption { top: 3rem; max-width: calc(100% - 1.2rem); }
+    }
+    @media (max-width: 1020px) {
+      .ax-main { grid-template-columns: minmax(0, 1fr) 330px; grid-template-rows: auto minmax(0, 1fr); }
+      .ax-side { grid-column: 1 / -1; flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid var(--border); max-height: 190px; }
+      .ax-side > section { min-width: 230px; }
+      .ax-legend { font-size: 0.58rem; gap: 0.15rem 0.5rem; padding: 0.25rem 0.4rem; }
+      .ax-sw { width: 12px; }
+    }
+    @media (max-width: 760px) {
+      .ax-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 46vh minmax(0, 1fr); overflow-y: auto; }
+      .ax-panel { border-left: none; border-top: 1px solid var(--border); min-height: 320px; }
+      .ax-controls { padding: 0.4rem 0.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -731,6 +956,9 @@
     </div>
 
     <div class="header-actions">
+      <button class="btn btn-primary" id="btn-algorithm-explorer" onclick="openAlgorithmExplorer()" aria-label="Algorithm Explorer" title="Algorithm Explorer: step through the real routing algorithms on a frozen copy of this network (read-only)">
+        🧭 <span class="ax-btn-long">Algorithm </span>Explorer
+      </button>
       <button class="btn btn-success" id="btn-protected-demo" onclick="loadProtectedDemo()" title="Load congested_shortest + P1_DEMO and start the simulation (positive verified guarantees)">
         🛡️ Load Protected Demo
       </button>
@@ -1007,7 +1235,10 @@
     <div id="tray-compare" class="tray-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
         <span style="font-size:0.8rem; color:var(--text-muted);">Compare PACAR vs Standard Shortest-Path Dijkstra under identical disaster conditions.</span>
-        <button class="btn btn-secondary" id="compare-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="btn btn-secondary" id="compare-explore-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="openAlgorithmExplorer()" title="Open the Algorithm Explorer to see each algorithm's decisions step by step">🧭 Step through in Explorer</button>
+          <button class="btn btn-secondary" id="compare-run-btn" style="font-size:0.75rem; padding:0.3rem 0.65rem;" onclick="runComparison()">⚖ Run Comparison</button>
+        </div>
       </div>
       <div id="compare-results-box" style="font-size:0.8rem; color:var(--text-muted);">
         Click "Run Comparison" to analyze delivery rate and congestion avoidance.
@@ -1142,6 +1373,114 @@
       </div>
     </div>
   </div>
+
+  <!-- ALGORITHM EXPLORER (separate view; read-only with respect to the live network) -->
+  <section id="algorithm-explorer" class="ax-root" hidden aria-label="Algorithm Explorer">
+    <div class="ax-topbar">
+      <div class="ax-title">🧭 Algorithm Explorer <small>step through the real routing algorithms</small></div>
+      <div class="ax-scenario-line" id="ax-scenario-line">No snapshot yet</div>
+      <div class="ax-stale" id="ax-stale" hidden>
+        <span id="ax-stale-text">The live network changed since this snapshot.</span>
+        <button class="ax-btn" type="button" id="ax-stale-recapture">↻ Re-capture</button>
+      </div>
+      <div class="ax-spacer"></div>
+      <button class="ax-btn" type="button" id="ax-recapture" title="Freeze the current live network into a new snapshot">↻ Re-capture network</button>
+      <button class="ax-btn ax-btn-primary" type="button" id="ax-close" title="Return to the dashboard (Esc)">✕ Back to dashboard</button>
+    </div>
+
+    <div class="ax-main">
+      <aside class="ax-side" aria-label="Explorer setup">
+        <section>
+          <h4>Network snapshot</h4>
+          <div class="ax-card" id="ax-snapshot-card">—</div>
+        </section>
+        <section>
+          <h4>Algorithm</h4>
+          <div id="ax-alg-list" role="group" aria-label="Algorithms"></div>
+        </section>
+        <section>
+          <h4>Link failure scenario</h4>
+          <label class="ax-hint" for="ax-fail-select" style="display:block; margin:0 0 0.25rem;">Link to fail (private copy only)</label>
+          <select id="ax-fail-select" class="ax-select"></select>
+          <div class="ax-hint" id="ax-fail-hint"></div>
+        </section>
+        <section>
+          <h4>Last live action</h4>
+          <div class="ax-card" id="ax-live-card">—</div>
+        </section>
+      </aside>
+
+      <div class="ax-stage" id="ax-stage">
+        <div class="ax-stage-tools">
+          <button class="ax-icon-btn" type="button" id="ax-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+          <button class="ax-icon-btn" type="button" id="ax-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+          <button class="ax-icon-btn" type="button" id="ax-fit" title="Fit network" aria-label="Fit network">⛶</button>
+          <button class="ax-icon-btn" type="button" id="ax-labels" title="Show link labels" aria-label="Show link labels" aria-pressed="true">🏷</button>
+        </div>
+        <div class="ax-caption" id="ax-caption" hidden></div>
+        <svg id="ax-svg" role="img" aria-label="Network graph for the current step">
+          <defs>
+            <marker id="ax-arrow-sel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#22d3ee"/></marker>
+            <marker id="ax-arrow-alloc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+            <filter id="ax-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <g id="ax-world">
+            <g id="ax-links"></g>
+            <g id="ax-overlays"></g>
+            <g id="ax-link-labels"></g>
+            <g id="ax-nodes"></g>
+            <g id="ax-path-labels"></g>
+          </g>
+        </svg>
+        <div class="ax-legend" id="ax-legend">
+          <span><i class="ax-sw" style="border-color:#10b981"></i>&lt;50% load</span>
+          <span><i class="ax-sw" style="border-color:#f59e0b"></i>50–79%</span>
+          <span><i class="ax-sw" style="border-color:#ef4444"></i>≥80%</span>
+          <span><i class="ax-sw" style="border-color:#64748b; border-top-style:dashed"></i>failed</span>
+          <span><i class="ax-sw" style="border-color:#22d3ee"></i>selected path</span>
+          <span><i class="ax-sw" style="border-color:#93c5fd; border-top-style:dashed"></i>candidate</span>
+          <span><i class="ax-sw" style="border-color:#34d399"></i>allocation</span>
+          <span><i class="ax-sw" style="border-color:#c084fc; border-top-style:dashed"></i>reserved / backup</span>
+          <span><i class="ax-sw" style="border-color:#f87171; border-top-style:dashed"></i>lost / rejected</span>
+          <span><i class="ax-sw" style="border-color:#fb923c; border-top-width:5px"></i>bottleneck / binding</span>
+        </div>
+        <div class="ax-overlay-msg" id="ax-overlay-msg" hidden><div id="ax-overlay-text"></div></div>
+      </div>
+
+      <div class="ax-panel">
+        <div class="ax-tabs" role="tablist" aria-label="Explorer panels">
+          <button class="ax-tab active" type="button" role="tab" data-ax-tab="step" aria-selected="true">Step</button>
+          <button class="ax-tab" type="button" role="tab" data-ax-tab="result" aria-selected="false">Result</button>
+          <button class="ax-tab" type="button" role="tab" data-ax-tab="compare" aria-selected="false">Compare</button>
+          <button class="ax-tab" type="button" role="tab" data-ax-tab="about" aria-selected="false">About</button>
+        </div>
+        <div class="ax-panel-body" id="ax-panel-body" role="tabpanel" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="ax-controls" role="group" aria-label="Playback">
+      <div class="ax-group">
+        <button class="ax-btn" type="button" id="ax-restart" title="Restart (Home)" aria-label="Restart">⏮</button>
+        <button class="ax-btn" type="button" id="ax-prev" title="Previous step (←)" aria-label="Previous step">◀</button>
+        <button class="ax-btn ax-btn-primary ax-play" type="button" id="ax-play" title="Play / pause (Space)" aria-label="Play">▶ Play</button>
+        <button class="ax-btn" type="button" id="ax-next" title="Next step (→)" aria-label="Next step">▶</button>
+        <button class="ax-btn" type="button" id="ax-end" title="Last step (End)" aria-label="Last step">⏭</button>
+      </div>
+      <label class="ax-group ax-hint" style="margin:0;" for="ax-speed">Speed
+        <select id="ax-speed" class="ax-select ax-speed">
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </label>
+      <div class="ax-counter" id="ax-counter">Step – / –</div>
+      <div class="ax-timeline">
+        <div class="ax-strip" id="ax-strip" aria-hidden="true"></div>
+        <input type="range" id="ax-timeline" min="0" max="0" value="0" step="1" aria-label="Timeline: choose a step">
+      </div>
+    </div>
+  </section>
 
   <!-- TOAST NOTIFICATION -->
   <div id="toast-msg">
@@ -2839,6 +3178,807 @@
       document.addEventListener('DOMContentLoaded', initDashboard, { once: true });
     } else {
       initDashboard();
+    }
+  </script>
+  <script>
+    // ═════════════ ALGORITHM EXPLORER ═════════════
+    // Renders traces recorded by the backend while the real algorithms ran on a
+    // private snapshot. No routing logic runs here: every number, path and sentence
+    // comes from /explorer/* responses. Only read-only explorer endpoints are called.
+    const AX = {
+      open: false, bound: false,
+      session: null, live: null, algorithms: [],
+      algorithm: 'pacar', failedLink: '', source: 'session',
+      trace: null, scenario: null, steps: [], resolved: [], index: 0,
+      playing: false, timer: null, speed: 1, reqSeq: 0, pollTimer: null,
+      compare: null, compareSeq: 0, tab: 'step',
+      zoom: 1, pan: { x: 0, y: 0 }, userZoomed: false, pos: {}, linkEls: {}, nodeEls: {}, showLabels: true,
+      drag: null, resizeObs: null, failAuto: false, liveKey: '', labelsUserSet: false
+    };
+    const AX_STEP_MS = 1700;
+    const AX_GROUPS = {
+      controller: ['Controller', '#94a3b8'], baseline: ['Baseline', '#e2e8f0'], pacar: ['PACAR', '#22d3ee'],
+      reactive_lp: ['Reactive LP', '#a78bfa'], protection: ['Protection planner', '#c084fc'],
+      checker: ['Guarantee checker', '#f0abfc'], reflex: ['Reflex', '#34d399'], policy: ['Install policy', '#fbbf24'],
+      enforcement: ['Guarantee enforcement', '#f59e0b'], verification: ['Explorer check', '#60a5fa']
+    };
+    const AX_FIDELITY = {
+      exact: ['Recorded', 'A decision or value recorded directly from the real algorithm run.'],
+      stage: ['LP stage', 'One HiGHS LP stage: objective, optimal value and solver status are recorded. The solver\'s internal iterations are not visible and are not shown.'],
+      summary: ['Summary', 'A compact view of a large recorded input (for example the candidate tunnels).'],
+      verification: ['Explorer check', 'Computed by the explorer from the recorded result. It is not a step of the algorithm.']
+    };
+    const AX_ROLE = {
+      selected: { stroke: '#22d3ee', width: 5, dash: '', marker: 'ax-arrow-sel', glow: true },
+      allocation: { stroke: '#34d399', width: 4, dash: '', marker: 'ax-arrow-alloc' },
+      candidate: { stroke: '#93c5fd', width: 2.5, dash: '7 5' },
+      rejected: { stroke: '#f87171', width: 2, dash: '3 5', opacity: 0.7 },
+      affected: { stroke: '#f87171', width: 3.5, dash: '9 5' },
+      reserved: { stroke: '#c084fc', width: 3, dash: '8 4' },
+      backup: { stroke: '#c084fc', width: 3, dash: '' }
+    };
+    const AX_LINK_ROLE = {
+      bottleneck: { stroke: '#fb923c', label: 'bottleneck' }, binding: { stroke: '#fb923c', label: 'binding' },
+      saturated: { stroke: '#ef4444', label: 'saturated' }, over: { stroke: '#ff2d55', label: 'over capacity' },
+      failing: { stroke: '#ff3b5c', label: 'failed' }, restored: { stroke: '#34d399', label: 'restored' }
+    };
+
+    function axMb(v) {
+      if (!isNum(v)) return '—';
+      if (v !== 0 && Math.abs(v) < 0.01) return `${Number(v.toPrecision(2))} Mbps`;
+      const r = Math.round(v * 100) / 100;
+      return `${Number.isInteger(r) ? r : r.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')} Mbps`;
+    }
+    function axNum(v, d = 1) { return isNum(v) ? String(Math.round(v * 10 ** d) / 10 ** d) : '—'; }
+    function axEl(id) { return document.getElementById(id); }
+    function axMeta(id) { return AX.algorithms.find(a => a.id === id) || null; }
+
+    // ---------- open / close ----------
+    async function openAlgorithmExplorer() {
+      const root = axEl('algorithm-explorer');
+      root.hidden = false;
+      document.body.classList.add('ax-open');
+      AX.open = true;
+      axBindOnce();
+      // Never present an old snapshot's trace as current: cover it until we know
+      // whether the live network changed since it was captured.
+      if (AX.session) axMessage('Checking whether the live network changed…');
+      await axEnsureSession();
+      axStartPolling();
+      requestAnimationFrame(() => axFit(true));
+    }
+    function closeAlgorithmExplorer() {
+      axPause();
+      axStopPolling();
+      AX.open = false;
+      axEl('algorithm-explorer').hidden = true;
+      document.body.classList.remove('ax-open');
+      if (typeof renderCanvas === 'function') renderCanvas();
+    }
+
+    function axBindOnce() {
+      if (AX.bound) return;
+      AX.bound = true;
+      axEl('ax-close').addEventListener('click', closeAlgorithmExplorer);
+      axEl('ax-recapture').addEventListener('click', () => axCaptureSession(true));
+      axEl('ax-stale-recapture').addEventListener('click', () => axCaptureSession(true));
+      axEl('ax-prev').addEventListener('click', () => { axPause(); axGoto(AX.index - 1); });
+      axEl('ax-next').addEventListener('click', () => { axPause(); axGoto(AX.index + 1); });
+      axEl('ax-restart').addEventListener('click', () => { axPause(); axGoto(0); });
+      axEl('ax-end').addEventListener('click', () => { axPause(); axGoto(AX.steps.length - 1); });
+      axEl('ax-play').addEventListener('click', axTogglePlay);
+      axEl('ax-speed').addEventListener('change', e => {
+        AX.speed = Number(e.target.value) || 1;
+        if (AX.playing) axSchedule();
+      });
+      axEl('ax-timeline').addEventListener('input', e => { axPause(); axGoto(Number(e.target.value)); });
+      axEl('ax-fail-select').addEventListener('change', e => {
+        AX.failedLink = e.target.value;
+        AX.failAuto = false;
+        AX.compare = null;
+        if (AX.source !== 'session') AX.source = 'session';
+        axRenderSidebar();
+        axLoadTrace();
+      });
+      document.querySelectorAll('.ax-tab').forEach(b => b.addEventListener('click', () => axSetTab(b.dataset.axTab)));
+      axEl('ax-zoom-in').addEventListener('click', () => axZoomBy(1.2));
+      axEl('ax-zoom-out').addEventListener('click', () => axZoomBy(1 / 1.2));
+      axEl('ax-fit').addEventListener('click', () => axFit(true));
+      axEl('ax-labels').addEventListener('click', () => {
+        AX.showLabels = !AX.showLabels;
+        AX.labelsUserSet = true;
+        axEl('ax-labels').setAttribute('aria-pressed', String(AX.showLabels));
+        axRenderStep();
+      });
+      const svg = axEl('ax-svg');
+      svg.addEventListener('wheel', e => {
+        e.preventDefault();
+        axZoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1, e.clientX, e.clientY);
+      }, { passive: false });
+      svg.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
+        AX.drag = { x: e.clientX - AX.pan.x, y: e.clientY - AX.pan.y };
+        svg.classList.add('ax-dragging');
+        svg.setPointerCapture(e.pointerId);
+      });
+      svg.addEventListener('pointermove', e => {
+        if (!AX.drag) return;
+        AX.pan = { x: e.clientX - AX.drag.x, y: e.clientY - AX.drag.y };
+        AX.userZoomed = true;
+        axApplyTransform();
+      });
+      const endDrag = () => { AX.drag = null; svg.classList.remove('ax-dragging'); };
+      svg.addEventListener('pointerup', endDrag);
+      svg.addEventListener('pointercancel', endDrag);
+      document.addEventListener('keydown', axOnKey);
+      if ('ResizeObserver' in window) {
+        AX.resizeObs = new ResizeObserver(() => { if (AX.open && !AX.userZoomed) axFit(false); });
+        AX.resizeObs.observe(axEl('ax-stage'));
+      }
+    }
+
+    function axOnKey(e) {
+      if (!AX.open) return;
+      const tag = (e.target && e.target.tagName) || '';
+      if (document.querySelector('.modal-backdrop.active')) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeAlgorithmExplorer(); return; }
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(tag) && e.target.id !== 'ax-timeline') return;
+      if (e.target.id === 'ax-timeline' && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); axPause(); axGoto(AX.index + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); axPause(); axGoto(AX.index - 1); }
+      else if (e.key === ' ' && tag !== 'BUTTON') { e.preventDefault(); axTogglePlay(); }
+      else if (e.key === 'Home') { e.preventDefault(); axPause(); axGoto(0); }
+      else if (e.key === 'End') { e.preventDefault(); axPause(); axGoto(AX.steps.length - 1); }
+    }
+
+    // ---------- live network & snapshot ----------
+    async function axEnsureSession() {
+      try {
+        AX.live = await apiGet('/explorer/live');
+      } catch (err) {
+        axMessage(`Cannot reach the explorer API: ${err.message}`, true);
+        return;
+      }
+      axRenderLiveCard();
+      if (AX.session && AX.session.fingerprint === AX.live.fingerprint) {
+        axRenderStale();
+        if (AX.trace) axMessage(null);
+        return;
+      }
+      await axCaptureSession(!!AX.session);
+    }
+
+    async function axCaptureSession(announce) {
+      const seq = ++AX.reqSeq;
+      axPause();
+      axMessage('Capturing a snapshot of the live network…');
+      try {
+        const s = await apiPost('/explorer/sessions');
+        if (seq !== AX.reqSeq) return;
+        AX.session = s;
+        AX.algorithms = s.algorithms || [];
+        AX.compare = null;
+        AX.source = 'session';
+        const usable = (s.scenario.links || []).filter(l => l.status === 'active').map(l => l.id);
+        if (AX.failedLink && !usable.includes(AX.failedLink)) AX.failedLink = '';
+        try { AX.live = await apiGet('/explorer/live'); } catch (_) { /* polling will retry */ }
+        axRenderSnapshotCard();
+        axRenderLiveCard();
+        axRenderStale();
+        axRenderSidebar();
+        if (announce) showToast('Explorer captured a new snapshot of the live network.', '🧭');
+        await axLoadTrace(seq);
+      } catch (err) {
+        if (seq !== AX.reqSeq) return;
+        axMessage(`Could not capture the network: ${err.message}`, true);
+      }
+    }
+
+    function axStartPolling() {
+      axStopPolling();
+      AX.pollTimer = setInterval(async () => {
+        if (!AX.open || document.hidden) return;
+        try {
+          AX.live = await apiGet('/explorer/live');
+          axRenderStale();
+          axRenderLiveCard();
+        } catch (_) { /* transient; keep the last state */ }
+      }, 4000);
+    }
+    function axStopPolling() { if (AX.pollTimer) clearInterval(AX.pollTimer); AX.pollTimer = null; }
+
+    function axRenderStale() {
+      const stale = !!(AX.session && AX.live && AX.live.fingerprint !== AX.session.fingerprint);
+      axEl('ax-stale').hidden = !stale;
+      if (stale) {
+        axEl('ax-stale-text').textContent =
+          `The live network changed since this snapshot (step ${AX.session.scenario.step} → ${AX.live.step}). The traces still describe the snapshot.`;
+      }
+    }
+
+    function axRenderSnapshotCard() {
+      const sc = AX.session ? AX.session.scenario : null;
+      if (!sc) return;
+      const down = sc.unavailable_links || [];
+      const plan = sc.plan;
+      const t = new Date(AX.session.created_at * 1000);
+      axEl('ax-snapshot-card').innerHTML = `
+        <div class="ax-kv"><span>Captured</span><b>${esc(t.toLocaleTimeString())}</b></div>
+        <div class="ax-kv"><span>Controller step</span><b>${esc(sc.step)}</b></div>
+        <div class="ax-kv"><span>Nodes · links · demands</span><b>${sc.nodes.length} · ${sc.links.length} · ${sc.demands.length}</b></div>
+        <div class="ax-kv"><span>Unavailable links</span><b>${esc(down.join(', ') || 'none')}</b></div>
+        <div class="ax-kv"><span>Protection plan</span><b>${plan ? (plan.verified ? 'verified' : 'not verified') : 'none'}</b></div>
+        <div class="ax-hint">Frozen copy: every trace below runs on a private copy of this snapshot. The live network is never changed.</div>`;
+      const parts = [`snapshot ${AX.session.fingerprint}`, `${sc.nodes.length} nodes`, `${sc.demands.length} demands`];
+      if (down.length) parts.push(`down: ${down.join(', ')}`);
+      axEl('ax-scenario-line').textContent = parts.join(' · ');
+    }
+
+    function axRenderLiveCard() {
+      const card = axEl('ax-live-card');
+      const la = AX.live && AX.live.last_action;
+      const key = JSON.stringify([la, AX.source]);
+      if (key === AX.liveKey) return; // unchanged: keep the button stable under the cursor
+      AX.liveKey = key;
+      if (!la) {
+        card.innerHTML = `<div class="ax-hint" style="margin:0">No controller action recorded since the server started. Run a simulation or fail a link on the dashboard, then replay it here.</div>`;
+        return;
+      }
+      const detail = la.params.link_id || (la.params.link_ids || []).join(', ') || la.params.algorithm ||
+        (la.params.demand && la.params.demand.id) || '';
+      const active = AX.source === 'live';
+      card.innerHTML = `
+        <div class="ax-kv"><span>${esc(la.label)}</span><b>${esc(detail)}</b></div>
+        <div class="ax-kv"><span>At controller step</span><b>${esc(la.step)}</b></div>
+        <button class="ax-btn${active ? ' ax-btn-primary' : ''}" type="button" id="ax-replay-btn" style="width:100%; justify-content:center; margin-top:0.35rem;">▶ Replay with trace</button>
+        <div class="ax-hint">Re-runs that exact action from a snapshot taken just before it, then checks the result equals what happened live.</div>`;
+      axEl('ax-replay-btn').addEventListener('click', axLoadReplay);
+    }
+
+    // ---------- algorithm list & failure picker ----------
+    function axRenderSidebar() {
+      const list = axEl('ax-alg-list');
+      list.innerHTML = AX.algorithms.map(a => `
+        <button class="ax-alg${AX.source === 'session' && AX.algorithm === a.id ? ' active' : ''}" type="button" data-ax-alg="${esc(a.id)}"
+                aria-pressed="${AX.source === 'session' && AX.algorithm === a.id}">
+          <div class="ax-alg-name"><span>${esc(a.label)}</span><span class="ax-level ax-level-${esc(a.trace_level)}" title="${esc(a.fidelity_note)}">${esc(a.trace_level_label)}</span></div>
+          <div class="ax-alg-desc">${esc(a.description)}</div>
+        </button>`).join('');
+      list.querySelectorAll('.ax-alg').forEach(b => b.addEventListener('click', () => axSelectAlgorithm(b.dataset.axAlg)));
+      axRenderFailPicker();
+    }
+
+    function axRenderFailPicker() {
+      const sel = axEl('ax-fail-select');
+      const meta = axMeta(AX.algorithm);
+      const links = AX.session ? (AX.session.scenario.links || []).filter(l => l.status === 'active')
+        .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })) : [];
+      const needs = meta && meta.needs_failure;
+      if (needs && !AX.failedLink && links.length) {
+        AX.failedLink = (links.find(l => l.id === 'L3') || links[0]).id;
+        AX.failAuto = true; // picked for convenience; dropped again when leaving Failure Recovery
+      }
+      sel.innerHTML = (needs ? '' : `<option value="">No extra failure (network as captured)</option>`) +
+        links.map(l => `<option value="${esc(l.id)}">${esc(l.id)} · ${esc(l.source)}↔${esc(l.target)} · ${esc(l.capacity)} Mbps</option>`).join('');
+      sel.value = AX.failedLink || '';
+      sel.disabled = !links.length;
+      const hint = axEl('ax-fail-hint');
+      if (!links.length) hint.textContent = 'No active link in this snapshot.';
+      else if (AX.algorithm === 'recovery') hint.textContent = 'Required: the controller fails this link on a private copy and recovers (Reflex if covered, otherwise PACAR), then runs the Reactive LP.';
+      else if (AX.algorithm === 'protection') hint.textContent = 'The planner runs on the network before any new failure; the chosen link only highlights its scenario.';
+      else hint.textContent = 'Optional: route all traffic on the snapshot with this link marked failed, so algorithms can be compared on the same outage.';
+    }
+
+    function axSelectAlgorithm(id) {
+      if (AX.source === 'session' && AX.algorithm === id && AX.trace) return;
+      AX.algorithm = id;
+      AX.source = 'session';
+      const meta = axMeta(id);
+      if (AX.failAuto && meta && !meta.needs_failure) { AX.failedLink = ''; AX.failAuto = false; }
+      axRenderSidebar();
+      axRenderLiveCard();
+      axLoadTrace();
+    }
+
+    // ---------- loading traces ----------
+    async function axLoadTrace(seqIn) {
+      if (!AX.session) return;
+      const seq = seqIn || ++AX.reqSeq;
+      const meta = axMeta(AX.algorithm);
+      if (!meta) return;
+      if (meta.needs_failure && !AX.failedLink) {
+        axMessage('Failure Recovery needs a link to fail, and this snapshot has no active link.', true);
+        return;
+      }
+      axPause();
+      axMessage(`Tracing ${meta.label} on a private copy of the snapshot…`);
+      try {
+        const t = await apiPost(`/explorer/sessions/${encodeURIComponent(AX.session.session_id)}/trace`,
+          { algorithm: AX.algorithm, failed_link: AX.failedLink || null });
+        if (seq !== AX.reqSeq) return; // a newer request superseded this one
+        axSetTrace(t, AX.session.scenario, 'session');
+      } catch (err) {
+        if (seq !== AX.reqSeq) return;
+        if (/expired|not found/i.test(err.message)) { await axCaptureSession(true); return; }
+        axMessage(`Trace failed: ${err.message}`, true);
+      }
+    }
+
+    async function axLoadReplay() {
+      const seq = ++AX.reqSeq;
+      axPause();
+      AX.source = 'live';
+      axRenderSidebar();
+      axRenderLiveCard();
+      axMessage('Replaying the last live action from its pre-action snapshot…');
+      try {
+        const t = await apiPost('/explorer/live-action/trace');
+        if (seq !== AX.reqSeq) return;
+        axSetTrace(t, t.scenario, 'live');
+      } catch (err) {
+        if (seq !== AX.reqSeq) return;
+        axMessage(`Replay failed: ${err.message}`, true);
+      }
+    }
+
+    function axSetTrace(t, scenario, source) {
+      AX.trace = t;
+      AX.source = source;
+      AX.scenario = scenario;
+      AX.steps = Array.isArray(t.steps) ? t.steps : [];
+      AX.resolved = axResolveNetwork(AX.steps, scenario);
+      AX.eventsBySeq = {};
+      (t.events || []).forEach(e => { AX.eventsBySeq[e.seq] = e; });
+      AX.index = 0;
+      axMessage(null);
+      if (!AX.labelsUserSet) {
+        AX.showLabels = (scenario.links || []).length <= 30; // large topologies start uncluttered
+        axEl('ax-labels').setAttribute('aria-pressed', String(AX.showLabels));
+      }
+      axBuildGraph(scenario);
+      axRenderStrip();
+      const tl = axEl('ax-timeline');
+      tl.max = String(Math.max(0, AX.steps.length - 1));
+      if (!scenario.nodes.length) axMessage('This snapshot has no nodes. Build or load a network on the dashboard, then re-capture.');
+      axFit(true);
+      axGoto(0);
+    }
+
+    // Carry the last recorded network state forward so every step (also when stepping
+    // backwards) shows exactly the loads recorded at or before it.
+    function axResolveNetwork(steps, scenario) {
+      let cur = {
+        loads: Object.fromEntries((scenario.links || []).map(l => [l.id, l.allocated_load || 0])),
+        failed: (scenario.links || []).filter(l => l.status !== 'active').map(l => l.id)
+      };
+      return steps.map(s => { if (s.network) cur = s.network; return cur; });
+    }
+
+    // ---------- playback ----------
+    function axGoto(i) {
+      if (!AX.steps.length) { axRenderStep(); return; }
+      AX.index = Math.max(0, Math.min(AX.steps.length - 1, i));
+      axRenderStep();
+    }
+    function axTogglePlay() { AX.playing ? axPause() : axPlay(); }
+    function axPlay() {
+      if (!AX.steps.length) return;
+      if (AX.index >= AX.steps.length - 1) AX.index = 0;
+      AX.playing = true;
+      axRenderStep();
+      axSchedule();
+    }
+    function axSchedule() {
+      clearTimeout(AX.timer);
+      if (!AX.playing) return;
+      AX.timer = setTimeout(() => {
+        if (!AX.playing) return;
+        if (AX.index >= AX.steps.length - 1) { axPause(); return; }
+        AX.index += 1;
+        axRenderStep();
+        axSchedule();
+      }, AX_STEP_MS / AX.speed);
+    }
+    function axPause() {
+      AX.playing = false;
+      clearTimeout(AX.timer);
+      AX.timer = null;
+      const b = axEl('ax-play');
+      if (b) { b.textContent = '▶ Play'; b.setAttribute('aria-label', 'Play'); }
+    }
+
+    // ---------- graph ----------
+    const AX_NS = 'http://www.w3.org/2000/svg';
+    function axSvg(tag, attrs, parent) {
+      const el = document.createElementNS(AX_NS, tag);
+      for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v);
+      if (parent) parent.appendChild(el);
+      return el;
+    }
+
+    function axLayout(nodes) {
+      const pos = {};
+      const unique = new Set(nodes.map(n => `${n.x},${n.y}`));
+      if (unique.size === nodes.length) {
+        nodes.forEach(n => { pos[n.id] = { x: n.x, y: n.y }; });
+      } else {
+        // Nodes without distinct canvas positions: place them on a circle (layout only).
+        const r = Math.max(120, nodes.length * 28);
+        nodes.forEach((n, i) => {
+          const a = (2 * Math.PI * i) / Math.max(1, nodes.length) - Math.PI / 2;
+          pos[n.id] = { x: r * Math.cos(a), y: r * Math.sin(a) };
+        });
+      }
+      return pos;
+    }
+
+    function axBuildGraph(scenario) {
+      AX.pos = axLayout(scenario.nodes || []);
+      AX.linkEls = {};
+      AX.nodeEls = {};
+      const linksG = axEl('ax-links'), labelsG = axEl('ax-link-labels'), nodesG = axEl('ax-nodes');
+      linksG.innerHTML = ''; labelsG.innerHTML = ''; nodesG.innerHTML = '';
+      axEl('ax-overlays').innerHTML = ''; axEl('ax-path-labels').innerHTML = '';
+      (scenario.links || []).forEach(l => {
+        const a = AX.pos[l.source], b = AX.pos[l.target];
+        if (!a || !b) return;
+        const g = axSvg('g', { 'data-ax-link': l.id }, linksG);
+        const title = axSvg('title', {}, g);
+        const ring = axSvg('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: 'transparent', 'stroke-width': 14, 'stroke-linecap': 'round', class: 'ax-link-line' }, g);
+        const line = axSvg('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, 'stroke-linecap': 'round', class: 'ax-link-line' }, g);
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const mark = axSvg('g', { transform: `translate(${mx},${my})`, visibility: 'hidden' }, labelsG);
+        axSvg('circle', { r: 8, fill: '#1f0a12', stroke: '#ff3b5c', 'stroke-width': 2 }, mark);
+        const x = axSvg('text', { 'text-anchor': 'middle', y: 4, fill: '#ff3b5c', 'font-size': '11px', 'font-weight': 800 }, mark);
+        x.textContent = '✖';
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const label = axSvg('text', {
+          x: mx - (dy / len) * 12, y: my + (dx / len) * 12 + 4, 'text-anchor': 'middle', 'font-size': '10px',
+          'font-family': 'Fira Code, monospace', 'font-weight': 600, fill: 'rgba(255,255,255,0.82)',
+          stroke: '#05070d', 'stroke-width': 3, 'paint-order': 'stroke'
+        }, labelsG);
+        AX.linkEls[l.id] = { g, title, ring, line, mark, label, link: l };
+      });
+      (scenario.nodes || []).forEach(n => {
+        const p = AX.pos[n.id];
+        const g = axSvg('g', { transform: `translate(${p.x},${p.y})`, 'data-ax-node': n.id }, nodesG);
+        axSvg('title', {}, g).textContent = `${n.id} · ${n.name || n.id} (${n.node_type})`;
+        const halo = axSvg('circle', { r: 26, fill: 'none', stroke: 'transparent', 'stroke-width': 3 }, g);
+        axSvg('circle', { r: 18, fill: '#0f172a', stroke: 'rgba(56,189,248,0.6)', 'stroke-width': 2 }, g);
+        const icon = axSvg('text', { 'text-anchor': 'middle', y: 5, 'font-size': '13px' }, g);
+        icon.textContent = (typeof ICONS !== 'undefined' && ICONS[n.node_type]) || '●';
+        const lbl = axSvg('text', { 'text-anchor': 'middle', y: 33, fill: '#fff', 'font-size': '11px', 'font-weight': 700, stroke: '#05070d', 'stroke-width': 3, 'paint-order': 'stroke' }, g);
+        lbl.textContent = n.id;
+        const badge = axSvg('text', { 'text-anchor': 'middle', y: -25, 'font-size': '10px', 'font-weight': 800, stroke: '#05070d', 'stroke-width': 3, 'paint-order': 'stroke' }, g);
+        AX.nodeEls[n.id] = { g, halo, badge };
+      });
+    }
+
+    function axLoadColor(util) { return util >= 80 ? '#ef4444' : util >= 50 ? '#f59e0b' : '#10b981'; }
+
+    function axOffsetPolyline(nodes, offset) {
+      const pts = nodes.map(id => AX.pos[id]).filter(Boolean);
+      if (pts.length < 2) return null;
+      const out = [];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const ox = (-dy / len) * offset, oy = (dx / len) * offset;
+        out.push([a.x + ox, a.y + oy], [b.x + ox, b.y + oy]);
+      }
+      return out;
+    }
+
+    function axRenderGraphStep(step, net) {
+      const viz = step ? (step.viz || {}) : {};
+      const linkRoles = viz.links || {};
+      const failed = new Set(net ? net.failed : []);
+      Object.entries(AX.linkEls).forEach(([id, el]) => {
+        const l = el.link;
+        const load = net && isNum(net.loads[id]) ? net.loads[id] : 0;
+        const isFailed = failed.has(id);
+        const util = l.capacity > 0 ? (load / l.capacity) * 100 : 0;
+        const role = AX_LINK_ROLE[linkRoles[id]];
+        el.line.style.stroke = isFailed ? '#64748b' : axLoadColor(util);
+        el.line.style.strokeWidth = isFailed ? 2.5 : Math.max(2.5, Math.min(l.capacity / 25, 7));
+        el.line.setAttribute('stroke-dasharray', isFailed ? '8 6' : '');
+        el.line.style.opacity = isFailed ? 0.8 : 1;
+        el.ring.style.stroke = role ? role.stroke : 'transparent';
+        el.ring.style.strokeWidth = role ? 13 : 14;
+        el.ring.style.opacity = role ? 0.45 : 0;
+        el.mark.setAttribute('visibility', isFailed ? 'visible' : 'hidden');
+        el.label.textContent = isFailed ? `${id} ✖` : `${id} ${axNum(load, 0)}/${axNum(l.capacity, 0)}`;
+        el.label.setAttribute('visibility', AX.showLabels ? 'visible' : 'hidden');
+        el.label.setAttribute('fill', role ? role.stroke : (isFailed ? '#ff7a90' : 'rgba(255,255,255,0.82)'));
+        el.title.textContent = `${id} ${l.source}↔${l.target} · capacity ${axMb(l.capacity)} · latency ${axNum(l.latency, 2)} ms · ` +
+          (isFailed ? 'FAILED' : `load ${axMb(load)} (${axNum(util, 0)}%)`) + (role ? ` · ${role.label} in this step` : '');
+      });
+      const nodeRoles = viz.nodes || {};
+      Object.entries(AX.nodeEls).forEach(([id, el]) => {
+        const r = nodeRoles[id];
+        const c = r === 'source' ? '#34d399' : r === 'destination' ? '#f472b6' : r === 'unreachable' ? '#ef4444' : 'transparent';
+        el.halo.setAttribute('stroke', c);
+        el.badge.textContent = r === 'source' ? 'SOURCE' : r === 'destination' ? 'DEST' : r === 'unreachable' ? 'UNREACHABLE' : '';
+        el.badge.setAttribute('fill', c);
+      });
+      // overlays: paths recorded for this step
+      const og = axEl('ax-overlays'), pg = axEl('ax-path-labels');
+      og.innerHTML = ''; pg.innerHTML = '';
+      const paths = (viz.paths || []).filter(p => Array.isArray(p.nodes) && p.nodes.length > 1);
+      const lane = paths.length > 7 ? 3 : 5;
+      const showPathLabels = paths.length <= 8;
+      const placed = [];
+      const freeSpot = (x, y, w) => {
+        for (const dy of [0, -13, 13, -26, 26, -39, 39, -52, 52]) {
+          const box = { x1: x - w / 2, x2: x + w / 2, y1: y + dy - 10, y2: y + dy + 2 };
+          if (!placed.some(o => box.x1 < o.x2 && box.x2 > o.x1 && box.y1 < o.y2 && box.y2 > o.y1)) { placed.push(box); return y + dy; }
+        }
+        return y;
+      };
+      paths.forEach((p, i) => {
+        const style = AX_ROLE[p.role] || AX_ROLE.candidate;
+        const pts = axOffsetPolyline(p.nodes, (i - (paths.length - 1) / 2) * lane);
+        if (!pts) return;
+        const attrs = {
+          points: pts.map(q => q.join(',')).join(' '), fill: 'none', stroke: style.stroke,
+          'stroke-width': style.width, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', class: 'ax-overlay',
+          opacity: style.opacity || 0.95
+        };
+        if (style.dash) attrs['stroke-dasharray'] = style.dash;
+        if (style.marker) attrs['marker-end'] = `url(#${style.marker})`;
+        if (style.glow) attrs.filter = 'url(#ax-glow)';
+        const poly = axSvg('polyline', attrs, og);
+        axSvg('title', {}, poly).textContent = `${p.label || ''} · ${p.nodes.join(' → ')}`;
+        if (showPathLabels && p.label) {
+          const seg = Math.floor((pts.length / 2 - 1) / 2); // middle segment of the path
+          const a = pts[2 * seg], b = pts[2 * seg + 1];
+          const lx = (a[0] + b[0]) / 2;
+          const ly = freeSpot(lx, (a[1] + b[1]) / 2 - 6, String(p.label).length * 6.2);
+          const t = axSvg('text', {
+            x: lx, y: ly, 'text-anchor': 'middle', 'font-size': '10px',
+            'font-weight': 700, fill: style.stroke, stroke: '#05070d', 'stroke-width': 3, 'paint-order': 'stroke',
+            class: 'ax-overlay'
+          }, pg);
+          t.textContent = p.label;
+        }
+      });
+    }
+
+    function axApplyTransform() {
+      axEl('ax-world').setAttribute('transform', `translate(${AX.pan.x},${AX.pan.y}) scale(${AX.zoom})`);
+    }
+    function axFit(force) {
+      const svg = axEl('ax-svg');
+      const rect = svg.getBoundingClientRect();
+      const pts = Object.values(AX.pos);
+      if (!pts.length || rect.width < 10 || rect.height < 10) return;
+      if (force) AX.userZoomed = false;
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+      const pad = 80, top = 56, bottom = 70;
+      const w = Math.max(maxX - minX, 1) + pad * 2, h = Math.max(maxY - minY, 1) + pad * 2;
+      const availH = Math.max(rect.height - top - bottom, 80);
+      AX.zoom = Math.max(0.2, Math.min(rect.width / w, availH / h, 1.8));
+      AX.pan = { x: rect.width / 2 - ((minX + maxX) / 2) * AX.zoom, y: top + availH / 2 - ((minY + maxY) / 2) * AX.zoom };
+      axApplyTransform();
+    }
+    function axZoomBy(f, cx, cy) {
+      const rect = axEl('ax-svg').getBoundingClientRect();
+      const px = (cx ?? rect.left + rect.width / 2) - rect.left, py = (cy ?? rect.top + rect.height / 2) - rect.top;
+      const wx = (px - AX.pan.x) / AX.zoom, wy = (py - AX.pan.y) / AX.zoom;
+      AX.zoom = Math.max(0.2, Math.min(AX.zoom * f, 4));
+      AX.pan = { x: px - wx * AX.zoom, y: py - wy * AX.zoom };
+      AX.userZoomed = true;
+      axApplyTransform();
+    }
+
+    // ---------- step rendering ----------
+    function axRenderStep() {
+      const n = AX.steps.length;
+      const step = n ? AX.steps[AX.index] : null;
+      axRenderGraphStep(step, n ? AX.resolved[AX.index] : null);
+      axEl('ax-counter').textContent = n ? `Step ${AX.index + 1} / ${n}` : 'Step – / –';
+      axEl('ax-timeline').value = String(AX.index);
+      axEl('ax-prev').disabled = !n || AX.index === 0;
+      axEl('ax-restart').disabled = !n || AX.index === 0;
+      axEl('ax-next').disabled = !n || AX.index >= n - 1;
+      axEl('ax-end').disabled = !n || AX.index >= n - 1;
+      axEl('ax-play').disabled = !n;
+      const pb = axEl('ax-play');
+      pb.textContent = AX.playing ? '⏸ Pause' : '▶ Play';
+      pb.setAttribute('aria-label', AX.playing ? 'Pause' : 'Play');
+      document.querySelectorAll('#ax-strip > button').forEach((b, i) => {
+        b.classList.toggle('ax-cur', i === AX.index);
+        b.classList.toggle('ax-done', i < AX.index);
+      });
+      const cap = axEl('ax-caption');
+      cap.hidden = !step;
+      if (step) cap.textContent = step.title;
+      if (AX.tab === 'step') axRenderPanel();
+    }
+
+    function axRenderStrip() {
+      axEl('ax-strip').innerHTML = AX.steps.map((s, i) => {
+        const g = AX_GROUPS[s.group] || ['', '#94a3b8'];
+        return `<button type="button" tabindex="-1" style="--c:${g[1]}" title="${i + 1}. ${esc(s.title)}" data-ax-step="${i}"></button>`;
+      }).join('');
+      axEl('ax-strip').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { axPause(); axGoto(Number(b.dataset.axStep)); }));
+    }
+
+    function axTable(t, highlightFirstSelected) {
+      if (!t || !Array.isArray(t.rows)) return '';
+      const rows = t.rows.map(r => {
+        const hl = highlightFirstSelected && r.some(c => typeof c === 'string' && c.startsWith('✓ selected'));
+        return `<tr${hl ? ' class="ax-hl"' : ''}>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`;
+      }).join('');
+      return `<div class="ax-table-title">${esc(t.title || '')}</div>
+        <div class="ax-table-wrap"><table class="ax-table"><thead><tr>${(t.columns || []).map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+        <tbody>${rows || `<tr><td colspan="${(t.columns || []).length || 1}">none</td></tr>`}</tbody></table></div>`;
+    }
+
+    function axSetTab(tab) {
+      AX.tab = tab;
+      document.querySelectorAll('.ax-tab').forEach(b => {
+        const on = b.dataset.axTab === tab;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', String(on));
+      });
+      axRenderPanel();
+    }
+
+    function axRenderPanel() {
+      const body = axEl('ax-panel-body');
+      if (!AX.trace) { body.innerHTML = '<div class="ax-hint">Choose an algorithm to load its trace.</div>'; return; }
+      if (AX.tab === 'step') body.innerHTML = axStepHtml();
+      else if (AX.tab === 'result') body.innerHTML = axResultHtml();
+      else if (AX.tab === 'compare') { body.innerHTML = axCompareHtml(); axBindCompare(); }
+      else body.innerHTML = axAboutHtml();
+    }
+
+    function axStepHtml() {
+      const s = AX.steps[AX.index];
+      if (!s) return '<div class="ax-hint">This trace has no steps.</div>';
+      const g = AX_GROUPS[s.group] || [s.group, '#94a3b8'];
+      const f = AX_FIDELITY[s.fidelity] || [s.fidelity, ''];
+      const sections = (s.sections || []).map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.text)}</dd></div>`).join('');
+      const tables = (s.tables || []).map(t => axTable(t, true)).join('');
+      const evs = (s.event_seq || []).map(q => AX.eventsBySeq[q]).filter(Boolean);
+      const evidence = evs.length
+        ? `<details class="ax-evidence"><summary>Recorded event data (${evs.map(e => esc(e.kind)).join(', ')})</summary><pre>${esc(JSON.stringify(evs.map(e => ({ kind: e.kind, phase: e.phase, data: e.data })), null, 1))}</pre></details>`
+        : `<div class="ax-evidence">${s.fidelity === 'verification' ? 'Computed by the explorer from the recorded result shown in the previous step.' : 'Combined from several recorded events.'}</div>`;
+      return `
+        <div class="ax-step-head">
+          <span class="ax-phase" style="--c:${g[1]}">${esc(s.phase || g[0])}</span>
+          <span class="ax-fid ax-fid-${esc(s.fidelity)}" title="${esc(f[1])}">${esc(f[0])}</span>
+          <span class="ax-step-no">${AX.index + 1} / ${AX.steps.length}</span>
+        </div>
+        <h3 class="ax-step-title" id="ax-step-title">${esc(s.title)}</h3>
+        <div class="ax-step-summary">${esc(s.summary)}</div>
+        <dl class="ax-sections">${sections}</dl>
+        ${tables}
+        ${evidence}`;
+    }
+
+    function axCheck(ok, yes, no, na) {
+      if (ok === null || ok === undefined) return `<li class="ax-na">– ${esc(na)}</li>`;
+      return ok ? `<li class="ax-ok">✓ ${esc(yes)}</li>` : `<li class="ax-bad">✗ ${esc(no)}</li>`;
+    }
+
+    function axResultHtml() {
+      const t = AX.trace, r = t.result || {}, m = r.metrics || {}, v = t.verification || {};
+      const pct = (a, b) => isNum(a) && isNum(b) && b > 0 ? ` (${axNum(a / b * 100, 1)}%)` : '';
+      const checks = AX.source === 'live'
+        ? axCheck(v.replay_identical_to_live, 'Replay is identical to what happened live', `Replay differs from the live outcome: ${(v.differences || []).slice(0, 3).join('; ')}`, '') +
+          (v.live_changed_since ? '<li class="ax-na">– The live network has changed since that action (the replay still describes the action itself).</li>' : '')
+        : axCheck(v.untraced_rerun_identical, 'Re-running without tracing gives an identical result', `Untraced re-run differs: ${(v.differences || []).slice(0, 3).join('; ')}`, 'not checked') +
+          axCheck(v.matches_live_installed, 'Equals the routes installed in the live network when the snapshot was taken',
+            'Differs from the routes installed live (they came from a different controller action)', 'Live comparison not applicable (failure scenario or non-routing view)');
+      const errs = (v.recorder_errors || []).length ? `<li class="ax-bad">✗ Recorder errors: ${esc(v.recorder_errors.join('; '))}</li>` : '<li class="ax-ok">✓ No recording errors</li>';
+      const demands = (r.demands || []).map(d => {
+        const tun = (d.tunnels || []).filter(x => (x.bandwidth || 0) > 1e-9);
+        const route = tun.length > 1 ? tun.map(x => `${x.node_path.join('→')} (${axMb(x.bandwidth)})`).join(' + ') : (d.route ? d.route.join(' → ') : '—');
+        return [d.id, `P${d.priority}`, axMb(d.requested), axMb(d.delivered), String(d.status).replace(/_/g, ' '), route];
+      });
+      const links = (r.links || []).map(l => [l.id, `${l.source}↔${l.target}`, l.status === 'active' ? axMb(l.load) : l.status.toUpperCase(), axMb(l.capacity), l.status === 'active' ? `${axNum(l.utilization, 0)}%` : '—']);
+      const plan = r.plan ? `<div class="ax-note">Protection plan on this copy: ${r.plan.verified ? 'verified' : 'NOT verified'} (${esc(r.plan.solver_status)}), ${r.plan.scenarios} scenarios. Guarantees: ${esc(Object.entries(r.plan.guarantees || {}).map(([k, g]) => `${k} ${axMb(g)}`).join(', ') || 'none')}.</div>` : '';
+      return `
+        <div class="ax-note">Measured on the explorer's private copy after the ${esc(t.algorithm_label)} run. Values come from the backend's metrics, not from this page.</div>
+        <div class="ax-metric-grid">
+          <div class="ax-metric"><div class="k">Delivered</div><div class="v">${axMb(m.total_delivered)}</div><div class="ax-hint">of ${axMb(m.total_requested)}${pct(m.total_delivered, m.total_requested)}</div></div>
+          <div class="ax-metric"><div class="k">Critical P1–P2</div><div class="v">${axMb(m.critical_delivered)}</div><div class="ax-hint">of ${axMb(m.critical_requested)}${pct(m.critical_delivered, m.critical_requested)}</div></div>
+          <div class="ax-metric"><div class="k">Max link utilization</div><div class="v">${axNum(m.max_link_utilization, 1)}%</div></div>
+          <div class="ax-metric"><div class="k">Validator violations</div><div class="v">${(r.violations || []).length}</div></div>
+        </div>
+        <ul class="ax-checks">${checks}${errs}</ul>
+        ${plan}
+        ${axTable({ title: 'Demands', columns: ['Demand', 'Priority', 'Requested', 'Delivered', 'Status', 'Route'], rows: demands })}
+        ${axTable({ title: 'Links', columns: ['Link', 'Ends', 'Load', 'Capacity', 'Utilization'], rows: links })}`;
+    }
+
+    function axCompareHtml() {
+      if (AX.source === 'live') return '<div class="ax-hint">Comparison runs on an explorer snapshot. Choose an algorithm in the sidebar to return to the snapshot, then compare.</div>';
+      const fl = AX.failedLink && AX.algorithm !== 'protection' ? AX.failedLink : '';
+      const head = `<div class="ax-note">Runs Baseline Dijkstra, PACAR and the Reactive LP on identical private copies of the snapshot${fl ? ` with ${esc(fl)} failed` : ''}. Each column is the controller's real simulation step with that algorithm.</div>
+        <button class="ax-btn ax-btn-primary" type="button" id="ax-compare-run">⚖ Compare on this snapshot${fl ? ` (${esc(fl)} failed)` : ''}</button>`;
+      const c = AX.compare;
+      if (!c) return head;
+      if (c.loading) return head + '<div class="ax-hint">Running…</div>';
+      if (c.error) return head + `<div class="ax-note ax-bad">${esc(c.error)}</div>`;
+      const rows = c.data.rows;
+      const best = Math.max(...rows.map(r => r.metrics.total_delivered));
+      const metric = (label, f) => `<tr><td>${esc(label)}</td>${rows.map(r => `<td>${f(r)}</td>`).join('')}</tr>`;
+      const pr = p => r => axMb(((r.per_priority || {})[`P${p}`] || {}).delivered ?? 0);
+      const demandIds = rows[0] ? rows[0].demands.map(d => d.id) : [];
+      const bar = (r) => {
+        const req = r.metrics.total_requested || 0;
+        const w = req > 0 ? Math.round(r.metrics.total_delivered / req * 100) : 0;
+        return `<div class="ax-bar"><i style="width:${w}%"></i></div>`;
+      };
+      return head + `
+        <div class="ax-table-title" style="margin-top:0.6rem;">Measured results (same snapshot${fl ? `, ${esc(fl)} failed` : ''})</div>
+        <div class="ax-table-wrap" style="max-height:none;"><table class="ax-table"><thead><tr><th>Metric</th>${rows.map(r => `<th>${esc(r.label)}</th>`).join('')}</tr></thead><tbody>
+          ${metric('Delivered', r => `${axMb(r.metrics.total_delivered)}${r.metrics.total_delivered === best ? ' ★' : ''}${bar(r)}`)}
+          ${metric('Critical P1–P2', r => axMb(r.metrics.critical_delivered))}
+          ${[1, 2, 3, 4, 5].map(p => metric(`P${p} delivered`, pr(p))).join('')}
+          ${metric('Max link util.', r => `${axNum(r.metrics.max_link_utilization, 1)}%`)}
+          ${metric('Avg path latency', r => `${axNum(r.metrics.avg_latency, 2)} ms`)}
+          ${metric('Unreachable demands', r => String(r.metrics.disconnected_demands))}
+          ${metric('Violations', r => String((r.violations || []).length))}
+          ${metric('Installed algorithm', r => esc(r.algorithm_used === r.algorithm ? 'as selected' : `${r.algorithm_used} (fallback)`))}
+          ${metric('Untraced re-run identical', r => r.verified_identical ? '✓' : '✗')}
+        </tbody></table></div>
+        <div class="ax-table-title">Delivered per demand</div>
+        ${axTable({ title: '', columns: ['Demand', ...rows.map(r => r.label)], rows: demandIds.map(id => [id, ...rows.map(r => { const d = r.demands.find(x => x.id === id); return d ? `${axMb(d.delivered)} / ${axMb(d.requested)}` : '—'; })]) })}
+        <div class="ax-note"><b>Notes (not measurements):</b> ★ marks the highest delivered total. PACAR and Baseline are heuristics without an optimality guarantee; the Reactive LP is a lexicographic optimum over the candidate tunnels. Higher delivery is not always the only goal: PACAR deliberately spreads load by its congestion score.</div>`;
+    }
+
+    function axBindCompare() {
+      const btn = axEl('ax-compare-run');
+      if (!btn) return;
+      btn.addEventListener('click', async () => {
+        const fl = AX.failedLink && AX.algorithm !== 'protection' ? AX.failedLink : null;
+        const seq = ++AX.compareSeq;
+        AX.compare = { loading: true };
+        axRenderPanel();
+        try {
+          const data = await apiPost(`/explorer/sessions/${encodeURIComponent(AX.session.session_id)}/compare`, { failed_link: fl });
+          if (seq !== AX.compareSeq) return;
+          AX.compare = { data };
+        } catch (err) {
+          if (seq !== AX.compareSeq) return;
+          AX.compare = { error: `Comparison failed: ${err.message}` };
+        }
+        if (AX.tab === 'compare') axRenderPanel();
+      });
+    }
+
+    function axAboutHtml() {
+      const t = AX.trace;
+      const meta = axMeta(t.algorithm) || {};
+      const legend = Object.entries(AX_FIDELITY).map(([k, [label, tip]]) => `<li><span class="ax-fid ax-fid-${k}">${esc(label)}</span> ${esc(tip)}</li>`).join('');
+      const groups = Object.entries(AX_GROUPS).map(([k, [label, c]]) => `<span class="ax-phase" style="--c:${c}; margin:0 0.25rem 0.25rem 0; display:inline-block;">${esc(label)}</span>`).join('');
+      return `
+        <h3 class="ax-step-title">${esc(t.algorithm_label)}</h3>
+        <div class="ax-step-summary">${esc(meta.description || t.fidelity_note || '')}</div>
+        <dl class="ax-sections">
+          <div><dt>Trace level</dt><dd>${esc(t.trace_level_label)}</dd></div>
+          <div><dt>What is recorded</dt><dd>${esc(t.fidelity_note)}</dd></div>
+          ${meta.source ? `<div><dt>Source code</dt><dd>${esc(meta.source)}</dd></div>` : ''}
+          ${meta.used_by ? `<div><dt>Used by the dashboard</dt><dd>${esc(meta.used_by)}</dd></div>` : ''}
+          <div><dt>This trace</dt><dd>${AX.steps.length} steps from ${esc(t.raw_event_count)} recorded events · ${axNum(t.computation_ms, 1)} ms of computation on the server${t.failed_link ? ` · link ${esc(t.failed_link)} failed` : ''}</dd></div>
+        </dl>
+        <div class="ax-table-title">Step labels</div>
+        <ul class="ax-checks">${legend}</ul>
+        <div class="ax-table-title">Timeline colours</div>
+        <div>${groups}</div>`;
+    }
+
+    function axMessage(text, isError) {
+      const box = axEl('ax-overlay-msg');
+      if (!text) { box.hidden = true; return; }
+      box.hidden = false;
+      box.classList.toggle('ax-error', !!isError);
+      axEl('ax-overlay-text').textContent = text;
     }
   </script>
 </body>

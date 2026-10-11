@@ -31,6 +31,7 @@ def run_reflex_recovery(
     previous_allocations: Optional[dict[str, dict[str, float]]] = None,
     is_verification_mode: bool = False,
     network_version: Optional[int] = None,
+    trace=None,
 ) -> dict:
     """
     Executes Reflex Recovery.
@@ -46,6 +47,8 @@ def run_reflex_recovery(
         "unserved_mbps": float,
         "message": str
     }
+    ``trace`` (optional TraceRecorder) receives a passive record of every step;
+    it is never read, so it cannot change the recovery allocation.
     """
     start_time = time.perf_counter()
     if network_version is None:
@@ -56,9 +59,19 @@ def run_reflex_recovery(
     # Check coverage relative to the plan baseline (links already down when it was
     # computed): at most one additional failed link, and that scenario must be covered.
     is_covered = protection_plan.scenario_for(failed_links) is not None
+    if trace is not None:
+        trace.emit("reflex.coverage", failed_links=sorted(failed_links),
+                   base_unavailable=sorted(protection_plan.base_unavailable),
+                   extra=sorted(set(failed_links) - set(protection_plan.base_unavailable)),
+                   scenario=protection_plan.scenario_for(failed_links), covered=is_covered,
+                   verified=protection_plan.verified, verification_mode=is_verification_mode,
+                   plan_id=protection_plan.plan_id,
+                   guarantees=dict(protection_plan.per_flow_guaranteed))
 
     if not is_covered:
         elapsed = (time.perf_counter() - start_time) * 1000
+        if trace is not None:
+            trace.emit("reflex.abort", reason="not_covered")
         return {
             "success": False,
             "is_covered": False,
@@ -73,6 +86,8 @@ def run_reflex_recovery(
 
     if not is_verification_mode and not protection_plan.verified:
         elapsed = (time.perf_counter() - start_time) * 1000
+        if trace is not None:
+            trace.emit("reflex.abort", reason="unverified")
         return {
             "success": False,
             "is_covered": True,
@@ -122,6 +137,26 @@ def run_reflex_recovery(
                 if alloc_val > 1e-12:
                     allocations[fid][tid] = alloc_val
             critical_recovered += target
+        if trace is not None:
+            surviving_ids = {tid for tid, _ in surviving_tunnels}
+            lost = []
+            for tid in reservations:
+                if tid in surviving_ids:
+                    continue
+                t = tunnel_lookup.get((fid, tid))
+                if t is None:
+                    lost.append({"tunnel": tid, "reasons": ["tunnel no longer exists"]})
+                elif not t.survives_failure(failed_links):
+                    lost.append({"tunnel": tid, "reasons": [f"crosses unavailable link {lid}"
+                                                            for lid in t.link_ids if lid in failed_links]})
+                else:
+                    lost.append({"tunnel": tid, "reasons": tunnel_errors(t, fid, demand, links, failed_links)})
+            trace.emit("reflex.critical_flow", flow=fid, priority=pval, requested=req_bw,
+                       guaranteed=guaranteed, reservations=reservations,
+                       surviving=[[tid, a_val] for tid, a_val in surviving_tunnels], lost=lost,
+                       S=S, target=target, allocation=allocations[fid],
+                       tunnels={tid: tunnel_lookup[(fid, tid)].to_dict()
+                                for tid in reservations if (fid, tid) in tunnel_lookup})
 
     # 2. Compute critical load on every physical link (UNDIRECTED: both directions combined)
     critical_link_loads: dict[str, float] = {lid: 0.0 for lid in links}
@@ -131,6 +166,10 @@ def run_reflex_recovery(
             if t:
                 for lid in t.link_ids:
                     critical_link_loads[lid] = critical_link_loads.get(lid, 0.0) + bw
+    if trace is not None:
+        trace.emit("reflex.critical_loads", loads=critical_link_loads,
+                   capacity={lid: float(value(link, "capacity", 0.0)) for lid, link in links.items()},
+                   critical_recovered=critical_recovered)
 
     # 3. Preserve surviving previous allocations, strictly by priority, inside the
     #    capacity left after the guaranteed critical allocations. Each class in turn
@@ -165,6 +204,31 @@ def run_reflex_recovery(
             if total > 1e-12:
                 scale = min(1.0, room_in_demand / total)
                 by_class[pval][fid] = {tid: bw * scale for tid, bw in wanted.items()}
+            if trace is not None and (previous_allocations.get(fid) or {}):
+                prev = previous_allocations.get(fid) or {}
+                dropped = []
+                for tid, bw in prev.items():
+                    if tid in wanted or bw <= 1e-12:
+                        continue
+                    t = tunnel_lookup.get((fid, tid))
+                    if not t:
+                        dropped.append({"tunnel": tid, "reasons": ["tunnel no longer exists"]})
+                    elif not t.survives_failure(failed_links):
+                        dropped.append({"tunnel": tid, "rate": bw,
+                                        "reasons": [f"crosses unavailable link {lid}"
+                                                    for lid in t.link_ids if lid in failed_links]})
+                    elif tunnel_errors(t, fid, demand, links, failed_links):
+                        dropped.append({"tunnel": tid, "rate": bw,
+                                        "reasons": tunnel_errors(t, fid, demand, links, failed_links)})
+                    else:
+                        dropped.append({"tunnel": tid, "rate": bw,
+                                        "reasons": ["already covered by the guaranteed allocation"]})
+                trace.emit("reflex.preserve_wanted", flow=fid, priority=pval, previous=prev,
+                           already=dict(already), room_in_demand=room_in_demand, wanted=wanted,
+                           scale=(min(1.0, room_in_demand / total) if total > 1e-12 else None),
+                           dropped=dropped,
+                           tunnels={tid: tunnel_lookup[(fid, tid)].to_dict()
+                                    for tid in prev if (fid, tid) in tunnel_lookup})
 
         for pval in range(1, 6):
             cls = by_class[pval]
@@ -176,14 +240,20 @@ def run_reflex_recovery(
                     for lid in tunnel_lookup[(fid, tid)].link_ids:
                         cls_load[lid] = cls_load.get(lid, 0.0) + bw
             link_scale: dict[str, float] = {}
+            class_room = {} if trace is not None else None
+            class_granted = {} if trace is not None else None
             for lid, load in cls_load.items():
                 cap = float(value(links.get(lid), "capacity", 0.0)) if lid in links else 0.0
                 room = max(0.0, cap - used.get(lid, 0.0))
                 link_scale[lid] = 1.0 if load <= room + 1e-12 else room / load
+                if class_room is not None:
+                    class_room[lid] = room
             for fid, t_allocs in cls.items():
                 for tid, bw in t_allocs.items():
                     t = tunnel_lookup[(fid, tid)]
                     final_bw = bw * min((link_scale.get(lid, 1.0) for lid in t.link_ids), default=1.0)
+                    if class_granted is not None:
+                        class_granted.setdefault(fid, {})[tid] = final_bw
                     if final_bw <= 1e-12:
                         continue
                     allocations[fid][tid] = allocations[fid].get(tid, 0.0) + final_bw
@@ -193,6 +263,11 @@ def run_reflex_recovery(
                         critical_preserved += final_bw
                     else:
                         normal_recovered += final_bw
+            if trace is not None:
+                trace.emit("reflex.preserve_class", priority=pval, requested=cls, load=cls_load,
+                           room=class_room, link_scale=link_scale, granted=class_granted, used=used)
+    elif trace is not None:
+        trace.emit("reflex.no_previous")
     critical_guaranteed = critical_recovered
     critical_recovered += critical_preserved
 
@@ -200,7 +275,13 @@ def run_reflex_recovery(
         {t.id: t for ts in candidate_tunnels.values() for t in ts}, failed_links=failed_links)
     guarantees_met = all(sum(allocations.get(fid, {}).values()) >= g - 1e-8
                          for fid, g in protection_plan.per_flow_guaranteed.items())
+    if trace is not None:
+        trace.emit("reflex.validation", valid=check.is_valid, violations=check.violations,
+                   guarantees_met=guarantees_met, link_loads=check.link_loads,
+                   delivered={fid: sum(a.values()) for fid, a in allocations.items()})
     if not check.is_valid or not guarantees_met:
+        if trace is not None:
+            trace.emit("reflex.abort", reason="invalid_or_guarantee_unmet")
         return {"success": False, "is_covered": True, "allocations": {},
                 "network_version": network_version,
                 "runtime_ms": (time.perf_counter()-start_time)*1000,
@@ -213,6 +294,10 @@ def run_reflex_recovery(
     unserved = max(0.0, total_req - total_served)
 
     elapsed = (time.perf_counter() - start_time) * 1000
+    if trace is not None:
+        trace.emit("reflex.result", allocations=allocations, critical_recovered=critical_recovered,
+                   critical_guaranteed=critical_guaranteed, normal_recovered=normal_recovered,
+                   unserved=unserved, runtime_ms=elapsed)
 
     return {
         "success": True,
